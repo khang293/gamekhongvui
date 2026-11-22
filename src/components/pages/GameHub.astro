@@ -56,4 +56,12 @@ const cards = [
   .game-card b { font-size: 1.15rem; }
   .game-desc { color: var(--muted); font-size: .93rem; line-height: 1.5; flex: 1; }
   .game-card .btn { margin-top: 8px; }
+  @media (max-width: 640px) {
+    .game-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
+    .game-card { padding: 14px; gap: 4px; border-radius: 14px; }
+    .game-ic { font-size: 1.9rem; }
+    .game-card b { font-size: 1rem; line-height: 1.25; }
+    .game-desc { font-size: .8rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .game-card .btn { align-self: stretch; text-align: center; padding: 10px 8px; min-height: 44px; }
+  }
 </style>

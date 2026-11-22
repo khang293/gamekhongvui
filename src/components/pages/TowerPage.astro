@@ -1125,4 +1125,20 @@ const ui = {
   @media (max-width: 640px) {
     #tower .td-bar { grid-template-columns: repeat(2, 1fr); }
   }
+  /* Điện thoại nằm ngang: bàn chơi bên trái, bảng chọn tháp và nút điều khiển bên phải để không phải cuộn trang */
+  @media (orientation: landscape) and (max-height: 520px) and (pointer: coarse) {
+    #tower #td-game:not([hidden]) { display: grid; grid-template-columns: minmax(0, 1fr) 224px; grid-template-rows: auto auto auto auto 1fr; gap: 6px 10px; align-items: start; }
+    #tower .td-stage { grid-column: 1; grid-row: 1 / span 5; margin: 0; }
+    #tower .td-hud, #tower .td-bar, #tower .td-info, #tower .td-actions { grid-column: 2; width: auto !important; margin: 0 !important; }
+    #tower .td-hud { grid-row: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding-right: 48px; }
+    #tower .td-hud .td-wavep { grid-column: 1 / -1; }
+    #tower .td-hud .td-pill { padding: 3px 10px; font-size: .88rem; }
+    #tower .td-hud .td-msg { display: none; }
+    #tower .td-bar { grid-row: 2; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+    #tower .td-tw { padding: 4px 4px; min-height: 48px; }
+    #tower .td-tw-n { font-size: .72rem; }
+    #tower .td-info { grid-row: 3; min-height: 0; font-size: .78rem; padding: 6px 8px; }
+    #tower .td-actions { grid-row: 4; display: flex; flex-wrap: wrap; gap: 6px; }
+    #tower .td-actions #td-go { flex: 1 1 100%; padding: 9px 10px; }
+  }
 </style>

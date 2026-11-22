@@ -172,7 +172,7 @@ export function mountMute(host: HTMLElement | null) {
   const b = document.createElement('button');
   b.type = 'button';
   b.className = 'sfx-btn';
-  b.style.cssText = 'position:absolute;top:8px;right:8px;z-index:5;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(10,14,30,.55);color:#fff;font-size:17px;cursor:pointer;line-height:1;padding:0';
+  b.style.cssText = 'position:absolute;top:8px;right:8px;z-index:5;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(10,14,30,.55);color:#fff;font-size:17px;cursor:pointer;line-height:1;padding:0';
   const paint = () => { b.textContent = muted ? '🔇' : '🔊'; b.setAttribute('aria-label', muted ? 'Sound off' : 'Sound on'); };
   b.addEventListener('click', (e) => { e.stopPropagation(); sfx.setMuted(!muted); paint(); if (!muted) sfx.play('click'); });
   paint();

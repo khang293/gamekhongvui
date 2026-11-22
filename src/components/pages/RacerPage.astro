@@ -934,5 +934,6 @@ const ui = { ...t, resultTitle: [0, 1, 2, 3].map((i) => t.resultTitle(i)) };
   .rc-pad button.on { transform: scale(.93); filter: brightness(1.2); border-color: var(--accent); }
   .rc-pad button.rc-small { min-width: 48px; height: 48px; font-size: 1rem; border-radius: 50%; }
   @media (pointer: coarse), (max-width: 760px) { .rc-pad { display: flex; } }
+  @media (max-width: 480px) { .rc-pad { gap: 6px; } .rc-grp { gap: 6px; } .rc-pad button { min-width: 56px; height: 64px; font-size: 1.1rem; } .rc-pad button#rc-b, .rc-pad button#rc-g { min-width: 72px; } .rc-pad button.rc-small { min-width: 44px; height: 44px; } }
   @media (max-width: 640px) { .rc-ov { position: fixed; inset: 0; z-index: 60; border-radius: 0; background: rgba(5, 8, 20, .9); } }
 </style>

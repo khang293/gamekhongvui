@@ -137,7 +137,7 @@ pre:hover .copy,.copy:focus{opacity:1}
 .site-footer .foot p{margin:4px 0 0;max-width:300px}
 .foot-links{display:flex;flex-direction:column;gap:4px}
 .foot-links a{color:var(--muted)}
-.site-footer .copy{margin-top:22px;padding-top:14px;border-top:1px solid var(--line)}.chip-big.alt{background:transparent;color:var(--muted);font-weight:500}
+.site-footer .foot-copy{margin-top:22px;padding-top:14px;border-top:1px solid var(--line)}.chip-big.alt{background:transparent;color:var(--muted);font-weight:500}
 @media (hover:none){.copy{opacity:1}}
 @media(max-width:720px){.site-header nav{flex-wrap:nowrap;scrollbar-width:none}.site-header nav::-webkit-scrollbar{display:none}.site-header nav a{white-space:nowrap}}
 .block-head.row>a{white-space:nowrap}
@@ -167,7 +167,7 @@ pre:hover .copy,.copy:focus{opacity:1}
 .card.pkg .price b{font-size:1.1rem}
 .card.pkg .btn{align-self:flex-start;margin-top:4px}
 .consent{margin:0;font-size:.85rem;color:var(--muted)}
-.site-footer .copy a{color:var(--muted);text-decoration:underline}
+.site-footer .foot-copy a{color:var(--muted);text-decoration:underline}
 
 .qr{display:flex;align-items:center;gap:16px;margin-top:14px;flex-wrap:wrap}
 .qr img{border-radius:12px;border:1px solid var(--line);background:#fff}
@@ -181,7 +181,7 @@ pre:hover .copy,.copy:focus{opacity:1}
 .float-zalo{position:fixed;right:16px;bottom:16px;z-index:20;display:flex;align-items:center;gap:8px;background:#0068ff;color:#fff;padding:11px 18px;border-radius:999px;font-weight:700;box-shadow:0 6px 20px rgba(0,104,255,.38);line-height:1}
 .float-zalo:hover{text-decoration:none;filter:brightness(1.08)}
 .float-zalo b{font-size:.92rem}
-.site-footer{padding-bottom:70px}
+.site-footer{padding-bottom:calc(28px + env(safe-area-inset-bottom,0px))}
 @media(max-width:340px){.float-zalo b{display:none}}
 @media print{.float-zalo{display:none}}
 .cta-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
@@ -272,3 +272,49 @@ main{position:relative}
 main.is-fs .bd-status,main.is-fs .bd-h{text-align:center}
 main.is-fs .bd-actions{justify-content:center}
 main.is-fs .ch-wrap{max-width:calc(100vh - 250px)!important;margin-left:auto!important;margin-right:auto!important}
+
+/* ---- Điện thoại: header gọn, vùng bấm đủ lớn, không để trang cuộn hoặc phóng to khi đang chơi ---- */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+button,a,select,summary,.bd-opt{touch-action:manipulation}
+.theme-btn{width:40px;height:40px}
+.lang{padding:9px 12px}
+.fs-btn{width:44px;height:44px}
+body[data-game]{overscroll-behavior-y:contain}
+body[data-game] main{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+body[data-game] input,body[data-game] textarea{-webkit-user-select:text;user-select:text}
+body[data-game] main>p.meta:first-of-type a{display:inline-block;padding:10px 8px 10px 0}
+@supports (height:100dvh){main.is-fs canvas{max-height:calc(100dvh - 200px)}}
+main.is-fs.wrap{padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+@media(max-width:720px){
+  .site-header{position:static}
+  .site-header nav{display:none}
+  .site-header .bar{min-height:52px;flex-wrap:nowrap}
+  body[data-game] main>h1{font-size:1.5rem;line-height:1.2;margin:2px 0 8px}
+  body[data-game] main>h1+p.meta{display:none}
+  .fs-btn{top:8px}
+  .btn.sm,.bd-opt{min-height:40px}
+  .site-footer .foot-copy a{display:inline-block;padding:6px 0}
+}
+
+/* ---- Điện thoại nằm ngang: bỏ khung trang, bàn chơi vừa chiều cao màn hình, nút điều khiển nổi hai bên ---- */
+@media (orientation:landscape) and (max-height:520px) and (pointer:coarse){
+  body[data-game] .site-header,body[data-game] .site-footer{display:none}
+  body[data-game] main>h1,body[data-game] main>p.meta{display:none}
+  body[data-game] main.wrap{padding-top:6px;padding-bottom:6px}
+  body[data-game] .fs-btn{top:6px;right:6px}
+  body[data-game] main canvas:not([aria-hidden]){max-height:calc(100dvh - 14px);width:auto;max-width:100%;height:auto;margin-inline:auto}
+  body[data-game] .sv-pad,body[data-game] .fg-pad,body[data-game] .bm-pad,body[data-game] .rc-pad,body[data-game] .rn-ctl,body[data-game] .sn-ctl{position:fixed;left:0;right:0;bottom:calc(8px + env(safe-area-inset-bottom,0px));z-index:30;margin:0!important;padding:0 calc(14px + env(safe-area-inset-left,0px)) 0 calc(14px + env(safe-area-inset-right,0px));width:auto!important;max-width:none!important;pointer-events:none;justify-content:space-between!important}
+  body[data-game] .sv-pad>*,body[data-game] .fg-pad>*,body[data-game] .bm-pad>*,body[data-game] .rc-pad>*,body[data-game] .rn-ctl>*,body[data-game] .sn-ctl>*{pointer-events:auto}
+  body[data-game] .bl-pad{position:fixed;right:calc(10px + env(safe-area-inset-right,0px));top:50%;transform:translateY(-50%);z-index:30;flex-direction:column;width:auto!important;gap:6px}
+  body[data-game] .bl-pad button{height:48px;min-width:64px}
+  body[data-game] .ch-wrap{width:min(100%,calc(100dvh - 120px))}
+  body[data-game] .xq-wrap{width:min(100%,calc((100dvh - 150px)*.9))}
+}
+
+/* Toàn màn hình trên điện thoại: dùng dvh để không bị thanh địa chỉ che (100vh trên iPhone cao hơn vùng nhìn thấy) */
+@supports (height:100dvh){
+  body main.is-fs .ch-wrap{max-width:calc(100dvh - 250px)!important}
+  body main.is-fs .xq-wrap{max-width:calc((100dvh - 300px)*.9)!important}
+  body main.is-fs .bl-wrap{max-width:calc((100dvh - 340px)*1.8)!important}
+  body main.is-fs .pk-wrap{max-width:min(1000px,calc((100dvh - 300px)*1.7))}
+}

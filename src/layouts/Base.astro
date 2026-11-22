@@ -1,7 +1,7 @@
 ---
 import '../styles/global.css';
 import { SITE, PORTFOLIO } from '../config';
-import { ui, lp, altPath, withBase, type Lang } from '../i18n';
+import { ui, lp, altPath, withBase, stripBase, type Lang } from '../i18n';
 
 // Site game luôn đặt noindex (không cho Google lập chỉ mục).
 interface Props { title?: string; description?: string; lang?: Lang; wide?: boolean; noindex?: boolean; }
@@ -16,6 +16,8 @@ const otherHref = altPath(path, lang);
 const an = SITE.analytics;
 const ogImage = new URL(withBase('/og-image.png'), Astro.site).href;
 const baseForScripts = withBase('/').replace(/\/$/, '');
+const gm = stripBase(path).match(/^(?:\/en)?\/([^/]+)\/?$/);
+const isGame = !!gm && !['en', 'privacy', '404'].includes(gm[1]);
 ---
 <!doctype html>
 <html lang={lang}>
@@ -75,7 +77,7 @@ const baseForScripts = withBase('/').replace(/\/$/, '');
     )}
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>" />
   </head>
-  <body>
+  <body data-game={isGame ? '' : undefined}>
     <header class="site-header">
       <div class="wrap wide bar">
         <a class="brand" href={lp(lang, '/')}><span>🎮</span> {SITE.brand}</a>
@@ -94,9 +96,9 @@ const baseForScripts = withBase('/').replace(/\/$/, '');
     <main class:list={['wrap', { wide }]}><slot /></main>
 
     <footer class="site-footer">
-      <div class="wrap wide copy">
+      <div class="wrap wide foot-copy">
         <p class="legal">{t.sideProject}</p>
-        © {new Date().getFullYear()} {SITE.author} · <a href={lp(lang, '/privacy/')}>{t.privacy}</a>
+        © {new Date().getFullYear()} {SITE.author} · <a href={lp(lang, '/privacy/')}>{t.privacy}</a> · <a href={PORTFOLIO + (lang === 'en' ? '/en/' : '/')} rel="noopener">{t.portfolio} ↗</a>
       </div>
     </footer>
 

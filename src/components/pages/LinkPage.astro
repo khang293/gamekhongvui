@@ -366,7 +366,7 @@ const ui = { ...S };
     canvas.width = W * CW; canvas.height = H * CH;
     canvas.style.maxWidth = canvas.width + 'px';
     const wrapEl = $('lk-wrap'); wrapEl.style.maxWidth = canvas.width + 2 + 'px'; wrapEl.style.marginInline = 'auto';
-    canvas.style.minWidth = Math.min(canvas.width, W * 30) + 'px';
+    canvas.style.minWidth = Math.min(canvas.width, W * (innerWidth < 520 ? 26 : 30)) + 'px';
     const pairs = (R * C) / 2;
     timeMax = Math.round(pairs * (5 - 0.2 * i)); timeLeft = timeMax;
     score = 0; combo = 0; lastMatch = -9999; hints = 3; shufs = 3;

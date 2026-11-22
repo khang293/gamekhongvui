@@ -137,7 +137,7 @@ const SUITS = [
       <!-- Màn hình chính: ba cách chơi -->
       <div id="pk-v-home" class="pk-view">
       <div class="pk-illus" aria-hidden="true">
-        <svg viewBox="0 0 320 150" width="100%" height="auto">
+        <svg viewBox="0 0 320 150" width="100%" style="height:auto">
           <defs>
             <radialGradient id="pk-ig" cx="50%" cy="40%" r="70%"><stop offset="0" stop-color="#3aa56d"/><stop offset="1" stop-color="#0f5a35"/></radialGradient>
             <linearGradient id="pk-ir" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a3a26"/><stop offset="1" stop-color="#26160f"/></linearGradient>
@@ -1186,7 +1186,7 @@ const SUITS = [
   .pk-lastact:empty { visibility: hidden; }
   .pk-allin { color: #fff; background: linear-gradient(180deg, #ff5a4d, #c62828); padding: 0 6px; border-radius: 6px; font-weight: 900; text-transform: uppercase; letter-spacing: .05em; }
   .pk-seat.allin .pk-lastact { background: transparent; padding: 0; }
-  .pk-tag { position: absolute; right: -24px; top: 2px; font-style: normal; font-size: .62rem; font-weight: 800; background: #e9eef5; color: #1b2433; border-radius: 7px; padding: 0 5px; z-index: 2; box-shadow: 0 1px 3px rgba(0, 0, 0, .5); }
+  .pk-tag { position: absolute; right: -24px; top: 2px; font-style: normal; font-size: .7rem; font-weight: 800; background: #e9eef5; color: #1b2433; border-radius: 7px; padding: 0 5px; z-index: 2; box-shadow: 0 1px 3px rgba(0, 0, 0, .5); }
   .pk-dealer { position: absolute; left: -16px; bottom: 0; font-style: normal; width: 26px; height: 26px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, #d9dde4); color: #1b2433; font-weight: 900; font-size: .85rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0, 0, 0, .6); border: 2px solid #aab2c0; z-index: 3; }
   .pk-dots { display: inline-flex; gap: 3px; } .pk-dots i { width: 5px; height: 5px; border-radius: 50%; background: #ffd54a; animation: pk-dot 1s infinite; } .pk-dots i:nth-child(2) { animation-delay: .15s; } .pk-dots i:nth-child(3) { animation-delay: .3s; }
   @keyframes pk-dot { 0%, 80%, 100% { transform: scale(.5); opacity: .4; } 40% { transform: scale(1); opacity: 1; } }
