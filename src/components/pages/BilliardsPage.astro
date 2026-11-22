@@ -1,0 +1,970 @@
+---
+import Base from '../../layouts/Base.astro';
+import { lp, type Lang } from '../../i18n';
+import { gamesUi } from '../../data/games';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const g = gamesUi[lang];
+
+// Chữ hiển thị của game bida (/billiards/). Chỗ có {n}, {g} được thay lúc chạy.
+const TX = {
+  vi: {
+    title: 'Bida',
+    sub: 'Bida lỗ 8 bi, 9 bi, 10 bi và bida 3 băng. Ngắm, chỉnh lực, chỉnh xoáy bi rồi đánh. Đấu với máy hoặc chơi với bạn.',
+    modePool: 'Bida lỗ 8 bi', modeNine: 'Bida 9 bi', modeTen: 'Bida 10 bi', modeCarom: 'Bida 3 băng',
+    oppBot: 'Chơi với máy', oppTwo: 'Hai người một máy',
+    level: 'Độ khó', levels: ['Dễ', 'Thường', 'Khó'],
+    goal: 'Chơi tới', goals: ['5 điểm', '10 điểm', '15 điểm'],
+    start: 'Bắt đầu', shoot: 'Đánh', place: 'Đặt bi', power: 'Lực', spin: 'Xoáy', again: 'Ván mới', menu: 'Menu', fine: 'Ngắm tinh',
+    stats: 'Thắng / Thua với máy',
+    helpPool: 'Luật rút gọn: đánh bi trắng vào bi của nhóm mình (đặc 1–7 hoặc vằn 9–15; nhóm được chia khi có người bỏ bi hợp lệ đầu tiên sau cú phá). Bỏ bi nhóm mình thì được đánh tiếp. Lỗi (bi trắng rơi lỗ, không chạm bi nào, chạm sai bi đầu tiên, không bi nào chạm băng) thì đối thủ được đặt bi trắng ở bất kỳ đâu. Bỏ hết nhóm rồi bỏ bi số 8 là thắng; bỏ 8 quá sớm hoặc lỗi khi bỏ 8 là thua.',
+    helpNine: 'Bida 9 bi (bi 1–9, xếp hình thoi): luôn phải đánh trúng bi số nhỏ nhất còn trên bàn trước. Bỏ bi nào vào lỗ hợp lệ cũng được đánh tiếp; bỏ bi số 9 hợp lệ (kể cả cú phá hoặc đánh gián tiếp) là thắng ngay. Lỗi (bi trắng rơi lỗ, không chạm bi nào, chạm sai bi đầu tiên, không bi nào chạm băng) thì đối thủ được đặt bi trắng ở bất kỳ đâu; nếu bi 9 rơi lúc lỗi thì được đặt lại ở điểm chấm cuối bàn.',
+    helpTen: 'Bida 10 bi (bi 1–10, xếp tam giác): giống 9 bi nhưng phải gọi bi và lỗ trước mỗi cú (trừ cú phá): bấm vào bi muốn bỏ rồi bấm vào lỗ. Chỉ bi đã gọi vào đúng lỗ đã gọi mới tính và được đánh tiếp; bi khác lỡ vào lỗ vẫn nằm xuống, hết lượt. Bi 10 vào đúng lỗ đã gọi là thắng; bi 10 rơi sai thì đặt lại ở điểm chấm.',
+    helpCarom: 'Bi trắng của người 1, bi vàng của người 2, bi đỏ là bi chung. Được 1 điểm khi bi của bạn chạm cả hai bi còn lại và đã chạm băng ít nhất 3 lần trước khi chạm bi thứ hai. Ghi điểm thì đánh tiếp, hụt thì đổi lượt.',
+    helpCtl: 'Điều khiển: kéo trên bàn để ngắm, kéo thanh Lực, chấm vào vòng tròn Xoáy (lên = bi chạy theo, xuống = bi kéo về, trái hoặc phải = xoáy ngang) rồi bấm Đánh. Bàn phím: ← → ngắm tinh, ↑ ↓ lực, Space để đánh.',
+    you: 'Bạn', bot: 'Máy', p1: 'Người chơi 1', p2: 'Người chơi 2',
+    solids: 'bi đặc', stripes: 'bi vằn', open: 'Chưa chia nhóm', eight: 'Bi số 8', white: 'Bi trắng', yellow: 'Bi vàng',
+    turnOf: 'Lượt của {n}', yourTurn: 'Lượt của bạn', thinking: 'Máy đang ngắm...', rolling: 'Bi đang lăn...',
+    placeBreak: 'Đặt bi trắng ở nửa trái bàn (sau vạch đầu bàn) rồi bấm "Đặt bi" để phá.',
+    placeFree: '{n} được đặt bi trắng ở bất kỳ đâu: kéo bi rồi bấm "Đặt bi".',
+    aimHint: 'Kéo trên bàn để ngắm, chỉnh lực rồi bấm Đánh.',
+    callPrompt: 'Gọi bi và lỗ: bấm vào bi muốn bỏ, rồi bấm vào một lỗ.', callNeedPocket: 'Chưa gọi lỗ: bấm vào một lỗ trên bàn.', next: 'Bi nhỏ nhất', left: 'Còn', callLbl: 'Gọi',
+    pockets: ['góc trên trái', 'góc trên phải', 'góc dưới trái', 'góc dưới phải', 'giữa trên', 'giữa dưới'],
+    keepPot: 'Vào bi — {n} đánh tiếp.', wrongCall: 'Không vào đúng bi và lỗ đã gọi — lượt của {n}.', foulHand: '{n} được đặt bi trắng.', respotBall: 'Bi {b} được đặt lại ở điểm chấm.',
+    foulScratch: 'Lỗi: bi trắng rơi lỗ.', foulNohit: 'Lỗi: bi trắng không chạm bi nào.', foulWrong: 'Lỗi: chạm sai bi đầu tiên.', foulNorail: 'Lỗi: không có bi nào chạm băng.', early8: 'Bi số 8 rơi lỗ không đúng luật.',
+    assigned: '{n} đánh {g}.', point: '{n} ghi điểm — đánh tiếp!', miss: 'Hụt — lượt của {n}.', cushions: 'chạm băng {c} lần',
+    winner: '{n} thắng!', youWin: 'Bạn thắng!', youLose: 'Bạn thua rồi.',
+  },
+  en: {
+    title: 'Billiards',
+    sub: '8-ball, 9-ball and 10-ball pool, plus three-cushion carom. Aim, set the power and spin, then shoot. Play the computer or a friend.',
+    modePool: '8-ball pool', modeNine: '9-ball', modeTen: '10-ball', modeCarom: 'Three-cushion carom',
+    oppBot: 'Play the computer', oppTwo: 'Two players, one device',
+    level: 'Level', levels: ['Easy', 'Normal', 'Hard'],
+    goal: 'Play to', goals: ['5 points', '10 points', '15 points'],
+    start: 'Start', shoot: 'Shoot', place: 'Place ball', power: 'Power', spin: 'Spin', again: 'New game', menu: 'Menu', fine: 'Fine aim',
+    stats: 'Wins / Losses vs computer',
+    helpPool: 'Simplified rules: hit your own group first (solids 1–7 or stripes 9–15; groups are set when someone legally pockets the first ball after the break). Pocket one of yours and you shoot again. On a foul (cue ball pocketed, no ball hit, wrong ball hit first, no ball touches a rail) the opponent gets ball-in-hand. Clear your group, then pocket the 8 to win; pocketing the 8 too early or fouling on it loses.',
+    helpNine: '9-ball (balls 1–9, diamond rack): you must always hit the lowest-numbered ball on the table first. Pocket any ball legally and you shoot again; legally pocketing the 9 (even on the break or by a combination) wins at once. On a foul (cue ball pocketed, no ball hit, wrong ball hit first, no ball touches a rail) the opponent gets ball-in-hand; if the 9 drops on a foul it is spotted again on the foot spot.',
+    helpTen: '10-ball (balls 1–10, triangle rack): like 9-ball, but you must call a ball and a pocket before every shot (except the break): tap the ball you want to pocket, then tap a pocket. Only the called ball in the called pocket counts and keeps your turn; other balls that drop stay down and the turn passes. The 10 in the called pocket wins; a 10 pocketed any other way is spotted again.',
+    helpCarom: 'Player 1 has the white ball, player 2 the yellow, red is shared. You score when your ball touches both other balls and has hit the cushions at least 3 times before touching the second ball. Score and you keep shooting; miss and the turn passes.',
+    helpCtl: 'Controls: drag on the table to aim, drag the Power bar, tap the Spin circle (up = follow, down = draw, left or right = side spin), then press Shoot. Keyboard: ← → fine aim, ↑ ↓ power, Space to shoot.',
+    you: 'You', bot: 'Computer', p1: 'Player 1', p2: 'Player 2',
+    solids: 'solids', stripes: 'stripes', open: 'Table open', eight: '8 ball', white: 'White ball', yellow: 'Yellow ball',
+    turnOf: '{n} to shoot', yourTurn: 'Your turn', thinking: 'Computer is aiming...', rolling: 'Balls rolling...',
+    placeBreak: 'Place the cue ball in the left half (behind the head string), then press "Place ball" to break.',
+    placeFree: '{n} has ball-in-hand: drag the cue ball anywhere, then press "Place ball".',
+    aimHint: 'Drag on the table to aim, set the power, then press Shoot.',
+    callPrompt: 'Call your shot: tap the ball you want to pocket, then tap a pocket.', callNeedPocket: 'No pocket called yet: tap a pocket on the table.', next: 'Lowest ball', left: 'Left', callLbl: 'Call',
+    pockets: ['top-left corner', 'top-right corner', 'bottom-left corner', 'bottom-right corner', 'top side', 'bottom side'],
+    keepPot: 'Pocketed — {n} shoots again.', wrongCall: 'Not the called ball and pocket — {n} to shoot.', foulHand: '{n} has ball-in-hand.', respotBall: 'Ball {b} is spotted again.',
+    foulScratch: 'Foul: cue ball pocketed.', foulNohit: 'Foul: cue ball hit nothing.', foulWrong: 'Foul: wrong ball hit first.', foulNorail: 'Foul: no ball touched a rail.', early8: 'The 8 ball was pocketed illegally.',
+    assigned: '{n} shoots {g}.', point: '{n} scores — shoots again!', miss: 'Miss — {n} to shoot.', cushions: '{c} cushions',
+    winner: '{n} wins!', youWin: 'You win!', youLose: 'You lost.',
+  },
+};
+const T = TX[lang];
+---
+<Base lang={lang} title={T.title} description={T.sub} noindex wide>
+  <p class="meta"><a href={lp(lang, '/')}>{g.back}</a></p>
+  <h1>{T.title}</h1>
+  <p class="meta">{T.sub}</p>
+
+  <div id="bl" data-ui={JSON.stringify(T)}>
+    <div id="bl-menu">
+      <div class="bd-row" id="bl-modes">
+        <button type="button" class="bd-opt sel" data-mode="pool">🎱 {T.modePool}</button>
+        <button type="button" class="bd-opt" data-mode="nine">🎱 {T.modeNine}</button>
+        <button type="button" class="bd-opt" data-mode="ten">🎱 {T.modeTen}</button>
+        <button type="button" class="bd-opt" data-mode="carom">⚪ {T.modeCarom}</button>
+      </div>
+      <div class="bd-row" id="bl-opps">
+        <button type="button" class="bd-opt sel" data-opp="bot">{T.oppBot}</button>
+        <button type="button" class="bd-opt" data-opp="two">{T.oppTwo}</button>
+      </div>
+      <div id="bl-botopts">
+        <h2 class="bd-h">{T.level}</h2>
+        <div class="bd-row">
+          {T.levels.map((l, i) => <button type="button" class={`bd-opt${i === 1 ? ' sel' : ''}`} data-level={i + 1}>{l}</button>)}
+        </div>
+      </div>
+      <div id="bl-goalopts" hidden>
+        <h2 class="bd-h">{T.goal}</h2>
+        <div class="bd-row">
+          {T.goals.map((l, i) => <button type="button" class={`bd-opt${i === 1 ? ' sel' : ''}`} data-goal={[5, 10, 15][i]}>{l}</button>)}
+        </div>
+      </div>
+      <p class="bd-stat" id="bl-stat"></p>
+      <button class="btn" type="button" id="bl-start">▶ {T.start}</button>
+      <p class="meta" id="bl-help-pool">{T.helpPool}</p>
+      <p class="meta" id="bl-help-nine" hidden>{T.helpNine}</p>
+      <p class="meta" id="bl-help-ten" hidden>{T.helpTen}</p>
+      <p class="meta" id="bl-help-carom" hidden>{T.helpCarom}</p>
+      <p class="meta">{T.helpCtl}</p>
+    </div>
+
+    <div id="bl-game" hidden>
+      <div class="bl-wrap">
+        <div class="bl-players">
+          <div class="bl-player" id="bl-p0"></div>
+          <div class="bl-player" id="bl-p1"></div>
+        </div>
+        <div class="bl-info" id="bl-info" hidden></div>
+        <p class="bd-status" id="bl-status" aria-live="polite"></p>
+        <div class="bl-stage"><canvas id="bl-cv" width="1128" height="628" aria-label="Billiards table"></canvas></div>
+        <div class="bl-ctl" id="bl-ctl">
+          <div class="bl-spin">
+            <span class="bl-lbl">{T.spin}</span>
+            <div class="bl-dial" id="bl-dial" aria-label={T.spin}><i class="bl-dot" id="bl-dot"></i></div>
+          </div>
+          <div class="bl-pow">
+            <span class="bl-lbl">{T.power} <b id="bl-powv">55</b></span>
+            <input type="range" id="bl-power" min="3" max="100" value="55" aria-label={T.power} />
+            <div class="bl-fine">
+              <button type="button" class="btn ghost sm" id="bl-left" aria-label={T.fine}>◀</button>
+              <span class="bl-lbl">{T.fine}</span>
+              <button type="button" class="btn ghost sm" id="bl-right" aria-label={T.fine}>▶</button>
+            </div>
+          </div>
+          <button type="button" class="btn bl-shoot" id="bl-shoot">{T.shoot}</button>
+        </div>
+        <div class="bd-row bd-actions">
+          <button type="button" class="btn ghost sm" id="bl-new">{T.again}</button>
+          <button type="button" class="btn ghost sm" id="bl-menu-btn">{T.menu}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</Base>
+
+<script>
+  import { W, H, R, DT, newWorld, rackPool, setupCarom, shoot, step, allStopped, canPlace, rayCast, resolvePool, resolveCarom, resolveRack, rackRows, respotBall, lowestBall, lastBall, ownLeft, typeOf, POOL_POCKETS, TC, TS, type World, type PoolState, type Call, type Kind } from '../../data/billiardsPhysics';
+  import { chooseShot, type Job, type Shot } from '../../data/billiardsAI';
+  import { sfx, mountMute } from '../../data/sfx';
+
+  const $ = (id: string) => document.getElementById(id) as HTMLElement;
+  const root = $('bl');
+  const T = JSON.parse(root.dataset.ui || '{}') as Record<string, any>;
+  const fmt = (s: string, o: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (_, k) => String(o[k] ?? ''));
+  const menu = $('bl-menu'), gameEl = $('bl-game');
+  const cv = $('bl-cv') as HTMLCanvasElement;
+  const g = cv.getContext('2d')!;
+  const statusEl = $('bl-status');
+  const powerEl = $('bl-power') as HTMLInputElement;
+  mountMute(document.querySelector('.bl-wrap') as HTMLElement);
+
+  // ---------- Hình học vẽ ----------
+  const M = 64;                    // độ rộng thành bàn (đơn vị logic)
+  const LW = W + 2 * M, LH = H + 2 * M;
+  let sc = 1;                      // số điểm ảnh thật cho mỗi đơn vị logic
+  let bg: HTMLCanvasElement | null = null;
+
+  // ---------- Trạng thái ----------
+  type Phase = 'menu' | 'place' | 'aim' | 'think' | 'aimbot' | 'strike' | 'roll' | 'over';
+  let mode: Kind = 'pool', opp: 'bot' | 'two' = 'bot', level = 2, goal = 10;
+  let world: World = newWorld('pool');
+  let pool: PoolState = { cur: 0, group: [0, 0], breakPending: true, inHand: true, headOnly: true };
+  let cur = 0;
+  let score = [0, 0];
+  let phase: Phase = 'menu';
+  const aim = { angle: 0, power: 0.55, sx: 0, sy: 0 };
+  let pull = 10, pullStart = 10, strikeT = 0;
+  let aliveBefore = new Uint8Array(16);
+  let evi = 0, acc = 0, rollSteps = 0;
+  let gid = 0;
+  let note = '';                    // thông báo của lượt trước (lỗi, ghi điểm...)
+  const rot = new Float64Array(16);
+  const sinks: { id: number; x: number; y: number; px: number; py: number; t: number }[] = [];
+  let stats: Record<string, { w: number; l: number }> = { pool: { w: 0, l: 0 }, nine: { w: 0, l: 0 }, ten: { w: 0, l: 0 }, carom: { w: 0, l: 0 } };
+  let call: Call | null = null;     // 10 bi: bi và lỗ đã gọi
+  const isRack = () => mode === 'nine' || mode === 'ten';
+  try { const s = JSON.parse(localStorage.getItem('bl-stats') || 'null'); if (s) stats = { ...stats, ...s }; } catch {}
+
+  const isHuman = (p: number) => opp === 'two' || p === 0;
+  const cueId = () => (mode === 'carom' ? cur : 0);
+  const nameOf = (p: number) => (opp === 'bot' ? (p === 0 ? T.you : T.bot) : (p === 0 ? T.p1 : T.p2));
+  const groupName = (gp: number) => (gp === 1 ? T.solids : T.stripes);
+  function paintStat() {
+    const s = stats[mode];
+    $('bl-stat').textContent = s.w + s.l ? `${T.stats}: ${s.w} / ${s.l}` : '';
+  }
+  function saveStats() { try { localStorage.setItem('bl-stats', JSON.stringify(stats)); } catch {} }
+
+  // ---------- Sprite bi, gậy, nền bàn (vẽ sẵn một lần) ----------
+  const BALL_COL = ['#f6f3e8', '#f2c200', '#1f4fbf', '#d8262a', '#6a2a96', '#f07a10', '#1f8a3a', '#8a1f2d', '#151515'];
+  const SP = 64;
+  const mk = (w: number, h: number) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+  const patterns: HTMLCanvasElement[] = [];
+  let shade: HTMLCanvasElement, shadow: HTMLCanvasElement, cueSpr: HTMLCanvasElement;
+  const CUEL = 560, CUEH = 16;
+
+  function circleClip(x: CanvasRenderingContext2D) { x.beginPath(); x.arc(SP / 2, SP / 2, SP / 2, 0, Math.PI * 2); x.clip(); }
+  function buildSprites() {
+    shade = mk(SP, SP);
+    { const x = shade.getContext('2d')!; circleClip(x);
+      // khối cầu: sáng phía trên trái, tối dần về mép, tối hơn ở đáy (che sáng), có chút ánh phản chiếu từ nỉ ở dưới phải
+      const gr = x.createRadialGradient(23, 20, 2, 31, 31, 40);
+      gr.addColorStop(0, 'rgba(255,255,255,0.5)'); gr.addColorStop(0.3, 'rgba(255,255,255,0.04)'); gr.addColorStop(0.7, 'rgba(0,0,0,0.2)'); gr.addColorStop(1, 'rgba(0,0,0,0.62)');
+      x.fillStyle = gr; x.fillRect(0, 0, SP, SP);
+      const ao = x.createRadialGradient(34, 38, 18, 32, 34, 34); ao.addColorStop(0, 'rgba(0,0,0,0)'); ao.addColorStop(1, 'rgba(0,0,0,0.3)');
+      x.fillStyle = ao; x.fillRect(0, 0, SP, SP);
+      const bounce = x.createRadialGradient(44, 48, 0, 44, 48, 12); bounce.addColorStop(0, 'rgba(120,255,170,0.16)'); bounce.addColorStop(1, 'rgba(120,255,170,0)');
+      x.fillStyle = bounce; x.fillRect(0, 0, SP, SP);
+      const soft = x.createRadialGradient(22, 19, 0, 22, 19, 15); soft.addColorStop(0, 'rgba(255,255,255,0.55)'); soft.addColorStop(1, 'rgba(255,255,255,0)');
+      x.fillStyle = soft; x.fillRect(0, 0, SP, SP);
+      const hl = x.createRadialGradient(20, 17, 0, 20, 17, 6.5); hl.addColorStop(0, 'rgba(255,255,255,1)'); hl.addColorStop(0.5, 'rgba(255,255,255,0.8)'); hl.addColorStop(1, 'rgba(255,255,255,0)');
+      x.fillStyle = hl; x.fillRect(0, 0, SP, SP);
+    }
+    shadow = mk(80, 80);
+    { const x = shadow.getContext('2d')!;
+      const wide = x.createRadialGradient(40, 40, 10, 40, 40, 40); wide.addColorStop(0, 'rgba(0,0,0,0.34)'); wide.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = wide; x.fillRect(0, 0, 80, 80);
+      const core = x.createRadialGradient(40, 40, 6, 40, 40, 22); core.addColorStop(0, 'rgba(0,0,0,0.6)'); core.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = core; x.fillRect(0, 0, 80, 80); }
+    cueSpr = mk(CUEL * 2, CUEH * 2);
+    { const x = cueSpr.getContext('2d')!; const L = CUEL * 2, Hh = CUEH * 2;
+      // đầu gậy (bên phải) -> cán (bên trái); thân thon dần về phía đầu
+      x.beginPath(); x.moveTo(0, 2); x.lineTo(L - 14, Hh / 2 - 5); x.lineTo(L - 14, Hh / 2 + 5); x.lineTo(0, Hh - 2); x.closePath();
+      const sh = x.createLinearGradient(0, 0, L, 0);
+      sh.addColorStop(0, '#2b1a0f'); sh.addColorStop(0.28, '#3b2415'); sh.addColorStop(0.3, '#c99a55'); sh.addColorStop(0.7, '#ecd09a'); sh.addColorStop(1, '#f6e4b8');
+      x.fillStyle = sh; x.fill();
+      x.fillStyle = '#f4f4f4'; x.fillRect(L - 20, Hh / 2 - 5, 8, 10);
+      x.fillStyle = '#4f93c9'; x.fillRect(L - 12, Hh / 2 - 5, 12, 10);
+      x.fillStyle = 'rgba(255,255,255,.28)'; x.fillRect(0, 3, L - 20, 2);
+    }
+  }
+  function buildPatterns() {
+    patterns.length = 0;
+    const n = mode === 'pool' ? 16 : mode === 'nine' ? 10 : mode === 'ten' ? 11 : 3;
+    for (let id = 0; id < n; id++) {
+      const c = mk(SP, SP), x = c.getContext('2d')!;
+      circleClip(x);
+      if (mode !== 'carom') {
+        if (id === 0) { x.fillStyle = BALL_COL[0]; x.fillRect(0, 0, SP, SP); x.fillStyle = '#d33'; for (const [px, py] of [[32, 12], [32, 52]]) { x.beginPath(); x.arc(px, py, 3.4, 0, 7); x.fill(); } }
+        else {
+          const col = BALL_COL[id <= 8 ? id : id - 8];
+          if (id <= 8) { x.fillStyle = col; x.fillRect(0, 0, SP, SP); }
+          else { x.fillStyle = '#f6f3e8'; x.fillRect(0, 0, SP, SP); x.fillStyle = col; x.fillRect(0, 17, SP, 30); }
+          x.fillStyle = '#f6f3e8'; x.beginPath(); x.arc(32, 32, 14.5, 0, 7); x.fill();
+          x.fillStyle = '#111'; x.font = 'bold 21px system-ui, Arial, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+          x.fillText(String(id), 32, 33.8);
+        }
+      } else {
+        x.fillStyle = id === 0 ? '#f6f3e8' : id === 1 ? '#f2c200' : '#d8262a'; x.fillRect(0, 0, SP, SP);
+        if (id < 2) { x.fillStyle = id === 0 ? '#222' : '#a33'; for (const [px, py] of [[32, 11], [32, 53], [11, 32], [53, 32]]) { x.beginPath(); x.arc(px, py, 3.2, 0, 7); x.fill(); } }
+      }
+      patterns.push(c);
+    }
+  }
+
+  // Nền bàn (vẽ một lần vào canvas phụ): thành gỗ có vân, mặt thành sáng với chấm xà cừ, đệm cao su có mũi hàm,
+  // mặt nỉ dệt có ánh đèn, lỗ có viền da và nẹp đồng.
+  let rngS = 7;
+  const rnd = () => { rngS = (rngS * 16807) % 2147483647; return rngS / 2147483647; };
+  const holeOf = (k: (typeof POOL_POCKETS)[number]): [number, number] => k.kind === 0 ? [k.cx - Math.sign(k.ux) * 5, k.cy - Math.sign(k.uy) * 5] : [k.cx, k.cy - k.uy * 7];
+  function buildBg() {
+    const c = mk(cv.width, cv.height), x = c.getContext('2d')!;
+    x.scale(sc, sc);
+    rngS = 7;
+    const hasP = mode !== 'carom';
+    const rr = (px: number, py: number, w: number, h: number, r: number) => { x.beginPath(); x.roundRect(px, py, w, h, r); };
+    // ---- gỗ khung
+    rr(0, 0, LW, LH, 30);
+    const wood = x.createLinearGradient(0, 0, LW * 0.6, LH); wood.addColorStop(0, '#74431d'); wood.addColorStop(0.5, '#4c2b13'); wood.addColorStop(1, '#321a0b');
+    x.fillStyle = wood; x.fill();
+    x.save(); rr(0, 0, LW, LH, 30); x.clip();
+    const grain = (gx: number, gy: number, gw: number, gh: number, vert: boolean, n: number) => {
+      x.save(); x.beginPath(); x.rect(gx, gy, gw, gh); x.clip();
+      for (let i = 0; i < n; i++) {
+        const light = rnd() > 0.45;
+        x.strokeStyle = `rgba(${light ? '255,205,140' : '24,9,0'},${(0.05 + rnd() * 0.1).toFixed(3)})`; x.lineWidth = 0.5 + rnd() * 1.8;
+        x.beginPath();
+        if (!vert) { const yy = gy + rnd() * gh, w1 = (rnd() - 0.5) * 7, w2 = (rnd() - 0.5) * 7; x.moveTo(gx, yy); x.bezierCurveTo(gx + gw * 0.3, yy + w1, gx + gw * 0.7, yy + w2, gx + gw, yy + (w1 + w2) / 2); }
+        else { const xx = gx + rnd() * gw, w1 = (rnd() - 0.5) * 7, w2 = (rnd() - 0.5) * 7; x.moveTo(xx, gy); x.bezierCurveTo(xx + w1, gy + gh * 0.3, xx + w2, gy + gh * 0.7, xx + (w1 + w2) / 2, gy + gh); }
+        x.stroke();
+      }
+      // vài mắt gỗ
+      for (let i = 0; i < 3; i++) { const ex = gx + rnd() * gw, ey = gy + rnd() * gh; x.strokeStyle = 'rgba(20,8,0,.14)'; x.lineWidth = 1; for (let k = 1; k < 4; k++) { x.beginPath(); x.ellipse(ex, ey, (vert ? 3 : 14) * k * 0.7, (vert ? 14 : 3) * k * 0.7, 0, 0, 7); x.stroke(); } }
+      x.restore();
+    };
+    grain(0, 0, LW, M, false, 80); grain(0, LH - M, LW, M, false, 80); grain(0, M, M, H, true, 46); grain(LW - M, M, M, H, true, 46);
+    x.restore();
+    // mặt thành trên (sáng hơn) có vát cạnh
+    rr(9, 9, LW - 18, LH - 18, 22);
+    const cap = x.createLinearGradient(0, 0, LW * 0.5, LH); cap.addColorStop(0, 'rgba(255,190,120,.30)'); cap.addColorStop(0.5, 'rgba(255,170,100,.10)'); cap.addColorStop(1, 'rgba(0,0,0,.12)');
+    x.fillStyle = cap; x.fill();
+    rr(2, 2, LW - 4, LH - 4, 29); x.strokeStyle = 'rgba(255,225,175,.4)'; x.lineWidth = 2.4; x.stroke();
+    rr(9, 9, LW - 18, LH - 18, 22); x.strokeStyle = 'rgba(0,0,0,.5)'; x.lineWidth = 3; x.stroke();
+    rr(11.5, 11.5, LW - 23, LH - 23, 20); x.strokeStyle = 'rgba(255,220,170,.16)'; x.lineWidth = 1.2; x.stroke();
+    // lòng bàn (tối) quanh cao su
+    rr(M - 28, M - 28, W + 56, H + 56, 10); x.fillStyle = '#120a05'; x.fill();
+    rr(M - 28, M - 28, W + 56, H + 56, 10); x.strokeStyle = 'rgba(255,225,180,.22)'; x.lineWidth = 1.4; x.stroke();
+    // ---- mặt nỉ
+    const cloth = hasP ? ['#2fa263', '#1d8049', '#13613a'] : ['#3283c9', '#22649f', '#17497a'];
+    const cl = x.createRadialGradient(LW * 0.48, LH * 0.42, 30, LW / 2, LH / 2, LW * 0.6);
+    cl.addColorStop(0, cloth[0]); cl.addColorStop(0.55, cloth[1]); cl.addColorStop(1, cloth[2]);
+    x.fillStyle = cl; x.fillRect(M, M, W, H);
+    { // vải dệt: ô hoa văn nhỏ lặp lại
+      const t = mk(6, 6), tx = t.getContext('2d')!;
+      tx.strokeStyle = 'rgba(255,255,255,.07)'; tx.lineWidth = 1; tx.beginPath(); tx.moveTo(0, 6); tx.lineTo(6, 0); tx.moveTo(-3, 3); tx.lineTo(3, -3); tx.moveTo(3, 9); tx.lineTo(9, 3); tx.stroke();
+      tx.strokeStyle = 'rgba(0,0,0,.08)'; tx.beginPath(); tx.moveTo(0, 0); tx.lineTo(6, 6); tx.moveTo(-3, 3); tx.lineTo(3, 9); tx.moveTo(3, -3); tx.lineTo(9, 3); tx.stroke();
+      const pat = x.createPattern(t, 'repeat'); if (pat) { x.fillStyle = pat; x.fillRect(M, M, W, H); }
+    }
+    for (let i = 0; i < 4200; i++) { x.fillStyle = `rgba(${rnd() > 0.5 ? '255,255,255' : '0,0,0'},${(0.015 + rnd() * 0.035).toFixed(3)})`; x.fillRect(M + rnd() * W, M + rnd() * H, 1.1, 1.1); }
+    // ánh đèn chiếu từ trên: sáng ở giữa, tối dần ra mép
+    const spot = x.createRadialGradient(LW / 2, LH * 0.42, 20, LW / 2, LH * 0.45, W * 0.55); spot.addColorStop(0, 'rgba(255,255,230,.17)'); spot.addColorStop(1, 'rgba(255,255,230,0)');
+    x.fillStyle = spot; x.fillRect(M, M, W, H);
+    const vg = x.createRadialGradient(LW / 2, LH / 2, H * 0.3, LW / 2, LH / 2, W * 0.62); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,0.34)');
+    x.fillStyle = vg; x.fillRect(M, M, W, H);
+    // phấn kẻ: vạch đầu bàn và chấm
+    x.strokeStyle = 'rgba(255,255,255,.13)'; x.lineWidth = 1.4;
+    if (hasP) { x.beginPath(); x.moveTo(M + W * 0.25, M + 6); x.lineTo(M + W * 0.25, M + H - 6); x.stroke(); }
+    x.fillStyle = 'rgba(255,255,255,.34)';
+    for (const [px, py] of hasP ? [[0.25, 0.5], [0.72, 0.5]] : [[0.25, 0.5], [0.5, 0.5], [0.75, 0.5]]) { x.beginPath(); x.arc(M + W * px, M + H * py, 3, 0, 7); x.fill(); }
+    // ---- đệm cao su (cục bộ: u dọc băng, v hướng ra ngoài)
+    const CUS = hasP ? ['#2a8d52', '#14663a', '#0a3f23'] : ['#2f78b8', '#1d5a93', '#0f3a63'];
+    const cushion = (side: number, u1: number, u2: number, e1: number, e2: number) => {
+      x.save();
+      if (side === 0) x.transform(1, 0, 0, -1, M, M); else if (side === 1) x.transform(1, 0, 0, 1, M, M + H);
+      else if (side === 2) x.transform(0, 1, -1, 0, M, M); else x.transform(0, 1, 1, 0, M + W, M);
+      const sh = x.createLinearGradient(0, 0, 0, -11); sh.addColorStop(0, 'rgba(0,0,0,.42)'); sh.addColorStop(1, 'rgba(0,0,0,0)'); // bóng của đệm đổ lên nỉ
+      x.fillStyle = sh; x.beginPath(); x.moveTo(u1, 0); x.lineTo(u2, 0); x.lineTo(u2 + e2 * 0.4, -11); x.lineTo(u1 - e1 * 0.4, -11); x.closePath(); x.fill();
+      const gr = x.createLinearGradient(0, 0, 0, 23); gr.addColorStop(0, CUS[0]); gr.addColorStop(0.35, CUS[1]); gr.addColorStop(1, CUS[2]);
+      x.beginPath(); x.moveTo(u1, 0); x.lineTo(u2, 0); x.lineTo(u2 + e2, 23); x.lineTo(u1 - e1, 23); x.closePath();
+      x.fillStyle = gr; x.fill(); x.strokeStyle = 'rgba(0,0,0,.45)'; x.lineWidth = 1.2; x.stroke();
+      x.strokeStyle = 'rgba(200,255,225,.42)'; x.lineWidth = 1.8; x.beginPath(); x.moveTo(u1 + 1, 0.9); x.lineTo(u2 - 1, 0.9); x.stroke();
+      x.strokeStyle = 'rgba(255,255,255,.1)'; x.lineWidth = 3; x.beginPath(); x.moveTo(u1 + 2, 4); x.lineTo(u2 - 2, 4); x.stroke();
+      x.restore();
+    };
+    if (hasP) {
+      const A = TC, B = W / 2 - TS, Cc = W / 2 + TS, D = W - TC, E = TC, F = H - TC;
+      for (const side of [0, 1]) { cushion(side, A, B, 17, 11); cushion(side, Cc, D, 11, 17); }
+      for (const side of [2, 3]) cushion(side, E, F, 17, 17);
+    } else {
+      cushion(0, 0, W, 23, 23); cushion(1, 0, W, 23, 23); cushion(2, 0, H, 23, 23); cushion(3, 0, H, 23, 23);
+    }
+    // ---- lỗ: nẹp đồng, viền da, miệng lỗ sâu
+    if (hasP) {
+      for (const k of POOL_POCKETS) {
+        const [hx0, hy0] = holeOf(k), hx = M + hx0, hy = M + hy0, hr = k.r - 1;
+        const iux = k.kind === 0 ? k.ux : 0, iuy = k.uy;       // hướng vào trong bàn
+        const ox = -iux, oy = -iuy, ol = Math.hypot(ox, oy) || 1, nx = ox / ol, ny = oy / ol; // hướng ra ngoài (đơn vị)
+        // nẹp đồng: hình lưỡi liềm ôm phía ngoài của lỗ
+        const ang = Math.atan2(ny, nx);
+        const brass = x.createLinearGradient(hx + nx * (hr + 15), hy + ny * (hr + 15), hx - nx * 4, hy - ny * 4);
+        brass.addColorStop(0, '#f1d58a'); brass.addColorStop(0.45, '#b98a2e'); brass.addColorStop(1, '#6b4b14');
+        x.beginPath(); x.arc(hx, hy, hr + 15, ang - Math.PI / 2, ang + Math.PI / 2, false); x.closePath();
+        x.fillStyle = brass; x.fill(); x.strokeStyle = 'rgba(40,20,0,.6)'; x.lineWidth = 1.6; x.stroke();
+        for (const t of [-0.55, 0.55]) { const sx = hx + Math.cos(ang + t) * (hr + 9.5), sy = hy + Math.sin(ang + t) * (hr + 9.5); x.beginPath(); x.arc(sx, sy, 1.9, 0, 7); x.fillStyle = '#5a3d10'; x.fill(); x.strokeStyle = 'rgba(255,230,160,.6)'; x.lineWidth = 0.6; x.stroke(); }
+        // viền da/cao su
+        x.beginPath(); x.arc(hx, hy, hr + 6.5, 0, 7); x.fillStyle = '#25160c'; x.fill();
+        x.strokeStyle = 'rgba(255,205,140,.3)'; x.lineWidth = 1.2; x.stroke();
+        x.setLineDash([2.2, 3.2]); x.beginPath(); x.arc(hx, hy, hr + 3.6, 0, 7); x.strokeStyle = 'rgba(235,190,130,.5)'; x.lineWidth = 1; x.stroke(); x.setLineDash([]);
+        // miệng lỗ
+        const hg = x.createRadialGradient(hx - iux * 3, hy - iuy * 3, 2, hx, hy, hr);
+        hg.addColorStop(0, '#000'); hg.addColorStop(0.7, '#030202'); hg.addColorStop(1, '#17100a');
+        x.beginPath(); x.arc(hx, hy, hr, 0, 7); x.fillStyle = hg; x.fill();
+        x.strokeStyle = 'rgba(0,0,0,.9)'; x.lineWidth = 2; x.stroke();
+        // ánh sáng mờ ở thành lỗ phía ngoài
+        x.save(); x.beginPath(); x.arc(hx, hy, hr - 1, 0, 7); x.clip();
+        const rim = x.createRadialGradient(hx + iux * 7, hy + iuy * 7, hr * 0.5, hx, hy, hr); rim.addColorStop(0, 'rgba(0,0,0,0)'); rim.addColorStop(1, 'rgba(90,55,25,.4)');
+        x.fillStyle = rim; x.fillRect(hx - hr, hy - hr, hr * 2, hr * 2);
+        x.restore();
+      }
+    }
+    // ---- chấm kim cương xà cừ trên mặt thành
+    const dia = (px: number, py: number, vert: boolean) => {
+      x.save(); x.translate(px, py);
+      x.fillStyle = 'rgba(0,0,0,.35)'; x.beginPath(); x.moveTo(0.8, -6 + 1.2); x.lineTo(5.6, 1.2); x.lineTo(0.8, 6 + 1.2); x.lineTo(-4, 1.2); x.closePath(); x.fill();
+      const gr = x.createRadialGradient(-1.2, -1.8, 0.5, 0, 0, 7); gr.addColorStop(0, '#ffffff'); gr.addColorStop(0.55, '#e8eef7'); gr.addColorStop(1, '#a9b8d0');
+      x.beginPath(); x.moveTo(0, vert ? -7 : -6); x.lineTo(vert ? 4.6 : 5.4, 0); x.lineTo(0, vert ? 7 : 6); x.lineTo(vert ? -4.6 : -5.4, 0); x.closePath();
+      x.fillStyle = gr; x.fill(); x.strokeStyle = 'rgba(50,25,5,.6)'; x.lineWidth = 0.9; x.stroke();
+      x.strokeStyle = 'rgba(255,255,255,.9)'; x.lineWidth = 0.8; x.beginPath(); x.moveTo(-1.2, -2.2); x.lineTo(0, -4.4); x.stroke();
+      x.restore();
+    };
+    for (let i = 1; i < 8; i++) { if (hasP && i === 4) continue; dia(M + (W * i) / 8, 23, false); dia(M + (W * i) / 8, LH - 23, false); }
+    for (let i = 1; i < 4; i++) { dia(23, M + (H * i) / 4, true); dia(LW - 23, M + (H * i) / 4, true); }
+    bg = c;
+  }
+
+  function fit() {
+    const parent = cv.parentElement as HTMLElement;
+    const cssW = parent.clientWidth || LW;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const ns = Math.max(0.5, Math.min(2, (cssW * dpr) / LW));
+    const pw = Math.round(LW * ns), ph = Math.round(LH * ns);
+    if (cv.width !== pw || cv.height !== ph || Math.abs(ns - sc) > 0.001 || !bg) {
+      sc = ns; cv.width = pw; cv.height = ph; buildBg();
+    }
+  }
+
+  // ---------- Bảng người chơi ----------
+  const BAR_COL = ['#d8262a', '#f2c200'];
+  function chip(id: number) {
+    const col = BALL_COL[id <= 8 ? id : id - 8];
+    const dead = !world.alive[id];
+    const style = id <= 8 ? `background:${col}` : `background:linear-gradient(transparent 26%,${col} 26%,${col} 74%,transparent 74%),#f6f3e8`;
+    return `<i class="bl-chip${dead ? ' out' : ''}" style="${style}"><span>${id}</span></i>`;
+  }
+  function paintBars() {
+    for (let p = 0; p < 2; p++) {
+      const el = $('bl-p' + p);
+      const on = phase !== 'over' && phase !== 'menu' && cur === p;
+      el.className = 'bl-player' + (on ? ' on' : '');
+      let body = '';
+      if (isRack()) body = '';
+      else if (mode === 'pool') {
+        const gp = pool.group[p];
+        if (!gp) body = `<small>${T.open}</small>`;
+        else {
+          const ids: number[] = [];
+          for (let i = 1; i <= 15; i++) if (typeOf(i) === gp) ids.push(i);
+          const left = ownLeft(world.alive, gp);
+          body = `<small>${groupName(gp)}</small><span class="bl-chips">${ids.map(chip).join('')}${left === 0 ? chip(8) : ''}</span>`;
+        }
+      } else {
+        const ball = p === 0 ? T.white : T.yellow;
+        body = `<small>${ball}</small><em>${score[p]} / ${goal}</em>`;
+      }
+      const av = mode === 'carom' ? `<span class="bl-av" style="background:${p === 0 ? '#f6f3e8' : '#f2c200'}"></span>` : `<span class="bl-av" style="background:${p === 0 ? '#2b6cb0' : '#c05621'}">${p + 1}</span>`;
+      el.innerHTML = `${av}<b>${nameOf(p)}</b>${body}`;
+    }
+  }
+  function chipStyle(id: number) {
+    const col = BALL_COL[id <= 8 ? id : id - 8];
+    return id <= 8 ? `background:${col}` : `background:linear-gradient(transparent 26%,${col} 26%,${col} 74%,transparent 74%),#f6f3e8`;
+  }
+  const chipOf = (id: number, hl = false) => `<i class="bl-chip${hl ? ' hl' : ''}" style="${chipStyle(id)}"><span>${id}</span></i>`;
+  function paintInfo() {
+    const el = $('bl-info');
+    el.hidden = !isRack() || phase === 'menu';
+    if (el.hidden) return;
+    const last = lastBall(mode), low = lowestBall(world.alive, last);
+    const chips: string[] = [];
+    for (let i = 1; i <= last; i++) if (world.alive[i]) chips.push(chipOf(i, i === low));
+    let h = `<span class="bl-nx"><small>${T.next}</small>${low > 0 ? chipOf(low, true) : ''}</span><span class="bl-left"><small>${T.left}</small><span class="bl-chips">${chips.join('')}</span></span>`;
+    if (mode === 'ten' && !pool.breakPending) {
+      const ok = !!call && call.pocket >= 0;
+      h += `<span class="bl-call${ok ? ' ok' : ''}"><small>${T.callLbl}</small>${call && world.alive[call.ball] ? chipOf(call.ball) : ''}${ok ? ` → <b>${T.pockets[call!.pocket]}</b>` : ` <em>${T.callPrompt}</em>`}</span>`;
+    }
+    el.innerHTML = h;
+  }
+  function setStatus(text: string, done = false) {
+    statusEl.textContent = text;
+    statusEl.classList.toggle('done', done);
+  }
+  function statusFor() {
+    if (phase === 'over') return;
+    let t = '';
+    if (phase === 'think' || phase === 'aimbot') t = T.thinking;
+    else if (phase === 'roll' || phase === 'strike') t = T.rolling;
+    else if (phase === 'place') t = pool.breakPending ? T.placeBreak : fmt(T.placeFree, { n: nameOf(cur) });
+    else t = opp === 'bot' && isHuman(cur) ? T.yourTurn : fmt(T.turnOf, { n: nameOf(cur) });
+    if (phase === 'aim' && mode === 'ten' && !pool.breakPending && isHuman(cur)) t += ' ' + (call && call.pocket >= 0 ? '' : T.callNeedPocket);
+    setStatus((note ? note + ' ' : '') + t);
+  }
+  function refresh() { paintBars(); paintInfo(); statusFor(); updateControls(); }
+
+  function updateControls() {
+    const act = (phase === 'aim' || phase === 'place') && isHuman(cur);
+    $('bl-ctl').classList.toggle('off', !act);
+    const btn = $('bl-shoot');
+    btn.textContent = phase === 'place' ? T.place : T.shoot;
+    (btn as HTMLButtonElement).disabled = !act;
+    powerEl.disabled = !act || phase === 'place';
+    ($('bl-left') as HTMLButtonElement).disabled = !act || phase === 'place';
+    ($('bl-right') as HTMLButtonElement).disabled = !act || phase === 'place';
+  }
+
+  // ---------- Luồng ván ----------
+  function newGame() {
+    gid++;
+    world = newWorld(mode);
+    rot.fill(0); sinks.length = 0; note = ''; call = null; bg = null;
+    if (mode === 'pool') { rackPool(world); pool = { cur: 0, group: [0, 0], breakPending: true, inHand: true, headOnly: true }; }
+    else if (isRack()) { rackRows(world, mode as 'nine' | 'ten'); pool = { cur: 0, group: [0, 0], breakPending: true, inHand: true, headOnly: true }; }
+    else setupCarom(world);
+    cur = 0; score = [0, 0];
+    aim.sx = 0; aim.sy = 0; moveDot();
+    buildPatterns();
+    fit();
+    phase = 'aim'; // thoát trạng thái 'over' của ván trước, nếu không beginTurn() thoát ngay và bàn bị đứng
+    beginTurn();
+  }
+
+  function nearestTarget(): number {
+    const cid = cueId();
+    let best = -1, bd = 1e9;
+    for (let i = 0; i < world.n; i++) {
+      if (i === cid || !world.alive[i]) continue;
+      if (isRack()) { if (i !== lowestBall(world.alive, lastBall(mode))) continue; }
+      else if (mode === 'pool') { const t = typeOf(i); const gp = pool.group[cur]; if (gp && ownLeft(world.alive, gp) > 0 ? t !== gp : (gp ? t !== 3 : t === 3)) continue; }
+      const d = Math.hypot(world.x[i] - world.x[cid], world.y[i] - world.y[cid]);
+      if (d < bd) { bd = d; best = i; }
+    }
+    return best;
+  }
+  function defaultAim() {
+    const cid = cueId(), t = nearestTarget();
+    if (t >= 0) aim.angle = Math.atan2(world.y[t] - world.y[cid], world.x[t] - world.x[cid]);
+  }
+  function ensureCueOnTable() {
+    if (world.alive[0]) return;
+    const spots: [number, number][] = [[W * 0.22, H / 2], [W * 0.2, H * 0.3], [W * 0.2, H * 0.7], [W * 0.15, H / 2], [W * 0.5, H / 2]];
+    for (const [px, py] of spots) if (canPlace(world, 0, px, py, false)) { world.x[0] = px; world.y[0] = py; break; }
+    world.alive[0] = 1; world.vx[0] = world.vy[0] = 0;
+  }
+
+  function beginTurn() {
+    if (phase === 'over') return;
+    if (mode !== 'carom' && pool.inHand) {
+      ensureCueOnTable();
+      if (pool.headOnly && world.x[0] > W * 0.25) { world.x[0] = W * 0.22; world.y[0] = H / 2; }
+      phase = isHuman(cur) ? 'place' : 'think';
+    } else phase = isHuman(cur) ? 'aim' : 'think';
+    call = mode === 'ten' && !pool.breakPending ? { ball: lowestBall(world.alive, 10), pocket: -1 } : null;
+    if (phase === 'aim') { defaultAim(); aim.power = Math.max(0.05, aim.power); pull = 10; }
+    if (phase === 'place') defaultAim();
+    refresh();
+    if (phase === 'think') botTurn();
+  }
+
+  // ---------- Máy ----------
+  let worker: Worker | null = null;
+  let jobId = 0;
+  const pending = new Map<number, (s: Shot) => void>();
+  function initWorker() {
+    if (worker) return;
+    try {
+      worker = new Worker(new URL('../../data/billiardsWorker.ts', import.meta.url), { type: 'module' });
+      worker.onmessage = (e) => { const f = pending.get(e.data.id); if (f) { pending.delete(e.data.id); f(e.data.shot); } };
+      worker.onerror = () => { worker = null; };
+    } catch { worker = null; }
+  }
+  function makeJob(): Job {
+    return {
+      kind: mode, x: Array.from(world.x), y: Array.from(world.y), alive: Array.from(world.alive),
+      cur, group: pool.group.slice(), breakPending: pool.breakPending, inHand: pool.inHand, headOnly: pool.headOnly,
+      level, ms: [500, 900, 1500][level - 1],
+    };
+  }
+  function askBot(): Promise<Shot> {
+    initWorker();
+    const job = makeJob();
+    return new Promise((resolve) => {
+      if (worker) {
+        const id = ++jobId;
+        pending.set(id, resolve);
+        worker.postMessage({ id, job });
+        setTimeout(() => { if (pending.has(id)) { pending.delete(id); setTimeout(() => resolve(chooseShot(job)), 0); } }, job.ms + 4000);
+      } else setTimeout(() => resolve(chooseShot(job)), 40);
+    });
+  }
+  function botTurn() {
+    const id = gid;
+    setTimeout(() => {
+      if (id !== gid || phase !== 'think') return;
+      askBot().then((s) => {
+        if (id !== gid || phase !== 'think') return;
+        if (s.pos) { world.x[0] = s.pos[0]; world.y[0] = s.pos[1]; world.alive[0] = 1; world.vx[0] = world.vy[0] = 0; pool.inHand = false; pool.headOnly = false; }
+        aim.angle = s.angle; aim.power = s.power; aim.sx = s.sx; aim.sy = s.sy; moveDot();
+        if (mode === 'ten' && !pool.breakPending) call = s.call ?? { ball: lowestBall(world.alive, 10), pocket: 0 };
+        pull = 10; phase = 'aimbot'; refresh();
+        setTimeout(() => { if (id === gid && phase === 'aimbot') startStrike(); }, 750);
+      });
+    }, 350);
+  }
+
+  // ---------- Đánh và mô phỏng ----------
+  function startStrike() {
+    phase = 'strike'; strikeT = 0; pullStart = pull; refresh();
+  }
+  function doShoot() {
+    aliveBefore = world.alive.slice();
+    shoot(world, cueId(), aim.angle, aim.power, aim.sx, aim.sy);
+    note = '';
+    evi = 0; acc = 0; rollSteps = 0;
+    sfx.play('cue', aim.power);
+    phase = 'roll'; refresh();
+  }
+
+  function handleEvents() {
+    let clack = 0;
+    for (; evi < world.ev.length; evi++) {
+      const e = world.ev[evi];
+      if (e.k === 0) { if (clack++ < 3) sfx.play('clack', Math.min(1, e.v / 1800)); }
+      else if (e.k === 1) sfx.play('cushion', Math.min(1, e.v / 1500));
+      else {
+        sfx.play('pocket');
+        const p = POOL_POCKETS[e.b];
+        paintBars();
+        const [hx, hy] = holeOf(p);
+        sinks.push({ id: e.a, x: world.x[e.a], y: world.y[e.a], px: hx, py: hy, t: 0 });
+      }
+    }
+  }
+
+  function finish(winner: number, text: string) {
+    phase = 'over';
+    const youWon = opp === 'bot' ? winner === 0 : true;
+    const msg = opp === 'bot' ? (winner === 0 ? T.youWin : T.youLose) : fmt(T.winner, { n: nameOf(winner) });
+    if (opp === 'bot') { if (winner === 0) stats[mode].w++; else stats[mode].l++; saveStats(); }
+    setStatus((text ? text + ' ' : '') + msg, true);
+    sfx.play(youWon ? 'win' : 'lose');
+    paintBars(); updateControls();
+  }
+
+  function respot8() {
+    let x = W * 0.72 + 4 * (R * 1.732 + 0.35), y = H / 2;
+    for (let k = 0; k < 12 && !canPlace(world, 8, x, y, false); k++) { x += R * 2 + 1; if (x > W - R - 2) { x = W * 0.72; y += R * 2 + 1; } }
+    world.x[8] = x; world.y[8] = y; world.alive[8] = 1; world.vx[8] = world.vy[8] = 0;
+  }
+
+  function endShot() {
+    if (mode === 'pool') {
+      const res = resolvePool(pool, aliveBefore, world.ev);
+      const shooter = cur;
+      if (res.respot8) respot8();
+      if (res.winner >= 0) {
+        const why = res.reason === 'early8' ? T.early8 : res.reason ? foulText(res.reason) : '';
+        finish(res.winner, why);
+        return;
+      }
+      let t = '';
+      if (res.assign) {
+        pool.group[shooter] = res.assign; pool.group[1 - shooter] = res.assign === 1 ? 2 : 1;
+        t = fmt(T.assigned, { n: nameOf(shooter), g: groupName(res.assign) });
+      }
+      pool.breakPending = false; pool.headOnly = false;
+      if (res.foul) {
+        pool.inHand = true; cur = 1 - shooter;
+        t = foulText(res.reason) + (isHuman(cur) ? '' : ' ' + fmt(T.foulHand, { n: nameOf(cur) }));
+      } else {
+        pool.inHand = false; if (!res.keep) cur = 1 - shooter;
+        t = (t ? t + ' ' : '') + (res.keep ? fmt(T.keepPot, { n: nameOf(shooter) }) : fmt(T.miss, { n: nameOf(cur) }));
+      }
+      note = t;
+    } else if (isRack()) {
+      const shooter = cur, wasBreak = pool.breakPending;
+      const res = resolveRack(mode, { cur: shooter, breakPending: wasBreak, inHand: pool.inHand, headOnly: pool.headOnly }, aliveBefore, world.ev, call);
+      let t = '';
+      for (const id of res.respot) { respotBall(world, id); t += fmt(T.respotBall, { b: id }) + ' '; }
+      if (res.winner >= 0) { finish(res.winner, t.trim()); return; }
+      pool.breakPending = false; pool.headOnly = false;
+      if (res.foul) {
+        pool.inHand = true; cur = 1 - shooter;
+        t += foulText(res.reason) + (isHuman(cur) ? '' : ' ' + fmt(T.foulHand, { n: nameOf(cur) }));
+      } else {
+        pool.inHand = false;
+        if (res.keep) t += fmt(T.keepPot, { n: nameOf(shooter) });
+        else {
+          cur = 1 - shooter;
+          t += mode === 'ten' && !wasBreak && res.potted.length > 0 && !res.calledOk ? fmt(T.wrongCall, { n: nameOf(cur) }) : fmt(T.miss, { n: nameOf(cur) });
+        }
+      }
+      note = t.trim();
+    } else {
+      const res = resolveCarom(world.ev, cueId());
+      if (res.point) {
+        score[cur]++;
+        if (score[cur] >= goal) { paintBars(); finish(cur, fmt(T.point, { n: nameOf(cur) })); return; }
+        note = fmt(T.point, { n: nameOf(cur) });
+      } else { cur = 1 - cur; note = fmt(T.miss, { n: nameOf(cur) }); }
+    }
+    beginTurn();
+  }
+  function foulText(r: string) {
+    return r === 'scratch' ? T.foulScratch : r === 'nohit' ? T.foulNohit : r === 'wrong' ? T.foulWrong : r === 'norail' ? T.foulNorail : '';
+  }
+
+  // ---------- Điều khiển ----------
+  function tablePos(e: PointerEvent) {
+    const r = cv.getBoundingClientRect();
+    return { x: ((e.clientX - r.left) / r.width) * LW - M, y: ((e.clientY - r.top) / r.height) * LH - M };
+  }
+  let dragging = false;
+  function handlePointer(e: PointerEvent) {
+    const p = tablePos(e);
+    const cid = cueId();
+    if (phase === 'place') {
+      const maxX = pool.headOnly ? W * 0.25 : W - R - 1;
+      const x = Math.max(R + 1, Math.min(maxX, p.x)), y = Math.max(R + 1, Math.min(H - R - 1, p.y));
+      if (canPlace(world, 0, x, y, pool.headOnly)) { world.x[0] = x; world.y[0] = y; }
+      defaultAim();
+    } else if (phase === 'aim') {
+      const dx = p.x - world.x[cid], dy = p.y - world.y[cid];
+      if (dx * dx + dy * dy > 100) aim.angle = Math.atan2(dy, dx);
+    }
+  }
+  // 10 bi: bấm vào lỗ để gọi lỗ, bấm vào bi để gọi bi
+  function pickPocket(p: { x: number; y: number }): boolean {
+    for (let i = 0; i < POOL_POCKETS.length; i++) {
+      const k = POOL_POCKETS[i];
+      const [hx, hy] = holeOf(k);
+      if (Math.hypot(p.x - hx, p.y - hy) < k.r + 16) { callPocket(i); return true; }
+    }
+    return false;
+  }
+  function callPocket(i: number) {
+    call = { ball: call && world.alive[call.ball] ? call.ball : lowestBall(world.alive, 10), pocket: i };
+    sfx.play('select'); refresh();
+  }
+  function pickBall(p: { x: number; y: number }) {
+    for (let id = 1; id < world.n; id++) {
+      if (!world.alive[id]) continue;
+      if (Math.hypot(p.x - world.x[id], p.y - world.y[id]) < R * 1.4) { call = { ball: id, pocket: call ? call.pocket : -1 }; refresh(); return; }
+    }
+  }
+  cv.addEventListener('pointerdown', (e) => {
+    if (!((phase === 'aim' || phase === 'place') && isHuman(cur))) return;
+    if (phase === 'aim' && mode === 'ten' && !pool.breakPending) { const tp = tablePos(e); if (pickPocket(tp)) return; pickBall(tp); }
+    dragging = true; try { cv.setPointerCapture(e.pointerId); } catch {}
+    handlePointer(e);
+  });
+  cv.addEventListener('pointermove', (e) => { if (dragging) handlePointer(e); });
+  const endDrag = () => { dragging = false; };
+  cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
+
+  function act() {
+    if (!isHuman(cur)) return;
+    if (phase === 'place') {
+      pool.inHand = false; pool.headOnly = false;
+      phase = 'aim'; defaultAim(); pull = 10; sfx.play('select'); refresh();
+    } else if (phase === 'aim') {
+      if (mode === 'ten' && !pool.breakPending && (!call || call.pocket < 0)) { setStatus(T.callNeedPocket); return; }
+      startStrike();
+    }
+  }
+  $('bl-shoot').addEventListener('click', act);
+  powerEl.addEventListener('input', () => { aim.power = Number(powerEl.value) / 100; $('bl-powv').textContent = powerEl.value; });
+  // ngắm tinh: giữ nút để quay đều
+  function holdBtn(id: string, dir: number) {
+    const el = $(id); let iv = 0;
+    const stop = () => { if (iv) { clearInterval(iv); iv = 0; } };
+    el.addEventListener('pointerdown', (e) => { if (phase !== 'aim') return; e.preventDefault(); aim.angle += dir * 0.0035; stop(); iv = window.setInterval(() => { if (phase !== 'aim') return stop(); aim.angle += dir * 0.0035; }, 40); });
+    for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) el.addEventListener(ev, stop);
+  }
+  holdBtn('bl-left', -1); holdBtn('bl-right', 1);
+  window.addEventListener('keydown', (e) => {
+    if (gameEl.hidden || (e.target as HTMLElement)?.tagName === 'INPUT' || !isHuman(cur)) return;
+    if (phase === 'aim') {
+      const k = e.shiftKey ? 5 : 1;
+      if (e.key === 'ArrowLeft') { aim.angle -= 0.004 * k; e.preventDefault(); }
+      else if (e.key === 'ArrowRight') { aim.angle += 0.004 * k; e.preventDefault(); }
+      else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { const v = Math.max(3, Math.min(100, Number(powerEl.value) + (e.key === 'ArrowUp' ? 3 : -3))); powerEl.value = String(v); powerEl.dispatchEvent(new Event('input')); e.preventDefault(); }
+    }
+    if (phase === 'aim' && mode === 'ten' && !pool.breakPending && e.key >= '1' && e.key <= '6') { callPocket(Number(e.key) - 1); e.preventDefault(); }
+    if ((e.key === ' ' || e.key === 'Enter') && (phase === 'aim' || phase === 'place')) { e.preventDefault(); act(); }
+  });
+  // vòng chọn xoáy
+  const dial = $('bl-dial'), dot = $('bl-dot');
+  function moveDot() { dot.style.left = 50 + aim.sx * 45 + '%'; dot.style.top = 50 - aim.sy * 45 + '%'; }
+  function dialPtr(e: PointerEvent) {
+    const r = dial.getBoundingClientRect();
+    let x = ((e.clientX - r.left) / r.width - 0.5) * 2, y = ((e.clientY - r.top) / r.height - 0.5) * 2;
+    const m = Math.hypot(x, y); if (m > 0.9) { x *= 0.9 / m; y *= 0.9 / m; }
+    aim.sx = x; aim.sy = -y; moveDot();
+  }
+  let dialDrag = false;
+  dial.addEventListener('pointerdown', (e) => { if (!((phase === 'aim' || phase === 'place') && isHuman(cur))) return; dialDrag = true; try { dial.setPointerCapture(e.pointerId); } catch {} dialPtr(e); });
+  dial.addEventListener('pointermove', (e) => { if (dialDrag) dialPtr(e); });
+  dial.addEventListener('pointerup', () => { dialDrag = false; });
+  dial.addEventListener('dblclick', () => { aim.sx = 0; aim.sy = 0; moveDot(); });
+
+  // ---------- Menu ----------
+  function pick(attr: string, cb: (v: string) => void) {
+    document.querySelectorAll<HTMLElement>(`#bl-menu [data-${attr}]`).forEach((btn) => btn.addEventListener('click', () => {
+      document.querySelectorAll(`#bl-menu [data-${attr}]`).forEach((x) => x.classList.remove('sel'));
+      btn.classList.add('sel'); cb(btn.dataset[attr] as string);
+    }));
+  }
+  function syncMenu() {
+    $('bl-botopts').hidden = opp !== 'bot';
+    $('bl-goalopts').hidden = mode !== 'carom';
+    for (const k of ['pool', 'nine', 'ten', 'carom']) $('bl-help-' + k).hidden = mode !== k;
+    paintStat();
+  }
+  pick('mode', (v) => { mode = v as Kind; syncMenu(); });
+  pick('opp', (v) => { opp = v as 'bot' | 'two'; syncMenu(); });
+  pick('level', (v) => { level = Number(v); });
+  pick('goal', (v) => { goal = Number(v); });
+  $('bl-start').addEventListener('click', () => { menu.hidden = true; gameEl.hidden = false; powerEl.value = '55'; aim.power = 0.55; $('bl-powv').textContent = '55'; newGame(); });
+  $('bl-new').addEventListener('click', () => { newGame(); });
+  $('bl-menu-btn').addEventListener('click', () => { gid++; phase = 'menu'; gameEl.hidden = true; menu.hidden = false; syncMenu(); });
+  buildSprites();
+  syncMenu();
+  window.addEventListener('resize', () => { if (!gameEl.hidden) fit(); });
+
+  // ---------- Vẽ ----------
+  function drawBall(i: number) {
+    const bx = M + world.x[i], by = M + world.y[i];
+    g.save(); g.translate(bx, by); g.rotate(rot[i]); g.drawImage(patterns[i], -R, -R, 2 * R, 2 * R); g.restore();
+    g.drawImage(shade, bx - R, by - R, 2 * R, 2 * R);
+  }
+  function draw() {
+    if (!bg) return;
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.drawImage(bg, 0, 0);
+    g.setTransform(sc, 0, 0, sc, 0, 0);
+    // vùng đặt bi
+    if (phase === 'place' && pool.headOnly) { g.fillStyle = 'rgba(255,255,255,0.1)'; g.fillRect(M + 26, M, W * 0.25 - 26, H); g.fillRect(M, M + 26, 26, H - 52); } // chừa góc lỗ
+    // bóng bi
+    for (let i = 0; i < world.n; i++) if (world.alive[i]) g.drawImage(shadow, M + world.x[i] - R * 1.3 + 2.5, M + world.y[i] - R * 1.3 + 4, R * 2.6, R * 2.6);
+    for (let i = 0; i < world.n; i++) if (world.alive[i]) drawBall(i);
+    // bi đang rơi lỗ
+    for (const s of sinks) {
+      const k = Math.min(1, s.t / 0.35), e = k * k;
+      const x = M + s.x + (s.px - s.x) * e, y = M + s.y + (s.py - s.y) * e, r = R * (1 - 0.7 * k);
+      g.globalAlpha = 1 - k * 0.6;
+      g.save(); g.translate(x, y); g.rotate(rot[s.id]); g.drawImage(patterns[s.id], -r, -r, 2 * r, 2 * r); g.restore();
+      g.drawImage(shade, x - r, y - r, 2 * r, 2 * r);
+      g.globalAlpha = 1;
+    }
+    // 10 bi: bi và lỗ đã gọi (vòng vàng), các lỗ có thể chọn (vòng trắng nhấp nháy)
+    if (mode === 'ten' && call && !pool.breakPending && (phase === 'aim' || phase === 'aimbot' || phase === 'strike' || phase === 'roll')) {
+      const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 160);
+      const pp = (i: number) => { const [hx, hy] = holeOf(POOL_POCKETS[i]); return [M + hx, M + hy]; };
+      if (phase === 'aim' && isHuman(cur)) {
+        for (let i = 0; i < POOL_POCKETS.length; i++) {
+          if (i === call.pocket) continue;
+          const [px, py] = pp(i);
+          g.strokeStyle = `rgba(255,255,255,${0.35 + 0.4 * pulse})`; g.lineWidth = 3; g.setLineDash([6, 5]);
+          g.beginPath(); g.arc(px, py, POOL_POCKETS[i].r + 6, 0, 7); g.stroke(); g.setLineDash([]);
+        }
+      }
+      const bx = M + world.x[call.ball], by = M + world.y[call.ball], bAlive = !!world.alive[call.ball];
+      if (call.pocket >= 0) {
+        const [px, py] = pp(call.pocket);
+        const cr = POOL_POCKETS[call.pocket].r + 7;
+        g.fillStyle = 'rgba(255,196,40,.28)'; g.beginPath(); g.arc(px, py, cr, 0, 7); g.fill();
+        g.strokeStyle = '#ffc428'; g.lineWidth = 4; g.beginPath(); g.arc(px, py, cr, 0, 7); g.stroke();
+        if (bAlive) { g.strokeStyle = 'rgba(255,196,40,.7)'; g.lineWidth = 2; g.setLineDash([4, 6]); g.beginPath(); g.moveTo(bx, by); g.lineTo(px, py); g.stroke(); g.setLineDash([]); }
+      }
+      if (bAlive) { g.strokeStyle = '#ffc428'; g.lineWidth = 3; g.beginPath(); g.arc(bx, by, R + 5 + pulse * 1.5, 0, 7); g.stroke(); }
+    }
+    // ngắm và gậy
+    const cid = cueId();
+    const showAim = (phase === 'aim' || phase === 'aimbot' || phase === 'strike' || phase === 'place') && world.alive[cid];
+    if (showAim) {
+      const cx = M + world.x[cid], cy = M + world.y[cid];
+      if (phase === 'place') {
+        g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 2; g.setLineDash([5, 4]); g.beginPath(); g.arc(cx, cy, R + 5, 0, 7); g.stroke(); g.setLineDash([]);
+      } else {
+        const a = aim.angle, ca = Math.cos(a), sa = Math.sin(a);
+        if (phase !== 'strike') {
+          const rc = rayCast(world, cid, a);
+          const ex = cx + ca * rc.t, ey = cy + sa * rc.t;
+          g.lineWidth = 2; g.strokeStyle = 'rgba(255,255,255,.75)'; g.setLineDash([9, 7]);
+          g.beginPath(); g.moveTo(cx + ca * (R + 2), cy + sa * (R + 2)); g.lineTo(ex, ey); g.stroke(); g.setLineDash([]);
+          g.strokeStyle = 'rgba(255,255,255,.9)'; g.beginPath(); g.arc(ex, ey, R, 0, 7); g.stroke();
+          if (rc.ball >= 0) {
+            const tx = M + world.x[rc.ball], ty = M + world.y[rc.ball];
+            const nx = (tx - ex) / (2 * R), ny = (ty - ey) / (2 * R);
+            g.strokeStyle = 'rgba(255,225,120,.95)'; g.lineWidth = 2.4;
+            g.beginPath(); g.moveTo(tx, ty); g.lineTo(tx + nx * 90, ty + ny * 90); g.stroke();
+            const dot = ca * nx + sa * ny, tx2 = ca - dot * nx, ty2 = sa - dot * ny, tl = Math.hypot(tx2, ty2);
+            if (tl > 0.08) { g.strokeStyle = 'rgba(255,255,255,.5)'; g.lineWidth = 1.6; g.beginPath(); g.moveTo(ex, ey); g.lineTo(ex + (tx2 / tl) * 55, ey + (ty2 / tl) * 55); g.stroke(); }
+          }
+        }
+        g.save(); g.translate(cx, cy); g.rotate(a);
+        g.drawImage(cueSpr, -(R + 5 + pull) - CUEL, -CUEH / 2, CUEL, CUEH);
+        g.restore();
+      }
+    }
+    // chữ kết thúc
+    if (phase === 'over') {
+      g.fillStyle = 'rgba(10,8,4,.45)'; g.fillRect(M, M, W, H);
+      g.fillStyle = '#fff3d6'; g.font = 'bold 46px system-ui, Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.shadowColor = 'rgba(0,0,0,.6)'; g.shadowBlur = 12;
+      g.fillText(statusEl.textContent || '', LW / 2, LH / 2, W - 60);
+      g.shadowBlur = 0;
+    }
+  }
+
+  let last = performance.now();
+  function update(dt: number) {
+    if (phase === 'roll') {
+      acc += Math.min(dt, 1 / 20);
+      let n = 0;
+      while (acc >= DT && n < 40) { step(world); acc -= DT; n++; rollSteps++; }
+      handleEvents();
+      for (let i = 0; i < world.n; i++) if (world.alive[i]) { const sp = Math.hypot(world.vx[i], world.vy[i]); if (sp > 0) rot[i] += (sp * dt / R) * 0.5 * (world.vx[i] >= 0 ? 1 : -1); }
+      if (allStopped(world) || rollSteps > 480 * 40) {
+        if (!allStopped(world)) { world.vx.fill(0); world.vy.fill(0); }
+        handleEvents(); acc = 0;
+        phase = 'roll'; endShot();
+      }
+    } else if (phase === 'strike') {
+      strikeT += dt;
+      const k = Math.min(1, strikeT / 0.11);
+      pull = pullStart + (-8 - pullStart) * k * k;
+      if (k >= 1) doShoot();
+    } else if (phase === 'aim' || phase === 'aimbot') {
+      const target = 8 + aim.power * 80;
+      pull += (target - pull) * Math.min(1, dt * 14);
+    }
+    for (let i = sinks.length - 1; i >= 0; i--) { sinks[i].t += dt; if (sinks[i].t > 0.4) sinks.splice(i, 1); }
+  }
+  function frame(now: number) {
+    requestAnimationFrame(frame);
+    if (gameEl.hidden) { last = now; return; }
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    update(dt);
+    draw();
+  }
+  requestAnimationFrame(frame);
+
+  if (location.hash.includes('debug')) {
+    (window as any).__bl = {
+      start: (m: Kind = 'pool', o: 'bot' | 'two' = 'two', lv = 2) => { mode = m; opp = o; level = lv; menu.hidden = true; gameEl.hidden = false; newGame(); },
+      get call() { return call; }, setCall: (ball: number, pocket: number) => { call = { ball, pocket }; refresh(); }, tap: (x: number, y: number) => { const tp = { x, y }; if (mode === 'ten' && !pool.breakPending && phase === 'aim') { if (pickPocket(tp)) return; pickBall(tp); } },
+      get phase() { return phase; }, get cur() { return cur; }, get world() { return world; }, get pool() { return pool; }, get score() { return score; }, get aim() { return aim; },
+      place: () => act(),
+      shoot: (angle: number, power: number, sx = 0, sy = 0) => { if (phase === 'place') act(); aim.angle = angle; aim.power = power; aim.sx = sx; aim.sy = sy; startStrike(); },
+      setAim: (angle: number, power: number) => { aim.angle = angle; aim.power = power; },
+      status: () => statusEl.textContent,
+      finish: (w: number, t = '') => finish(w, t),
+      tick: (n = 1, dt = 1 / 60) => { for (let i = 0; i < n; i++) update(dt); },
+    };
+  }
+</script>
+
+<style is:global>
+  #bl .bd-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .bl-wrap { position: relative; width: min(100%, 1000px); margin: 0 auto; }
+  .bl-wrap .sfx-btn { top: -2px !important; right: 0 !important; }
+  .bl-stage { width: 100%; }
+  .bl-stage canvas { display: block; width: 100%; height: auto; aspect-ratio: 1128 / 628; border-radius: 16px; touch-action: none; user-select: none; box-shadow: 0 12px 30px rgba(40, 20, 5, .35); cursor: crosshair; }
+  .bl-players { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 4px 0 6px; padding-right: 48px; }
+  .bl-player { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; min-height: 44px; padding: 6px 10px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); transition: box-shadow .25s, border-color .25s; min-width: 0; }
+  .bl-player b { font-size: .92rem; }
+  .bl-player small { color: var(--muted); font-size: .78rem; }
+  .bl-player em { margin-left: auto; font-style: normal; font-weight: 800; color: #2f9e44; font-size: 1.05rem; }
+  .bl-player.on { border-color: #e0a63a; box-shadow: 0 0 0 3px rgba(224, 166, 58, .28), 0 4px 14px rgba(224, 166, 58, .25); }
+  .bl-av { width: 26px; aspect-ratio: 1; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: .8rem; color: #fff; border: 2px solid rgba(0, 0, 0, .25); flex: none; }
+  .bl-chips { display: flex; flex-wrap: wrap; gap: 2px; min-width: 0; }
+  .bl-info .bl-chip, .bl-chip { width: 19px; aspect-ratio: 1; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(0, 0, 0, .35); font-style: normal; }
+  .bl-chip span { background: #f6f3e8; color: #111; border-radius: 50%; width: 11px; aspect-ratio: 1; display: inline-flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 800; line-height: 1; }
+  .bl-chip.out { opacity: .22; }
+  .bl-info:not([hidden]) { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 2px 0 6px; padding: 6px 10px; border-radius: 12px; background: var(--card); border: 1px solid var(--line); font-size: .85rem; }
+  .bl-info small { color: var(--muted); font-size: .76rem; margin-right: 5px; }
+  .bl-nx, .bl-left, .bl-call { display: inline-flex; align-items: center; gap: 3px; min-width: 0; }
+  .bl-chip.hl { box-shadow: 0 0 0 2px #e0a63a, 0 0 8px rgba(224, 166, 58, .7); }
+  .bl-call em { font-style: normal; color: var(--muted); }
+  .bl-call.ok { color: #b7791f; font-weight: 700; }
+  .bl-ctl { display: flex; align-items: stretch; gap: 14px; margin: 12px 0 8px; flex-wrap: wrap; }
+  .bl-ctl.off { opacity: .45; pointer-events: none; }
+  .bl-lbl { font-size: .8rem; color: var(--muted); font-weight: 600; }
+  .bl-spin { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .bl-dial { position: relative; width: 74px; aspect-ratio: 1; border-radius: 50%; touch-action: none; cursor: pointer; background: radial-gradient(circle at 34% 28%, #fff, #ddd 60%, #aaa); border: 2px solid #777; box-shadow: inset 0 -3px 6px rgba(0, 0, 0, .2); }
+  .bl-dial::before, .bl-dial::after { content: ''; position: absolute; background: rgba(0, 0, 0, .18); }
+  .bl-dial::before { left: 50%; top: 8%; bottom: 8%; width: 1px; }
+  .bl-dial::after { top: 50%; left: 8%; right: 8%; height: 1px; }
+  .bl-dot { position: absolute; width: 16px; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%); left: 50%; top: 50%; background: radial-gradient(circle at 35% 30%, #ff8a80, #c62828); box-shadow: 0 1px 3px rgba(0, 0, 0, .5); pointer-events: none; }
+  .bl-pow { flex: 1; min-width: 170px; display: flex; flex-direction: column; justify-content: center; gap: 6px; }
+  .bl-pow input[type=range] { width: 100%; height: 34px; accent-color: #e0a63a; touch-action: pan-y; }
+  .bl-fine { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
+  .bl-fine .btn { min-width: 64px; touch-action: none; }
+  .bl-shoot { align-self: center; min-width: 120px; padding: 16px 26px; font-size: 1.1rem; }
+  main.is-fs .bl-wrap { max-width: calc((100vh - 340px) * 1.8) !important; margin-left: auto !important; margin-right: auto !important; }
+  @media (max-width: 520px) { .bl-shoot { width: 100%; } }
+</style>

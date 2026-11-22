@@ -1,0 +1,161 @@
+---
+import '../styles/global.css';
+import { SITE, PORTFOLIO } from '../config';
+import { ui, lp, altPath, withBase, type Lang } from '../i18n';
+
+// Site game luôn đặt noindex (không cho Google lập chỉ mục).
+interface Props { title?: string; description?: string; lang?: Lang; wide?: boolean; noindex?: boolean; }
+const { title, description, lang = 'vi', wide = false } = Astro.props;
+const t = ui[lang];
+const desc = description || t.description;
+const fullTitle = title ? `${title} · ${SITE.brand}` : `${SITE.brand} · ${t.description.split(':')[0]}`;
+const path = Astro.url.pathname;
+const canonical = new URL(path, Astro.site).href;
+const other: Lang = lang === 'vi' ? 'en' : 'vi';
+const otherHref = altPath(path, lang);
+const an = SITE.analytics;
+const ogImage = new URL(withBase('/og-image.png'), Astro.site).href;
+const baseForScripts = withBase('/').replace(/\/$/, '');
+---
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={desc} />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang={other} href={new URL(otherHref, Astro.site).href} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={desc} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={t.locale.replace('-', '_')} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={ogImage} />
+    <script is:inline>
+      // Áp dụng giao diện đã chọn trước khi trang hiện ra để tránh chớp màu
+      try {
+        var saved = localStorage.getItem('theme');
+        if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+      } catch (e) {}
+    </script>
+    {an.id && an.provider === 'google' && (
+      <>
+        <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${an.id}`}></script>
+        <script is:inline define:vars={{ gaId: an.id, base: baseForScripts }}>
+          window.dataLayer = window.dataLayer || [];
+          function gtag() { dataLayer.push(arguments); }
+          gtag('js', new Date());
+          gtag('config', gaId, { allow_google_signals: false, allow_ad_personalization_signals: false });
+          // Đo game: lần chạm đầu tiên vào trang game, và các nút bắt đầu / chơi lại
+          (function () {
+            var p = location.pathname;
+            if (base && p.indexOf(base) === 0) p = p.slice(base.length) || '/';
+            var m = p.match(/^(?:\/en)?\/([^/]+)\/?$/);
+            if (!m || m[1] === 'en' || m[1] === 'privacy') return;
+            var name = m[1], first = false;
+            document.addEventListener('pointerdown', function (e) {
+              var t = e.target;
+              if (!t || !t.closest || t.closest('a, header, footer')) return;
+              if (!first) { first = true; gtag('event', 'game_interact', { game_name: name }); }
+              var b = t.closest('button');
+              if (b && /start|again|retry|new|play/i.test(b.id || '')) gtag('event', 'game_start', { game_name: name });
+            }, true);
+            document.addEventListener('keydown', function () {
+              if (!first) { first = true; gtag('event', 'game_interact', { game_name: name }); }
+            }, true);
+          })();
+        </script>
+      </>
+    )}
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap wide bar">
+        <a class="brand" href={lp(lang, '/')}><span>🎮</span> {SITE.brand}</a>
+        <nav aria-label="Main">
+          <a href={PORTFOLIO + (lang === 'en' ? '/en/' : '/')} rel="noopener">{t.portfolio} ↗</a>
+        </nav>
+        <div class="bar-end">
+          <button class="theme-btn" id="theme-toggle" type="button" aria-label={t.themeToggle} title={t.themeToggle}>
+            <span class="ic-moon" aria-hidden="true">🌙</span><span class="ic-sun" aria-hidden="true">☀️</span>
+          </button>
+          <a class="lang" href={otherHref} hreflang={other} title={other === 'en' ? 'English' : 'Tiếng Việt'}>{other.toUpperCase()}</a>
+        </div>
+      </div>
+    </header>
+
+    <main class:list={['wrap', { wide }]}><slot /></main>
+
+    <footer class="site-footer">
+      <div class="wrap wide copy">
+        <p class="legal">{t.sideProject}</p>
+        © {new Date().getFullYear()} {SITE.author} · <a href={lp(lang, '/privacy/')}>{t.privacy}</a>
+      </div>
+    </footer>
+
+    <script is:inline>
+      // Nút chuyển sáng / tối: mặc định theo hệ thống, chọn tay thì nhớ lại
+      (function () {
+        var root = document.documentElement;
+        var mq = window.matchMedia('(prefers-color-scheme: dark)');
+        var btn = document.getElementById('theme-toggle');
+        if (!btn) return;
+        function effective() { return root.getAttribute('data-theme') || (mq.matches ? 'dark' : 'light'); }
+        btn.addEventListener('click', function () {
+          var next = effective() === 'dark' ? 'light' : 'dark';
+          root.setAttribute('data-theme', next);
+          try { localStorage.setItem('theme', next); } catch (e) {}
+        });
+      })();
+    </script>
+    <script is:inline define:vars={{ base: baseForScripts }}>
+      // Nút toàn màn hình cho trang trò chơi: dùng Fullscreen API nếu có, không thì phủ kín khung nhìn (iPhone)
+      (function () {
+        var p = location.pathname;
+        if (base && p.indexOf(base) === 0) p = p.slice(base.length) || '/';
+        var m = p.match(/^(?:\/en)?\/([^/]+)\/?$/);
+        if (!m || m[1] === 'en' || m[1] === 'privacy') return;
+        var main = document.querySelector('main');
+        if (!main) return;
+        var btn = document.createElement('button');
+        btn.type = 'button'; btn.className = 'fs-btn';
+        var vi = document.documentElement.lang === 'vi';
+        function paint() {
+          var on = main.classList.contains('is-fs');
+          btn.textContent = on ? '✕' : '⛶';
+          var label = on ? (vi ? 'Thoát toàn màn hình' : 'Exit full screen') : (vi ? 'Toàn màn hình' : 'Full screen');
+          btn.title = label; btn.setAttribute('aria-label', label);
+        }
+        function setFs(on) {
+          main.classList.toggle('is-fs', on);
+          document.body.classList.toggle('has-fs', on);
+          paint();
+          window.dispatchEvent(new Event('resize'));
+        }
+        btn.addEventListener('click', function () {
+          var on = !main.classList.contains('is-fs');
+          setFs(on);
+          var de = document.documentElement;
+          try {
+            if (on && de.requestFullscreen) de.requestFullscreen().catch(function () {});
+            else if (on && de.webkitRequestFullscreen) de.webkitRequestFullscreen();
+            else if (!on && document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(function () {});
+          } catch (e) {}
+        });
+        // Người dùng thoát bằng phím Esc của trình duyệt
+        document.addEventListener('fullscreenchange', function () {
+          if (!document.fullscreenElement && main.classList.contains('is-fs')) setFs(false);
+        });
+        main.insertBefore(btn, main.firstChild);
+        paint();
+      })();
+    </script>
+  </body>
+</html>

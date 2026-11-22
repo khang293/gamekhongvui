@@ -1,0 +1,26 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE, PORTFOLIO } from '../config';
+---
+<Base lang="vi" title="Chính sách quyền riêng tư" description="Cách trang này thu thập và dùng thông tin của bạn.">
+  <h1>Chính sách quyền riêng tư</h1>
+  <p class="meta">Cập nhật lần cuối: 22/11/2026</p>
+  <div class="prose">
+    <p>Đây là trang trò chơi của <strong>{SITE.author}</strong>, làm cho vui. Trang này không có tài khoản, không có đăng nhập, không có tiền thật.</p>
+
+    <h2>Thông tin lưu trên thiết bị của bạn</h2>
+    <p>Điểm cao, tiến độ chơi và lựa chọn sáng/tối được lưu ngay trong trình duyệt của bạn (localStorage) để lần sau còn nhớ. Những dữ liệu này không được gửi đi đâu và bạn xoá bằng cách xoá dữ liệu trang web trong trình duyệt.</p>
+
+    <h2>Thống kê truy cập</h2>
+    <p>Để biết có bao nhiêu người ghé trang và chơi game nào, trang dùng <strong>Google Analytics 4</strong> của Google. Công cụ này dùng cookie để phân biệt các lượt truy cập và ghi lại số liệu ẩn danh như trang đã xem, quốc gia, loại thiết bị và nguồn truy cập. Mình đã tắt tính năng quảng cáo và tệp đối tượng của Google, không dùng số liệu để quảng cáo và không bán. Bạn có thể chặn cookie trong trình duyệt hoặc dùng công cụ chặn theo dõi nếu không muốn bị đếm.</p>
+
+    <h2>Lưu trữ trang</h2>
+    <p>Trang được lưu trên GitHub Pages. Giống mọi nơi lưu trữ web, nhà cung cấp có thể ghi lại các thông tin kỹ thuật cơ bản của lượt truy cập như địa chỉ IP, theo chính sách của họ.</p>
+
+    <h2>Liên hệ</h2>
+    <p>Nếu có câu hỏi về quyền riêng tư, bạn xem thông tin liên hệ ở <a href={`${PORTFOLIO}/contact/`} rel="noopener">trang hồ sơ của Khang</a>.</p>
+
+    <h2>Thay đổi chính sách</h2>
+    <p>Nếu cách trang thu thập thông tin thay đổi, mình sẽ cập nhật trang này và ngày ở đầu trang.</p>
+  </div>
+</Base>

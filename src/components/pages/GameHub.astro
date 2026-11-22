@@ -1,0 +1,57 @@
+---
+import Base from '../../layouts/Base.astro';
+import { lp, type Lang } from '../../i18n';
+import { gamesUi } from '../../data/games';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const g = gamesUi[lang];
+const cards = [
+  { key: 'billiards', href: lp(lang, '/billiards/'), ...g.cards.billiards },
+  { key: 'badminton', href: lp(lang, '/badminton/'), ...g.cards.badminton },
+  { key: 'link', href: lp(lang, '/link/'), ...g.cards.link },
+  { key: 'blocks', href: lp(lang, '/blocks/'), ...g.cards.blocks },
+  { key: 'marbles', href: lp(lang, '/marbles/'), ...g.cards.marbles },
+  { key: 'runner', href: lp(lang, '/runner/'), ...g.cards.runner },
+  { key: 'match3', href: lp(lang, '/match3/'), ...g.cards.match3 },
+  { key: 'fxbug', href: lp(lang, '/fxbug/'), ...g.cards.fxbug },
+  { key: 'tower', href: lp(lang, '/tower/'), ...g.cards.tower },
+  { key: 'racer', href: lp(lang, '/racer/'), ...g.cards.racer },
+  { key: 'snake', href: lp(lang, '/snake/'), ...g.cards.snake },
+  { key: 'g2048', href: lp(lang, '/2048/'), ...g.cards.g2048 },
+  { key: 'mines', href: lp(lang, '/mines/'), ...g.cards.mines },
+  { key: 'memory', href: lp(lang, '/memory/'), ...g.cards.memory },
+  { key: 'xiangqi', href: lp(lang, '/xiangqi/'), ...g.cards.xiangqi },
+  { key: 'chess', href: lp(lang, '/chess/'), ...g.cards.chess },
+  { key: 'caro', href: lp(lang, '/caro/'), ...g.cards.caro },
+  { key: 'survive', href: lp(lang, '/survive/'), ...g.cards.survive },
+  { key: 'quiz', href: lp(lang, '/quiz/'), ...g.cards.quiz },
+  { key: 'bomb', href: lp(lang, '/bomb/'), ...g.cards.bomb },
+  { key: 'fight', href: lp(lang, '/fight/'), ...g.cards.fight },
+];
+---
+<Base lang={lang} title={g.hubTitle} description={g.hubSub} noindex>
+  <h1>{g.hubTitle}</h1>
+  <p class="meta">{g.hubSub}</p>
+
+  <div class="game-cards">
+    {cards.map((c) => (
+      <a class="game-card" href={c.href}>
+        <span class="game-ic" aria-hidden="true">{c.icon}</span>
+        <b>{c.title}</b>
+        <span class="game-desc">{c.desc}</span>
+        <span class="btn sm">{g.play}</span>
+      </a>
+    ))}
+  </div>
+</Base>
+
+<style>
+  .game-cards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-top: 24px; }
+  .game-card { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px; color: var(--fg); }
+  .game-card:hover { border-color: var(--accent); text-decoration: none; }
+  .game-ic { font-size: 2.2rem; line-height: 1; }
+  .game-card b { font-size: 1.15rem; }
+  .game-desc { color: var(--muted); font-size: .93rem; line-height: 1.5; flex: 1; }
+  .game-card .btn { margin-top: 8px; }
+</style>

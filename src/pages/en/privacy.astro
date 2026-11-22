@@ -1,0 +1,26 @@
+---
+import Base from '../../layouts/Base.astro';
+import { SITE, PORTFOLIO } from '../../config';
+---
+<Base lang="en" title="Privacy policy" description="How this site collects and uses your information.">
+  <h1>Privacy policy</h1>
+  <p class="meta">Last updated: 22 November 2026</p>
+  <div class="prose">
+    <p>This is the games site of <strong>{SITE.author}</strong>, made for fun. There are no accounts, no logins and no real money.</p>
+
+    <h2>Information stored on your device</h2>
+    <p>High scores, game progress and your light or dark theme choice are stored in your own browser (localStorage) so the site can remember them next time. This data is not sent anywhere and you can remove it by clearing the site data in your browser.</p>
+
+    <h2>Analytics</h2>
+    <p>To learn how many people visit and which games they play, the site uses <strong>Google Analytics 4</strong> from Google. It uses cookies to tell visits apart and records anonymous figures such as pages viewed, country, device type and traffic source. Google's advertising and audience features are turned off, the figures are not used for advertising and they are not sold. You can block cookies in your browser or use a tracking blocker if you prefer not to be counted.</p>
+
+    <h2>Hosting</h2>
+    <p>The site is hosted on GitHub Pages. As with any web host, the provider may record basic technical details of visits, such as IP addresses, under its own policy.</p>
+
+    <h2>Contact</h2>
+    <p>For any privacy question, see the contact details on <a href={`${PORTFOLIO}/en/contact/`} rel="noopener">Khang's portfolio</a>.</p>
+
+    <h2>Changes to this policy</h2>
+    <p>If the site changes how it collects information, I will update this page and the date at the top.</p>
+  </div>
+</Base>
