@@ -6,6 +6,7 @@ export default defineConfig({
   site: 'https://khang293.github.io',
   base: '/gamekhongvui',
   trailingSlash: 'always',
+  devToolbar: { enabled: false },
   i18n: {
     defaultLocale: 'vi',
     locales: ['vi', 'en'],
