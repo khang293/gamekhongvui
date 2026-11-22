@@ -4,7 +4,7 @@ import { SITE, PORTFOLIO } from '../config';
 ---
 <Base lang="vi" title="Chính sách quyền riêng tư" description="Cách trang này thu thập và dùng thông tin của bạn.">
   <h1>Chính sách quyền riêng tư</h1>
-  <p class="meta">Cập nhật lần cuối: 22/11/2026</p>
+  <p class="meta">Cập nhật lần cuối: 23/11/2026</p>
   <div class="prose">
     <p>Đây là trang trò chơi của <strong>{SITE.author}</strong>, làm cho vui. Trang này không có tài khoản, không có đăng nhập, không có tiền thật.</p>
 
@@ -13,6 +13,9 @@ import { SITE, PORTFOLIO } from '../config';
 
     <h2>Thống kê truy cập</h2>
     <p>Để biết có bao nhiêu người ghé trang và chơi game nào, trang dùng <strong>Google Analytics 4</strong> của Google. Công cụ này dùng cookie để phân biệt các lượt truy cập và ghi lại số liệu ẩn danh như trang đã xem, quốc gia, loại thiết bị và nguồn truy cập. Mình đã tắt tính năng quảng cáo và tệp đối tượng của Google, không dùng số liệu để quảng cáo và không bán. Bạn có thể chặn cookie trong trình duyệt hoặc dùng công cụ chặn theo dõi nếu không muốn bị đếm.</p>
+
+    <h2>Phòng chơi online (Tiến lên miền Nam và Poker)</h2>
+    <p>Khi bạn tạo hoặc vào một phòng online, các máy kết nối <strong>trực tiếp với nhau</strong> bằng công nghệ WebRTC (thư viện PeerJS). Để hai máy tìm thấy nhau, trang dùng <strong>máy chủ báo hiệu công cộng của PeerJS</strong>; máy chủ này nhìn thấy mã phòng và địa chỉ mạng (IP) của các máy trong lúc kết nối, đúng như mọi dịch vụ WebRTC. Sau đó tên bạn đặt, hành động trong ván (đánh bài, bỏ lượt, sẵn sàng; ở poker là xem bài, theo, tố, bỏ bài) và trạng thái ván được trao đổi trực tiếp giữa những người trong phòng; địa chỉ IP của bạn có thể bị những người cùng phòng nhìn thấy. Chủ phòng chạy luật của ván nên về lý thuyết có thể thấy bài của mọi người, vì vậy hãy chơi với bạn bè. Mình <strong>không lưu</strong> tên, mã phòng hay nội dung ván trên máy chủ nào của mình. Trình duyệt chỉ nhớ tên và mã nối lại phòng trong localStorage để bạn nối lại sau khi tải lại trang (tối đa 30 phút), và bạn có thể xoá bằng cách rời phòng hoặc xoá dữ liệu trang.</p>
 
     <h2>Lưu trữ trang</h2>
     <p>Trang được lưu trên GitHub Pages. Giống mọi nơi lưu trữ web, nhà cung cấp có thể ghi lại các thông tin kỹ thuật cơ bản của lượt truy cập như địa chỉ IP, theo chính sách của họ.</p>

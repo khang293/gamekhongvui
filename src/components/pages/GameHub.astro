@@ -8,6 +8,7 @@ const { lang } = Astro.props;
 const g = gamesUi[lang];
 const cards = [
   { key: 'billiards', href: lp(lang, '/billiards/'), ...g.cards.billiards },
+  { key: 'poker', href: lp(lang, '/poker/'), ...g.cards.poker },
   { key: 'badminton', href: lp(lang, '/badminton/'), ...g.cards.badminton },
   { key: 'link', href: lp(lang, '/link/'), ...g.cards.link },
   { key: 'blocks', href: lp(lang, '/blocks/'), ...g.cards.blocks },
@@ -21,6 +22,7 @@ const cards = [
   { key: 'g2048', href: lp(lang, '/2048/'), ...g.cards.g2048 },
   { key: 'mines', href: lp(lang, '/mines/'), ...g.cards.mines },
   { key: 'memory', href: lp(lang, '/memory/'), ...g.cards.memory },
+  { key: 'tienlen', href: lp(lang, '/tienlen/'), ...g.cards.tienlen },
   { key: 'xiangqi', href: lp(lang, '/xiangqi/'), ...g.cards.xiangqi },
   { key: 'chess', href: lp(lang, '/chess/'), ...g.cards.chess },
   { key: 'caro', href: lp(lang, '/caro/'), ...g.cards.caro },

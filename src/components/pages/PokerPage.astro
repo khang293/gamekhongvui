@@ -1,0 +1,1339 @@
+---
+import Base from '../../layouts/Base.astro';
+import { lp, type Lang } from '../../i18n';
+import { gamesUi } from '../../data/games';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const g = gamesUi[lang];
+const vi = lang === 'vi';
+const T = vi ? {
+  title: 'Poker (Texas Hold\'em)',
+  sub: 'Texas Hold\'em không giới hạn với 1 đến 5 máy ngồi cùng bàn. Chia bài, cược, tố, all-in và so bài như bàn thật.',
+  note: 'Chơi giải trí bằng chip ảo, không dùng tiền thật.',
+  virtual: 'Chip ảo',
+  bots: 'Số máy cùng bàn', level: 'Độ khó của máy', levels: ['Dễ', 'Thường', 'Khó'],
+  stack: 'Chip ban đầu', blinds: 'Mức mù', blindOpts: ['Cố định 10/20', 'Tăng dần mỗi 8 ván'],
+  start: 'Bắt đầu', newGame: 'Ván mới', menu: 'Menu', hand: 'Ván', blindsLbl: 'Mù', pot: 'Pot', you: 'Bạn',
+  fold: 'Bỏ bài', check: 'Xem bài', call: 'Theo', raise: 'Tố tới', allin: 'All-in', callAllin: 'Theo all-in',
+  half: '½ pot', three: '¾ pot', potq: 'Pot', next: 'Ván tiếp', thinking: 'đang nghĩ...', yourTurn: 'Tới lượt bạn', waiting: 'Chờ người khác...',
+  wins: (n: string, a: string) => `${n} thắng ${a}`, withHand: (h: string) => `với ${h}`, allFold: '(mọi người bỏ bài)',
+  busted: 'Bạn hết chip. Game over!', winTable: 'Bạn thắng cả bàn!', folded: 'Đã bỏ bài', out: 'Hết chip',
+  stats: 'Thống kê', statLine: (h: number, w: number, b: number, best: string) => `${h} ván · thắng ${w} · pot lớn nhất ${b}${best ? ' · bài đẹp nhất: ' + best : ''}`,
+  tight: 'Chặt', loose: 'Liều', balanced: 'Cân bằng',
+  rules: 'Cách chơi: mỗi người có 2 lá bài tẩy, 5 lá chung ra dần (flop 3 lá, turn, river). Mỗi vòng bạn có thể bỏ bài, xem/theo hoặc tố. Ai có bộ 5 lá mạnh nhất khi mở bài (hoặc là người cuối cùng chưa bỏ bài) thắng pot. Mức mù và số chip chọn ở trên. Đồng hồ lượt của bạn là 30 giây.',
+  cardsOf: 'Bài của bạn', board: 'Bài chung', log: 'Diễn biến', timeout: 'hết giờ',
+  verbs: { fold: 'bỏ bài', check: 'xem bài', call: 'theo', raise: 'tố tới', bet: 'cược', allin: 'all-in' },
+  street: { flop: 'Flop', turn: 'Turn', river: 'River' }, newHand: 'Ván', sb: 'SB', bb: 'BB', dealer: 'D',
+  opp: ['Bé Mai', 'Anh Tư', 'Cô Ba', 'Tí Nhí', 'Chú Sáu'],
+  net: {
+    homeCards: [
+      { k: 'solo', ic: '🤖', t: 'Chơi với máy', d: 'Một mình với 1 đến 5 máy' },
+      { k: 'create', ic: '🌐', t: 'Tạo phòng online', d: 'Gửi mã phòng cho bạn bè để cùng chơi' },
+      { k: 'join', ic: '🔑', t: 'Vào phòng bằng mã', d: 'Nhập mã phòng bạn bè gửi cho bạn' },
+    ],
+    back: '← Quay lại', yourName: 'Tên của bạn', namePh: 'Tên (tối đa 16 ký tự)',
+    createBtn: 'Tạo phòng', joinBtn: 'Vào phòng', roomCode: 'Mã phòng', codePh: 'VD: K7PQ2',
+    creating: 'Đang tạo phòng...', joining: 'Đang vào phòng...', rejoining: 'Đang nối lại phòng {c}...',
+    createHelp: 'Bạn là chủ phòng: máy bạn chạy luật và giữ bài của cả bàn. Chỗ nào không có người sẽ do máy chơi.',
+    joinHelp: 'Nhập mã 5 ký tự mà chủ phòng gửi cho bạn.',
+    lobbyTitle: 'Phòng chờ', copyLink: 'Sao chép link', copyCode: 'Sao chép mã', shareBtn: 'Chia sẻ', copied: 'Đã sao chép!',
+    seatsLbl: 'Số chỗ ngồi', seatsHint: 'Chỗ nào không có người sẽ do máy chơi.',
+    hostTag: 'Chủ phòng', youTag: 'Bạn', botTag: 'Máy', onlineTag: 'Online', offlineTag: 'Mất kết nối', replacedTag: 'Máy chơi thay', offlineLabel: 'offline',
+    timerLbl: 'Đồng hồ mỗi lượt', timerOpts: ['Tắt', '20 giây', '30 giây', '45 giây'],
+    startOnline: 'Bắt đầu ván', waitHost: 'Đang chờ chủ phòng bắt đầu...', leaveRoom: 'Rời phòng',
+    lobbyNote: 'Chơi online dùng kết nối trực tiếp giữa các máy; chủ phòng chạy luật của ván và về lý thuyết nhìn được tất cả bài, nên chỉ chơi với bạn bè. Chip ảo, không dùng tiền thật.',
+    settingsSummary: 'Thiết lập: {n} chỗ, {s} chip, {b}, độ khó máy {l}, đồng hồ: {t}.',
+    errs: {
+      noroom: 'Không tìm thấy phòng. Kiểm tra lại mã phòng.', full: 'Phòng đã đủ người.', started: 'Ván đã bắt đầu, không vào thêm được.',
+      version: 'Phiên bản game không khớp, hãy tải lại trang.', timeout: 'Không kết nối được. Mạng của bạn có thể chặn kết nối trực tiếp (thử mạng khác).',
+      network: 'Không kết nối được. Mạng của bạn có thể chặn kết nối trực tiếp (thử mạng khác).', closed: 'Phòng đã đóng.', hostLeft: 'Chủ phòng đã thoát, phòng đã đóng.',
+      kicked: 'Bạn đã bị mời ra khỏi phòng.', lost: 'Mất kết nối quá lâu nên bạn đã rời phòng.', badmsg: 'Phòng không trả lời đúng. Thử lại sau.',
+      badcode: 'Mã phòng gồm 5 ký tự (chữ và số).', create: 'Không tạo được phòng. Mạng có thể chặn kết nối trực tiếp hoặc máy chủ báo hiệu không phản hồi.',
+    },
+    connOk: 'Online', connLost: 'Mất kết nối, đang nối lại...', connHost: 'Chủ phòng', roomClosed: 'Phòng đã đóng', toMenu: 'Về menu',
+    restart: 'Chơi lại', waitRestart: 'Chờ chủ phòng chơi lại...', confirmRestart: 'Chơi lại từ đầu và đặt lại chip cho mọi người?',
+    spectating: 'Bạn đã hết chip, đang xem các ván còn lại.', nextIn: 'Ván tiếp sau {s} giây...', tableWinner: '{n} thắng cả bàn!',
+  },
+} : {
+  title: 'Poker (Texas Hold\'em)',
+  sub: 'No-limit Texas Hold\'em against 1 to 5 computer players. Deal, bet, raise, all-in and showdown like a real table.',
+  note: 'For fun with virtual chips only, no real money.',
+  virtual: 'Virtual chips',
+  bots: 'Computer players', level: 'Computer level', levels: ['Easy', 'Normal', 'Hard'],
+  stack: 'Starting chips', blinds: 'Blinds', blindOpts: ['Fixed 10/20', 'Rising every 8 hands'],
+  start: 'Start', newGame: 'New game', menu: 'Menu', hand: 'Hand', blindsLbl: 'Blinds', pot: 'Pot', you: 'You',
+  fold: 'Fold', check: 'Check', call: 'Call', raise: 'Raise to', allin: 'All-in', callAllin: 'Call all-in',
+  half: '½ pot', three: '¾ pot', potq: 'Pot', next: 'Next hand', thinking: 'thinking...', yourTurn: 'Your turn', waiting: 'Waiting for others...',
+  wins: (n: string, a: string) => `${n} wins ${a}`, withHand: (h: string) => `with ${h}`, allFold: '(everyone folded)',
+  busted: 'You are out of chips. Game over!', winTable: 'You win the table!', folded: 'Folded', out: 'Out',
+  stats: 'Stats', statLine: (h: number, w: number, b: number, best: string) => `${h} hands · won ${w} · biggest pot ${b}${best ? ' · best hand: ' + best : ''}`,
+  tight: 'Tight', loose: 'Loose', balanced: 'Balanced',
+  rules: 'How it works: everyone gets 2 hole cards and 5 community cards come out in stages (3-card flop, turn, river). Each round you can fold, check/call or raise. The best 5-card hand at showdown (or the last player who has not folded) wins the pot. Choose blinds and chips above. Your turn timer is 30 seconds.',
+  cardsOf: 'Your cards', board: 'Community cards', log: 'Hand log', timeout: 'time out',
+  verbs: { fold: 'folds', check: 'checks', call: 'calls', raise: 'raises to', bet: 'bets', allin: 'goes all-in' },
+  street: { flop: 'Flop', turn: 'Turn', river: 'River' }, newHand: 'Hand', sb: 'SB', bb: 'BB', dealer: 'D',
+  opp: ['Little Mai', 'Mr. Tu', 'Aunt Ba', 'Tiny Ti', 'Uncle Sau'],
+  net: {
+    homeCards: [
+      { k: 'solo', ic: '🤖', t: 'Play the computer', d: 'Alone against 1 to 5 computer players' },
+      { k: 'create', ic: '🌐', t: 'Create an online room', d: 'Send the room code to friends to play together' },
+      { k: 'join', ic: '🔑', t: 'Join with a code', d: 'Enter the room code a friend sent you' },
+    ],
+    back: '← Back', yourName: 'Your name', namePh: 'Name (max 16 characters)',
+    createBtn: 'Create room', joinBtn: 'Join room', roomCode: 'Room code', codePh: 'e.g. K7PQ2',
+    creating: 'Creating the room...', joining: 'Joining the room...', rejoining: 'Reconnecting to room {c}...',
+    createHelp: "You are the host: your device runs the rules and holds everyone's cards. Empty seats are played by the computer.",
+    joinHelp: 'Enter the 5-character code the host sent you.',
+    lobbyTitle: 'Lobby', copyLink: 'Copy link', copyCode: 'Copy code', shareBtn: 'Share', copied: 'Copied!',
+    seatsLbl: 'Seats', seatsHint: 'Empty seats are played by the computer.',
+    hostTag: 'Host', youTag: 'You', botTag: 'Bot', onlineTag: 'Online', offlineTag: 'Disconnected', replacedTag: 'Bot playing', offlineLabel: 'offline',
+    timerLbl: 'Turn timer', timerOpts: ['Off', '20 seconds', '30 seconds', '45 seconds'],
+    startOnline: 'Start the game', waitHost: 'Waiting for the host to start...', leaveRoom: 'Leave room',
+    lobbyNote: "Online play uses direct connections between devices; the host runs the rules and in theory can see everyone's cards, so play with friends only. Virtual chips, no real money.",
+    settingsSummary: 'Settings: {n} seats, {s} chips, {b}, bot level {l}, timer: {t}.',
+    errs: {
+      noroom: 'Room not found. Check the code.', full: 'The room is full.', started: 'The game has already started, nobody can join now.',
+      version: 'Game version mismatch, please reload the page.', timeout: 'Could not connect. Your network may block direct connections (try another network).',
+      network: 'Could not connect. Your network may block direct connections (try another network).', closed: 'The room has closed.', hostLeft: 'The host left, the room is closed.',
+      kicked: 'You were removed from the room.', lost: 'Disconnected for too long, so you left the room.', badmsg: 'The room did not answer correctly. Try again later.',
+      badcode: 'A room code has 5 characters (letters and digits).', create: 'Could not create the room. Your network may block direct connections or the signaling server did not answer.',
+    },
+    connOk: 'Online', connLost: 'Connection lost, reconnecting...', connHost: 'Host', roomClosed: 'Room closed', toMenu: 'Back to menu',
+    restart: 'Play again', waitRestart: 'Waiting for the host to restart...', confirmRestart: "Restart and reset everyone's chips?",
+    spectating: 'You are out of chips and watching the rest.', nextIn: 'Next hand in {s}s...', tableWinner: '{n} won the whole table!',
+  },
+};
+// Chỉ gửi chuỗi thường sang trình duyệt (hàm không chuyển được)
+const ui = {
+  lang, you: T.you, fold: T.fold, check: T.check, call: T.call, raise: T.raise, allin: T.allin, callAllin: T.callAllin, half: T.half, three: T.three, potq: T.potq,
+  next: T.next, thinking: T.thinking, yourTurn: T.yourTurn, waiting: T.waiting, allFold: T.allFold, busted: T.busted, winTable: T.winTable,
+  folded: T.folded, out: T.out, hand: T.hand, blindsLbl: T.blindsLbl, pot: T.pot, verbs: T.verbs, street: T.street, timeout: T.timeout,
+  tight: T.tight, loose: T.loose, balanced: T.balanced, opp: T.opp, sb: T.sb, bb: T.bb, dealer: T.dealer, net: T.net,
+  blindOpts: T.blindOpts, levels: T.levels, stackLbl: T.stack, blindsOptLbl: T.blinds, levelLbl: T.level,
+  winsT: vi ? '{n} thắng {a}' : '{n} wins {a}', withT: vi ? 'với {h}' : 'with {h}',
+  statT: vi ? '{h} ván · thắng {w} · pot lớn nhất {b}' : '{h} hands · won {w} · biggest pot {b}', bestT: vi ? ' · bài đẹp nhất: ' : ' · best hand: ',
+};
+const SUITS = [
+  'M10 1C0 9 2 16 8 14 7 17 6 18 5 19H15C14 18 13 17 12 14 18 16 20 9 10 1Z', // pik
+  'M10 18.5C-4 8 3 -1 10 5.5 17 -1 24 8 10 18.5Z',                          // cơ
+  'M10 .8L18 10 10 19.2 2 10Z',                                              // rô
+  'M10 1.5a3.9 3.9 0 0 1 3.4 5.9 3.9 3.9 0 1 1-2.2 7.2L12.6 19H7.4l1.4-4.4a3.9 3.9 0 1 1-2.2-7.2A3.9 3.9 0 0 1 10 1.5Z', // chuồn
+];
+---
+<Base lang={lang} title={T.title} description={T.sub} noindex wide>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    {SUITS.map((d, i) => <symbol id={`pk-s${i}`} viewBox="0 0 20 20"><path d={d}></path></symbol>)}
+  </svg>
+  <div class="pk-intro" id="pk-intro">
+    <p class="meta"><a href={lp(lang, '/')}>{g.back}</a></p>
+    <h1>{T.title}</h1>
+    <p class="meta">{T.sub}</p>
+    <p class="pk-note">🎴 {T.note}</p>
+  </div>
+
+  <div id="pk" data-ui={JSON.stringify(ui)}>
+    <div id="pk-menu" class="pk-menucard">
+      <!-- Màn hình chính: ba cách chơi -->
+      <div id="pk-v-home" class="pk-view">
+      <div class="pk-illus" aria-hidden="true">
+        <svg viewBox="0 0 320 150" width="100%" height="auto">
+          <defs>
+            <radialGradient id="pk-ig" cx="50%" cy="40%" r="70%"><stop offset="0" stop-color="#3aa56d"/><stop offset="1" stop-color="#0f5a35"/></radialGradient>
+            <linearGradient id="pk-ir" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a3a26"/><stop offset="1" stop-color="#26160f"/></linearGradient>
+          </defs>
+          <rect x="8" y="14" width="304" height="122" rx="61" fill="url(#pk-ir)"/>
+          <rect x="18" y="24" width="284" height="102" rx="51" fill="url(#pk-ig)"/>
+          <rect x="30" y="36" width="260" height="78" rx="39" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="1.5"/>
+          <g transform="translate(120 52)"><rect width="22" height="32" rx="3" fill="#fff"/><text x="4" y="13" font-size="11" font-weight="800" fill="#c62828" font-family="system-ui">A</text><text x="5" y="28" font-size="14" fill="#c62828">♥</text></g>
+          <g transform="translate(146 52)"><rect width="22" height="32" rx="3" fill="#fff"/><text x="4" y="13" font-size="11" font-weight="800" fill="#1b1f2a" font-family="system-ui">K</text><text x="5" y="28" font-size="14" fill="#1b1f2a">♠</text></g>
+          <g transform="translate(172 52)"><rect width="22" height="32" rx="3" fill="#fff"/><text x="4" y="13" font-size="11" font-weight="800" fill="#1b1f2a" font-family="system-ui">Q</text><text x="5" y="28" font-size="14" fill="#1b1f2a">♣</text></g>
+          <circle cx="40" cy="75" r="14" fill="#ef6c00" stroke="#fff" stroke-width="2.5"/><circle cx="280" cy="75" r="14" fill="#7c4dff" stroke="#fff" stroke-width="2.5"/>
+          <circle cx="160" cy="18" r="14" fill="#00897b" stroke="#fff" stroke-width="2.5"/><circle cx="160" cy="132" r="14" fill="#2b6cb0" stroke="#ffd54a" stroke-width="3"/>
+          <circle cx="205" cy="100" r="7" fill="#d32f2f" stroke="#fff" stroke-dasharray="3 2"/><circle cx="217" cy="100" r="7" fill="#212121" stroke="#fff" stroke-dasharray="3 2"/><circle cx="211" cy="94" r="7" fill="#2e7d32" stroke="#fff" stroke-dasharray="3 2"/>
+        </svg>
+      </div>
+        <div class="pk-homecards">
+          {T.net.homeCards.map((c) => (
+            <button type="button" class="pk-hc" data-go={c.k}>
+              <span class="pk-hc-ic" aria-hidden="true">{c.ic}</span>
+              <b>{c.t}</b>
+              <small>{c.d}</small>
+            </button>
+          ))}
+        </div>
+        <p class="bd-stat" id="pk-stat"></p>
+        <p class="pk-rejoin" id="pk-rejoin" hidden></p>
+        <p class="meta pk-rules">{T.rules}</p>
+        <p class="meta pk-fine">🎴 {T.note}</p>
+      </div>
+
+      <!-- Chơi với máy -->
+      <div id="pk-v-solo" class="pk-view" hidden>
+        <button type="button" class="pk-back" data-go="home">{T.net.back}</button>
+      <div class="pk-opt">
+        <h2 class="bd-h">{T.bots}</h2>
+        <div class="bd-row">
+          {[1, 2, 3, 4, 5].map((n) => <button type="button" class={`bd-opt${n === 3 ? ' sel' : ''}`} data-bots={n}>{n}</button>)}
+        </div>
+      </div>
+      <div class="pk-opt">
+        <h2 class="bd-h">{T.level}</h2>
+        <div class="bd-row">
+          {T.levels.map((l, i) => <button type="button" class={`bd-opt${i === 1 ? ' sel' : ''}`} data-level={i + 1}>{l}</button>)}
+        </div>
+      </div>
+      <div class="pk-opt">
+        <h2 class="bd-h">{T.stack}</h2>
+        <div class="bd-row">
+          {[500, 1000, 2000].map((n) => <button type="button" class={`bd-opt${n === 1000 ? ' sel' : ''}`} data-stack={n}>{n}</button>)}
+        </div>
+      </div>
+      <div class="pk-opt">
+        <h2 class="bd-h">{T.blinds}</h2>
+        <div class="bd-row">
+          {T.blindOpts.map((l, i) => <button type="button" class={`bd-opt${i === 1 ? ' sel' : ''}`} data-blinds={i === 0 ? 0 : 8}>{l}</button>)}
+        </div>
+      </div>
+        <button class="btn pk-startbtn" type="button" id="pk-start">▶ {T.start}</button>
+        <p class="meta pk-fine">🎴 {T.note}</p>
+      </div>
+
+      <!-- Tạo phòng -->
+      <div id="pk-v-create" class="pk-view" hidden>
+        <button type="button" class="pk-back" data-go="home">{T.net.back}</button>
+        <h2 class="bd-h">{T.net.homeCards[1].t}</h2>
+        <p class="meta">{T.net.createHelp}</p>
+        <label class="pk-lbl" for="pk-name-c">{T.net.yourName}</label>
+        <input id="pk-name-c" class="pk-input" type="text" maxlength="16" autocomplete="nickname" placeholder={T.net.namePh} />
+        <p class="pk-err" id="pk-err-c" role="alert" hidden></p>
+        <button class="btn pk-startbtn" type="button" id="pk-create">🌐 {T.net.createBtn}</button>
+        <p class="meta pk-fine">🎴 {T.note}</p>
+      </div>
+
+      <!-- Vào phòng -->
+      <div id="pk-v-join" class="pk-view" hidden>
+        <button type="button" class="pk-back" data-go="home">{T.net.back}</button>
+        <h2 class="bd-h">{T.net.homeCards[2].t}</h2>
+        <p class="meta">{T.net.joinHelp}</p>
+        <label class="pk-lbl" for="pk-code">{T.net.roomCode}</label>
+        <input id="pk-code" class="pk-input pk-codeinput" type="text" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder={T.net.codePh} />
+        <label class="pk-lbl" for="pk-name-j">{T.net.yourName}</label>
+        <input id="pk-name-j" class="pk-input" type="text" maxlength="16" autocomplete="nickname" placeholder={T.net.namePh} />
+        <p class="pk-err" id="pk-err-j" role="alert" hidden></p>
+        <button class="btn pk-startbtn" type="button" id="pk-joinbtn">🔑 {T.net.joinBtn}</button>
+        <p class="meta pk-fine">🎴 {T.note}</p>
+      </div>
+
+      <!-- Phòng chờ (chủ phòng và khách) -->
+      <div id="pk-v-lobby" class="pk-view" hidden></div>
+    </div>
+
+    <div id="pk-game" hidden>
+      <div class="pk-wrap">
+        <div class="pk-room">
+          <div class="pk-top"><span class="pk-conn" id="pk-conn" hidden></span><span class="pk-pill" id="pk-roomcode" hidden></span><span id="pk-info"></span><span class="pk-virt">🎴 {T.virtual}</span></div>
+          <div class="pk-stage">
+            <div class="pk-felt" id="pk-felt">
+              <div class="pk-cloth"></div>
+              <div class="pk-line"></div>
+              <div class="pk-mark" aria-hidden="true">gamekhongvui</div>
+              <div class="pk-banner" id="pk-banner" hidden></div>
+              <div class="pk-center">
+                <div class="pk-pot" id="pk-pot"></div>
+                <div class="pk-board" id="pk-board" aria-label={T.board}></div>
+              </div>
+              <div id="pk-seats"></div>
+            </div>
+          </div>
+          <div class="pk-dock">
+            <div class="pk-me" id="pk-me" aria-label={T.cardsOf}></div>
+            <div class="pk-ctl">
+              <p class="bd-status pk-status" id="pk-status" aria-live="polite"></p>
+              <div class="pk-actions" id="pk-actions">
+                <div class="pk-main">
+                  <button type="button" class="pk-btn fold" id="pk-fold">{T.fold}</button>
+                  <button type="button" class="pk-btn call" id="pk-call">{T.check}</button>
+                  <button type="button" class="pk-btn raise" id="pk-raise">{T.raise}</button>
+                </div>
+                <div class="pk-sizer" id="pk-sizer">
+                  <div class="pk-amt" id="pk-amt"></div>
+                  <input type="range" id="pk-slider" min="0" max="100" step="1" value="0" aria-label={T.raise} />
+                  <div class="pk-quick">
+                    <button type="button" class="pk-q" id="pk-q1">{T.half}</button>
+                    <button type="button" class="pk-q" id="pk-q2">{T.three}</button>
+                    <button type="button" class="pk-q" id="pk-q3">{T.potq}</button>
+                    <button type="button" class="pk-q allin" id="pk-q4">{T.allin}</button>
+                  </div>
+                </div>
+              </div>
+              <div class="pk-result" id="pk-result" hidden></div>
+            </div>
+          </div>
+        </div>
+        <div class="pk-closed" id="pk-closed" hidden></div>
+        <div class="pk-log" id="pk-log" aria-label={T.log}></div>
+        <div class="bd-row bd-actions">
+          <button type="button" class="btn ghost sm" id="pk-new">{T.newGame}</button>
+          <button type="button" class="btn ghost sm" id="pk-menu-btn">{T.menu}</button>
+        </div>
+        <p class="meta pk-fine">🎴 {T.note}</p>
+      </div>
+    </div>
+  </div>
+</Base>
+
+<script>
+  import { createTable, startHand, applyAction, viewFor, legalActions, mulberry32, type Table, type View, type Ev, type Action } from '../../data/pokerEngine';
+  import { decide, PROFILES } from '../../data/pokerBot';
+  import { evaluate, handName, rankOf, suitOf, RANK_CH } from '../../data/pokerEval';
+  import { sfx, mountMute } from '../../data/sfx';
+  import { PKNetHost, PKNetClient, type NetState } from '../../data/pokerNet';
+  import { PeerTransport } from '../../data/net/peerTransport';
+  import { LoopbackHub } from '../../data/net/loopbackTransport';
+  import { normCode, validCode, sanitizeName, escapeHtml as esc, realClock, RoomError, type RejectReason } from '../../data/net/room';
+  import type { Transport } from '../../data/net/transport';
+
+  const root = document.getElementById('pk') as HTMLElement;
+  const ui = JSON.parse(root.dataset.ui || '{}');
+  const lang: 'vi' | 'en' = ui.lang === 'en' ? 'en' : 'vi';
+  const $ = (id: string) => document.getElementById(id) as HTMLElement;
+  const menu = $('pk-menu'), gameEl = $('pk-game'), intro = $('pk-intro');
+  const AUTO = !location.hash.includes('debug');
+  mountMute(document.querySelector('.pk-wrap') as HTMLElement);
+
+  const ROSTER: { profile: 'balanced' | 'loose' | 'tight'; color: string }[] = [
+    { profile: 'balanced', color: '#00897b' }, { profile: 'loose', color: '#ef6c00' }, { profile: 'tight', color: '#7c4dff' },
+    { profile: 'loose', color: '#c2185b' }, { profile: 'tight', color: '#546e7a' },
+  ];
+  const SUIT_CH = ['♠', '♥', '♦', '♣'];
+  const fmt = (s: string, o: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (_, k) => String(o[k]));
+  const num = (n: number) => n.toLocaleString(lang === 'vi' ? 'vi-VN' : 'en-US');
+  const cardTxt = (c: number) => RANK_CH[rankOf(c)] + SUIT_CH[suitOf(c)];
+
+  let cfg = { bots: 3, level: 2, stack: 1000, blindEvery: 8 };
+  let t: Table;
+  let gid = 0;
+  let botTimer: number | undefined, nextTimer: number | undefined, tick: number | undefined;
+  let over = '';            // thông báo kết thúc game
+  let humanDeadline = 0;
+  let thinkingSeat = -1;
+  let prevBoardLen = 0, dealtFor = -1;
+  let logLines: string[] = [];
+  let rng = mulberry32((Math.random() * 2 ** 32) >>> 0);
+  let nextCountdown = 0;
+  // ---------- Trạng thái online ----------
+  type Ctl = { kind: 'host'; host: PKNetHost } | { kind: 'client'; client: PKNetClient };
+  interface Net { s: NetState; view: View; n: number; me: number; inv: (d: number) => number }
+  let ctl: Ctl | null = null;      // có giá trị khi đang ở phòng online
+  let net: Net | null = null;      // bản xem đã xoay (ghế của bạn luôn ở vị trí 0, dưới bàn)
+  let lastS: NetState | null = null;
+  let nsAt = 0;                    // giờ nhận bản trạng thái mới nhất (để chạy đồng hồ lượt)
+  let conn: 'online' | 'lost' = 'online';
+  let hub: LoopbackHub | null = null;
+  let lastEvN = -1, lastNetHand = -1;
+  let inGame = false;
+  let stats = { hands: 0, won: 0, biggest: 0, best: 0, games: 0, tables: 0 };
+  try { const s = JSON.parse(localStorage.getItem('pk-stats') || 'null'); if (s) stats = { ...stats, ...s }; } catch {}
+  const saveStats = () => { try { localStorage.setItem('pk-stats', JSON.stringify(stats)); } catch {} };
+  const botInfo = (seat: number) => ROSTER[(seat - 1) % ROSTER.length];
+
+  function paintStat() {
+    const el = $('pk-stat');
+    if (!stats.hands) { el.textContent = ''; return; }
+    el.textContent = fmt(ui.statT, { h: stats.hands, w: stats.won, b: num(stats.biggest) }) + (stats.best ? ui.bestT + handName(stats.best, lang) : '');
+  }
+
+  // ---------- Vẽ bài ----------
+  function cardEl(c: number, cls = '', delay = 0): string {
+    const r = RANK_CH[rankOf(c)], s = suitOf(c);
+    const face = r === 'J' || r === 'Q' || r === 'K';
+    const mid = face ? `<span class="fc">${r}</span>` : `<svg class="pip"><use href="#pk-s${s}"></use></svg>`;
+    const idx = `<b>${r}</b><svg><use href="#pk-s${s}"></use></svg>`;
+    return `<div class="pk-card ${s === 1 || s === 2 ? 'red' : 'blk'} ${cls}"${delay ? ` style="animation-delay:${delay}ms"` : ''}><div class="ci tl">${idx}</div><div class="mid">${mid}</div><div class="ci br">${idx}</div></div>`;
+  }
+  const backEl = (cls = '') => `<div class="pk-card back ${cls}"></div>`;
+
+  // Chip theo mệnh giá: tách số tiền thành tối đa 3 cọc (giá trị lớn nhất trước)
+  const DENOM = [1000, 500, 100, 25, 5, 1];
+  function pilesEl(amount: number): string {
+    if (amount <= 0) return '';
+    let rem = amount;
+    const piles: { d: number; n: number }[] = [];
+    for (const d of DENOM) { const n = Math.floor(rem / d); rem -= n * d; if (n > 0) piles.push({ d, n }); }
+    const shown = piles.slice(0, 3);
+    return shown.map((p) => `<span class="pk-pile">${Array.from({ length: Math.min(p.n, 5) }, (_, i) => `<i class="pk-chip d${p.d}" style="--i:${i}"></i>`).join('')}</span>`).join('');
+  }
+  function chipsEl(amount: number): string {
+    return amount > 0 ? `<span class="pk-piles">${pilesEl(amount)}</span><b>${num(amount)}</b>` : '';
+  }
+
+  // ---------- Vị trí ghế quanh bàn (phần trăm trong mặt nỉ), 0 = bạn ở dưới, đi theo chiều kim đồng hồ ----------
+  const LAY_D: Record<number, [number, number][]> = {
+    2: [[50, 91], [50, 7]],
+    3: [[50, 91], [15, 28], [85, 28]],
+    4: [[50, 91], [9, 52], [50, 7], [91, 52]],
+    5: [[50, 91], [12, 72], [27, 11], [73, 11], [88, 72]],
+    6: [[50, 91], [10, 70], [19, 20], [50, 6], [81, 20], [90, 70]],
+  };
+  const LAY_P: Record<number, [number, number][]> = {
+    2: [[50, 92], [50, 8]],
+    3: [[50, 92], [19, 24], [81, 24]],
+    4: [[50, 92], [16, 79], [50, 8], [84, 79]],
+    5: [[50, 92], [16, 79], [16, 30], [84, 30], [84, 79]],
+    6: [[50, 92], [15, 79], [15, 30], [50, 7], [85, 30], [85, 79]],
+  };
+  const mq = window.matchMedia('(max-width: 700px)');
+  function seatPos(i: number, n: number) {
+    const lay = (mq.matches ? LAY_P : LAY_D)[n];
+    if (lay && lay[i]) return { x: lay[i][0], y: lay[i][1] };
+    const phi = (2 * Math.PI * i) / n;
+    return { x: 50 - 44 * Math.sin(phi), y: 50 + 44 * Math.cos(phi) };
+  }
+  const HUMAN_COL = ['#2b6cb0', '#c05621', '#2f855a', '#805ad5', '#b83280', '#2c7a7b'];
+  interface Meta { name: string; color: string; sub: string; bot: boolean; offline: boolean; replaced: boolean }
+  function seatMeta(i: number): Meta {
+    if (net) {
+      const slot = net.inv(i), p = net.s.slots[slot];
+      if (!p) return { name: '?', color: '#555', sub: '', bot: true, offline: false, replaced: false };
+      const bot = p.kind === 'bot';
+      return { name: esc(p.name), color: bot ? ROSTER[(slot - 1 + ROSTER.length) % ROSTER.length].color : HUMAN_COL[slot % HUMAN_COL.length], sub: bot ? ui[p.profile] : '', bot, offline: !bot && !p.online, replaced: !bot && p.replaced };
+    }
+    return i === 0 ? { name: ui.you, color: '#2b6cb0', sub: '', bot: false, offline: false, replaced: false }
+      : { name: ui.opp[i - 1], color: botInfo(i).color, sub: ui[botInfo(i).profile], bot: true, offline: false, replaced: false };
+  }
+  const seatName = (i: number) => seatMeta(i).name;
+  const curView = (): View => (net ? net.view : viewFor(t, 0));
+  const legalNow = () => (net ? net.view.legal : legalActions(t, 0));
+
+  function render() {
+    const v = curView();
+    const n = v.seats.length;
+    const showResult = (t.phase === 'hand_over' || t.phase === 'game_over') && t.result;
+    const winners = new Set<number>(showResult ? t.result!.awards.map((a) => a.seat) : []);
+    let sh = '';
+    for (const s of v.seats) {
+      const p = seatPos(s.id, n);
+      const out = s.busted || (!s.inHand && t.phase !== 'idle');
+      const inactive = out || s.folded;
+      const isTurn = ['preflop', 'flop', 'turn', 'river'].includes(v.phase) && v.toAct === s.id;
+      const tags: string[] = [];
+      if (s.id === v.sbSeat && s.inHand) tags.push(ui.sb);
+      if (s.id === v.bbSeat && s.inHand) tags.push(ui.bb);
+      let cards = '';
+      if (s.id !== 0 && s.hasCards) {
+        cards = s.hole ? `<div class="pk-cards face">${s.hole.map((c) => cardEl(c, 'xs')).join('')}</div>` : `<div class="pk-cards">${backEl('xs')}${backEl('xs')}</div>`;
+      }
+      const meta = seatMeta(s.id);
+      const info = meta.sub ? `<small>${meta.sub}</small>` : '';
+      let last = '';
+      if (out) last = ui.out;
+      else if (s.folded) last = ui.folded;
+      else if (meta.replaced) last = ui.net.replacedTag;
+      else if (meta.offline) last = ui.net.offlineLabel;
+      else if (isTurn && (thinkingSeat === s.id || (net && meta.bot))) last = `<span class="pk-dots"><i></i><i></i><i></i></span>`;
+      else if (s.allIn && s.inHand) last = `<span class="pk-allin">${ui.allin}</span>`;
+      else if (s.lastAction && s.lastAction !== 'fold') last = ((ui.verbs as any)[s.lastAction] || '') + (['raise', 'bet', 'allin', 'call'].includes(s.lastAction) && s.bet > 0 ? ' ' + num(s.bet) : '');
+      if (showResult && winners.has(s.id)) last = `🏆 +${num(t.result!.awards.find((a) => a.seat === s.id)!.amount)}`;
+      const color = meta.color;
+      const ring = isTurn && (net ? !meta.bot && net.s.turnMs != null : s.id === 0);
+      const winCls = winners.has(s.id) ? ' win' : '';
+      sh += `<div class="pk-seat${s.id === 0 ? ' me' : ''}${inactive ? ' dim' : ''}${isTurn ? ' turn' : ''}${ring ? ' ring' : ''}${winCls}${s.allIn && s.inHand ? ' allin' : ''}" data-seat="${s.id}" style="left:${p.x}%;top:${p.y}%">
+        ${cards}
+        <div class="pk-avw"><div class="pk-av" style="--c:${color};--p:${ring ? ringP().toFixed(3) : 1}"><span>${[...String(meta.name.replace(/&[#a-z0-9]+;/gi, '?'))][0]?.toUpperCase() || '?'}</span></div>${s.id === v.button && s.inHand ? `<em class="pk-dealer">${ui.dealer}</em>` : ''}${tags.map((x) => `<em class="pk-tag">${x}</em>`).join('')}</div>
+        <div class="pk-plate"><div class="pk-nm"><span>${seatName(s.id)}</span>${info}</div><div class="pk-st"><i class="pk-coin"></i>${num(s.stack)}</div></div>
+        <div class="pk-lastact">${last}</div>
+      </div>`;
+      if (s.bet > 0) {
+        const bx = p.x + (50 - p.x) * 0.36, by = p.y + (50 - p.y) * 0.36;
+        sh += `<div class="pk-bet" style="left:${bx}%;top:${by}%">${chipsEl(s.bet)}</div>`;
+      }
+    }
+    $('pk-seats').innerHTML = sh;
+
+    // bài chung
+    let bh = '';
+    for (let i = 0; i < 5; i++) {
+      if (i < v.board.length) bh += cardEl(v.board[i], i >= prevBoardLen && AUTO ? 'deal' : '', i >= prevBoardLen && AUTO ? (i - prevBoardLen) * 110 : 0);
+      else bh += '<div class="pk-card slot"></div>';
+    }
+    $('pk-board').innerHTML = bh;
+    prevBoardLen = v.board.length;
+    const potShown = v.pot > 0 ? v.pot : (showResult ? t.result!.potTotal : 0);
+    $('pk-pot').innerHTML = potShown > 0 ? `<i class="pk-potchip"></i><span class="lbl">${ui.pot}</span> <b>${num(potShown)}</b>` : '';
+    $('pk-info').innerHTML = `<span>${ui.hand} #${v.handNo}</span><span class="pk-blind">${ui.blindsLbl} ${v.sb}/${v.bb}</span>`;
+    renderNetTop();
+
+    // biển thông báo người thắng ngay trên bàn
+    const bn = $('pk-banner');
+    if (showResult) {
+      const a = t.result!.awards[0];
+      const nm = seatName(a.seat);
+      let txt = fmt(ui.winsT, { n: nm, a: num(a.amount) });
+      if (t.result!.showdown && a.score !== undefined) txt += ' ' + fmt(ui.withT, { h: handName(a.score, lang) });
+      else if (!t.result!.showdown) txt += ' ' + ui.allFold;
+      bn.innerHTML = `<span>🏆</span> ${txt}`; bn.hidden = false;
+      bn.classList.toggle('mine', t.result!.awards.some((x) => x.seat === 0));
+    } else { bn.hidden = true; bn.innerHTML = ''; }
+
+    // bài của bạn (khu dưới bàn)
+    const me = v.seats[0];
+    let mh = '';
+    if (me.hole && me.hasCards) {
+      const fresh = dealtFor !== v.handNo && AUTO;
+      mh = `<div class="pk-hero">${me.hole.map((c, i) => cardEl(c, 'lg' + (fresh ? ' deal' : ''), fresh ? i * 140 : 0)).join('')}</div>`;
+      const cards = [...me.hole, ...v.board];
+      mh += `<div class="pk-hname">${handName(evaluate(cards), lang)}</div>`;
+      dealtFor = v.handNo;
+    } else if (me.folded) mh = `<div class="pk-hero ghost"><div class="pk-card back lg off"></div><div class="pk-card back lg off"></div></div><div class="pk-hname dim">${ui.folded}</div>`;
+    else if (me.busted || me.stack === 0) mh = `<div class="pk-hname dim">${ui.out}</div>`;
+    else mh = `<div class="pk-hero ghost"><div class="pk-card slot lg"></div><div class="pk-card slot lg"></div></div>`;
+    $('pk-me').innerHTML = mh;
+
+    renderActions(v);
+    renderStatus(v);
+    renderResult();
+    $('pk-actions').hidden = !!showResult;
+    $('pk-status').hidden = !!showResult;
+    $('pk-log').innerHTML = logLines.slice(-9).map((l) => `<div>${l}</div>`).join('');
+    ($('pk-log') as HTMLElement).scrollTop = 1e6;
+  }
+  mq.addEventListener('change', () => { if (t && !gameEl.hidden) render(); });
+
+  function renderStatus(v: View) {
+    const st = $('pk-status');
+    st.classList.remove('done');
+    if (over) { st.textContent = over; st.classList.add('done'); return; }
+    if (t.phase === 'hand_over' || t.phase === 'game_over') { st.textContent = ''; return; }
+    if (net && v.seats[0].busted) { st.textContent = ui.net.spectating; st.classList.remove('mine'); return; }
+    if (v.toAct === 0) { st.textContent = ui.yourTurn; st.classList.add('mine'); }
+    else {
+      st.classList.remove('mine');
+      if (v.toAct >= 0) st.textContent = `${seatName(v.toAct)} ${thinkingSeat === v.toAct || (net && seatMeta(v.toAct).bot) ? ui.thinking : ''}`;
+      else st.textContent = '';
+    }
+  }
+
+  // ---------- Nút hành động ----------
+  const slider = $('pk-slider') as HTMLInputElement;
+  const foldB = $('pk-fold') as HTMLButtonElement, callB = $('pk-call') as HTMLButtonElement, raiseB = $('pk-raise') as HTMLButtonElement;
+  let raiseVal = 0;
+  function setRaise(x: number, lg: ReturnType<typeof legalActions>) {
+    raiseVal = Math.max(lg.minRaiseTo, Math.min(lg.maxRaiseTo, Math.round(x)));
+    slider.value = String(raiseVal);
+    const span = Math.max(1, lg.maxRaiseTo - lg.minRaiseTo);
+    slider.style.setProperty('--fill', `${((raiseVal - lg.minRaiseTo) / span) * 100}%`);
+    const isAll = raiseVal >= lg.maxRaiseTo;
+    raiseB.textContent = isAll ? `${ui.allin} ${num(raiseVal)}` : `${ui.raise} ${num(raiseVal)}`;
+    $('pk-amt').innerHTML = `<small>${isAll ? ui.allin : ui.raise}</small><b>${num(raiseVal)}</b>`;
+  }
+  function renderActions(v: View) {
+    const lg = v.legal;
+    const mine = lg.canAct && !over;
+    $('pk-actions').classList.toggle('off', !mine);
+    foldB.disabled = !mine; callB.disabled = !mine;
+    const sizer = $('pk-sizer');
+    if (!mine) { raiseB.disabled = true; sizer.classList.add('off'); callB.textContent = ui.check; raiseB.textContent = ui.raise; $('pk-amt').innerHTML = ''; callB.classList.remove('isCall'); return; }
+    callB.classList.toggle('isCall', !lg.canCheck);
+    callB.textContent = lg.canCheck ? ui.check : lg.callAmount >= t.seats[0].stack ? `${ui.callAllin} ${num(lg.callAmount)}` : `${ui.call} ${num(lg.callAmount)}`;
+    raiseB.disabled = !lg.canRaise;
+    sizer.classList.toggle('off', !lg.canRaise);
+    if (lg.canRaise) {
+      const step = Math.max(1, Math.round(v.bb / 4));
+      slider.min = String(lg.minRaiseTo); slider.max = String(lg.maxRaiseTo); slider.step = String(step);
+      const keep = raiseVal >= lg.minRaiseTo && raiseVal <= lg.maxRaiseTo && t.handNo === lastRaiseHand && v.phase === lastRaisePhase;
+      setRaise(keep ? raiseVal : lg.minRaiseTo, lg);
+      lastRaiseHand = t.handNo; lastRaisePhase = v.phase;
+    } else { raiseB.textContent = ui.raise; $('pk-amt').innerHTML = ''; }
+  }
+  let lastRaiseHand = -1, lastRaisePhase = '';
+
+  slider.addEventListener('input', () => {
+    const lg = legalNow(); if (!lg.canRaise) return;
+    let x = Number(slider.value);
+    if (x > lg.maxRaiseTo - Number(slider.step)) x = lg.maxRaiseTo;
+    setRaise(x, lg);
+  });
+  function quick(frac: number) {
+    const lg = legalNow(); if (!lg.canRaise) return;
+    const pot = t.seats.reduce((a, s) => a + s.total, 0);
+    setRaise(frac < 0 ? lg.maxRaiseTo : t.currentBet + frac * (pot + lg.toCall), lg);
+    sfx.play('tick');
+  }
+  $('pk-q1').addEventListener('click', () => quick(0.5));
+  $('pk-q2').addEventListener('click', () => quick(0.75));
+  $('pk-q3').addEventListener('click', () => quick(1));
+  $('pk-q4').addEventListener('click', () => quick(-1));
+  foldB.addEventListener('click', () => humanAct({ type: 'fold' }));
+  callB.addEventListener('click', () => { const lg = legalNow(); humanAct(lg.canCheck ? { type: 'check' } : { type: 'call' }); });
+  raiseB.addEventListener('click', () => {
+    const lg = legalNow(); if (!lg.canRaise) return;
+    humanAct(raiseVal >= lg.maxRaiseTo ? { type: 'allin' } : { type: 'raise', amount: raiseVal });
+  });
+
+  // ---------- Kết quả ván ----------
+  function renderResult() {
+    const el = $('pk-result');
+    if (!(t.phase === 'hand_over' || t.phase === 'game_over') || !t.result) { el.hidden = true; el.innerHTML = ''; return; }
+    const r = t.result;
+    let h = '';
+    for (const a of r.awards) {
+      const nm = seatName(a.seat);
+      let txt = fmt(ui.winsT, { n: nm, a: num(a.amount) });
+      if (r.showdown && a.score !== undefined) txt += ' ' + fmt(ui.withT, { h: handName(a.score, lang) });
+      else if (!r.showdown) txt += ' ' + ui.allFold;
+      h += `<div class="pk-win${a.seat === 0 ? ' mine' : ''}">🏆 ${txt}</div>`;
+    }
+    if (r.showdown) {
+      const rest = r.shown.filter((x) => !r.awards.some((a) => a.seat === x.seat));
+      for (const x of rest) h += `<div class="pk-lose">${seatName(x.seat)}: ${handName(x.score, lang)}</div>`;
+    }
+    if (over) h += `<div class="pk-over">${over}</div>`;
+    else if (!net) h += `<button type="button" class="pk-nextbtn" id="pk-next">${ui.next}${nextCountdown > 0 ? ' (' + nextCountdown + ')' : ''}</button>`;
+    if (net) {
+      if (net.s.gameOver) h += ctl && ctl.kind === 'host' ? `<button type="button" class="pk-nextbtn" id="pk-restart">${ui.net.restart}</button>` : `<div class="pk-wait">${ui.net.waitRestart}</div>`;
+      else h += `<div class="pk-nextin" id="pk-nextin">${nextInText()}</div>`;
+    }
+    el.innerHTML = h; el.hidden = false;
+    const nb = document.getElementById('pk-next');
+    if (nb) nb.addEventListener('click', () => nextHand());
+    const rb = document.getElementById('pk-restart');
+    if (rb) rb.addEventListener('click', () => { if (ctl && ctl.kind === 'host') ctl.host.intentHost({ type: 'restart' }); });
+  }
+
+  // ---------- Luồng ván ----------
+  function logAdd(s: string) { logLines.push(s); if (logLines.length > 60) logLines.shift(); }
+  function handleEvents(evs: Ev[]) {
+    for (const e of evs) {
+      switch (e.t) {
+        case 'newhand': logAdd(`—— ${ui.hand} #${e.handNo} (${e.sb}/${e.bb}) ——`); sfx.play('deal'); break;
+        case 'blind': sfx.play('chip'); break;
+        case 'action': {
+          const nm = seatName(e.seat);
+          const verb = (ui.verbs as any)[e.kind] || e.kind;
+          const amt = e.kind === 'raise' || e.kind === 'call' || e.kind === 'bet' || e.kind === 'allin' ? ' ' + num(e.kind === 'call' ? e.paid : e.amount) : '';
+          logAdd(`${nm} ${verb}${amt}`);
+          sfx.play(e.kind === 'fold' ? 'fold' : e.kind === 'check' ? 'tap' : e.kind === 'allin' ? 'allin' : 'chip');
+          break;
+        }
+        case 'street': logAdd(`${(ui.street as any)[e.phase] || e.phase}: ${e.cards.map(cardTxt).join(' ')}`); sfx.play('deal'); break;
+        case 'win': logAdd(`🏆 ${fmt(ui.winsT, { n: seatName(e.seat), a: num(e.amount) })}${e.score !== undefined ? ' ' + fmt(ui.withT, { h: handName(e.score, lang) }) : ''}`); break;
+        case 'bust': logAdd(`${seatName(e.seat)}: ${ui.out}`); break;
+        default: break;
+      }
+    }
+    // âm thanh thắng thua của bạn
+    const win = evs.find((e) => e.t === 'win' && (e as any).seat === 0);
+    if (win) sfx.play('coin');
+  }
+
+  function afterHandOver(evs: Ev[]) {
+    const r = t.result!;
+    stats.hands++;
+    const mine = r.awards.find((a) => a.seat === 0);
+    if (mine) { stats.won++; stats.biggest = Math.max(stats.biggest, mine.amount); }
+    const sh = r.shown.find((x) => x.seat === 0);
+    if (sh) stats.best = Math.max(stats.best, sh.score);
+    if (t.seats[0].stack <= 0) { over = ui.busted; stats.games++; sfx.play('lose'); }
+    else if (t.phase === 'game_over') { over = ui.winTable; stats.games++; stats.tables++; sfx.play('win'); }
+    saveStats();
+    if (!over && AUTO) {
+      nextCountdown = 5;
+      clearInterval(tick);
+      tick = window.setInterval(() => {
+        nextCountdown--;
+        if (nextCountdown <= 0) { clearInterval(tick); nextHand(); return; }
+        const nb = document.getElementById('pk-next'); if (nb) nb.textContent = `${ui.next} (${nextCountdown})`;
+      }, 1000);
+    }
+  }
+
+  function afterState(evs: Ev[]) {
+    handleEvents(evs);
+    if (t.phase === 'hand_over' || t.phase === 'game_over') afterHandOver(evs);
+    thinkingSeat = -1;
+    render();
+    scheduleNext();
+  }
+
+  function scheduleNext() {
+    clearTimeout(botTimer);
+    clearInterval(humanTimerId);
+    if (over || !['preflop', 'flop', 'turn', 'river'].includes(t.phase)) return;
+    const seat = t.toAct;
+    if (seat < 0) return;
+    if (seat === 0) { startHumanTimer(); if (AUTO) sfx.play('turn'); return; }
+    if (!AUTO) return;
+    const my = gid;
+    thinkingSeat = seat; render();
+    botTimer = window.setTimeout(() => { if (my === gid) botAct(seat); }, 650 + Math.random() * 800);
+  }
+
+  function botAct(seat: number) {
+    const lg = legalActions(t, seat);
+    if (!lg.canAct) return;
+    const v = viewFor(t, seat);
+    const a = decide(v, PROFILES[botInfo(seat).profile], cfg.level, rng);
+    let r = applyAction(t, seat, a);
+    if (!r.ok) r = applyAction(t, seat, lg.canCheck ? { type: 'check' } : lg.canCall ? { type: 'call' } : { type: 'fold' });
+    afterState(r.events);
+  }
+
+  function sendAction(a: Action) {
+    if (!ctl) return;
+    if (ctl.kind === 'host') ctl.host.intentHost({ type: 'action', action: a });
+    else ctl.client.act(a);
+  }
+  function humanAct(a: Action) {
+    if (over || t.toAct !== 0) return;
+    if (net) { sendAction(a); return; }
+    const r = applyAction(t, 0, a);
+    if (!r.ok) return;
+    clearInterval(humanTimerId);
+    afterState(r.events);
+  }
+
+  // Đồng hồ lượt của bạn
+  let humanTimerId: number | undefined;
+  function startHumanTimer() {
+    clearInterval(humanTimerId);
+    if (!AUTO) return;
+    humanDeadline = Date.now() + 30000;
+    const my = gid;
+    humanTimerId = window.setInterval(() => {
+      if (my !== gid || t.toAct !== 0) { clearInterval(humanTimerId); return; }
+      const left = humanDeadline - Date.now();
+      const el = document.querySelector('.pk-seat.me .pk-av') as HTMLElement | null;
+      if (el) el.style.setProperty('--p', String(Math.max(0, left / 30000)));
+      if (left <= 0) {
+        clearInterval(humanTimerId);
+        logAdd(`${ui.you}: ${ui.timeout}`);
+        const lg = legalNow();
+        humanAct(lg.canCheck ? { type: 'check' } : { type: 'fold' });
+      }
+    }, 200);
+  }
+
+  function nextHand() {
+    clearInterval(tick); clearTimeout(botTimer); clearInterval(humanTimerId);
+    nextCountdown = 0;
+    if (over) return;
+    const evs = startHand(t);
+    prevBoardLen = 0;
+    afterState(evs);
+  }
+
+  function newGame() {
+    teardownNet();
+    gid++;
+    clearInterval(tick); clearTimeout(botTimer); clearInterval(humanTimerId);
+    const names = ['', ...ui.opp.slice(0, cfg.bots)];
+    t = createTable({ names: names.map((x, i) => (i === 0 ? ui.you : x)), bots: names.map((_, i) => i > 0), startStack: cfg.stack, blindEvery: cfg.blindEvery });
+    over = ''; logLines = []; thinkingSeat = -1; prevBoardLen = 0; dealtFor = -1; raiseVal = 0; lastRaiseHand = -1;
+    const evs = startHand(t);
+    afterState(evs);
+  }
+  function showMenu() {
+    gid++;
+    clearInterval(tick); clearTimeout(botTimer); clearInterval(humanTimerId);
+    teardownNet();
+    gameEl.hidden = true; menu.hidden = false; intro.hidden = false; showView('home'); paintStat();
+  }
+
+
+  // ====================== ONLINE ======================
+  const ROOM_KEY = 'pk-room';
+  const saveRoom = (o: { code: string; token: string; name: string } | null) => { try { if (o) localStorage.setItem(ROOM_KEY, JSON.stringify({ ...o, at: Date.now() })); else localStorage.removeItem(ROOM_KEY); } catch {} };
+  const loadRoom = (): { code: string; token: string; name: string } | null => {
+    try { const o = JSON.parse(localStorage.getItem(ROOM_KEY) || 'null'); if (o && o.code && o.token && Date.now() - o.at < 30 * 60 * 1000) return o; } catch {}
+    return null;
+  };
+  const loadName = () => { try { return localStorage.getItem('pk-name') || ''; } catch { return ''; } };
+  const saveName = (n: string) => { try { localStorage.setItem('pk-name', n); } catch {} };
+  const defaultName = () => (loadName() || (lang === 'en' ? 'Player ' : 'Người chơi ') + (100 + Math.floor(Math.random() * 900)));
+  const setErr = (id: string, msg: string) => { const e = $(id); e.textContent = msg; e.hidden = !msg; };
+  const errText = (r: string) => ((ui.net.errs as Record<string, string>)[r] || ui.net.errs.network);
+  const peerFactory = (): Transport => new PeerTransport();
+  const VIEWS = ['home', 'solo', 'create', 'join', 'lobby'];
+  function showView(v: string) {
+    inGame = false;
+    gameEl.hidden = true; menu.hidden = false; intro.hidden = false;
+    for (const k of VIEWS) $('pk-v-' + k).hidden = k !== v;
+    if (v === 'home') paintStat();
+  }
+  document.querySelectorAll<HTMLElement>('[data-go]').forEach((b) => b.addEventListener('click', () => {
+    const v = b.dataset.go as string;
+    if (v === 'create') ($('pk-name-c') as HTMLInputElement).value = defaultName();
+    if (v === 'join') ($('pk-name-j') as HTMLInputElement).value = defaultName();
+    showView(v); sfx.play('click');
+  }));
+
+  // Xoay bản xem để ghế của bạn luôn ở dưới bàn (vị trí 0); mã engine cũ cứ coi như "bạn là ghế 0"
+  function buildNet(s: NetState): Net {
+    const v0 = s.view as View;
+    const n = v0.seats.length, me = s.mySlot;
+    const disp = (x: number) => (x < 0 ? -1 : (x - me + n) % n);
+    const inv = (d: number) => (d + me) % n;
+    const seats = Array.from({ length: n }, (_, d) => ({ ...v0.seats[inv(d)], id: d }));
+    let result = v0.result;
+    if (result) {
+      result = {
+        ...result,
+        awards: result.awards.map((a) => ({ ...a, seat: disp(a.seat) })),
+        pots: result.pots.map((p) => ({ ...p, eligible: p.eligible.map(disp), winners: p.winners.map(disp) })),
+        shown: result.shown.map((x) => ({ ...x, seat: disp(x.seat) })),
+        refund: result.refund ? { ...result.refund, seat: disp(result.refund.seat) } : null,
+      };
+    }
+    const view: View = { ...v0, me: 0, seats, toAct: disp(v0.toAct), button: disp(v0.button), sbSeat: disp(v0.sbSeat), bbSeat: disp(v0.bbSeat), result };
+    return { s, view, n, me, inv: (d: number) => inv(d) };
+  }
+  const remapEv = (e: Ev, nt: Net): Ev => {
+    const disp = (x: number) => (x < 0 ? -1 : (x - nt.me + nt.n) % nt.n);
+    const a = e as any;
+    if (typeof a.seat === 'number') return { ...a, seat: disp(a.seat) };
+    if (a.t === 'newhand') return { ...a, button: disp(a.button) };
+    if (a.t === 'gameover') return { ...a, winner: disp(a.winner) };
+    return e;
+  };
+  function ringP(): number {
+    const s = net?.s; if (!s || s.turnMs == null || !s.turnTotal) return 1;
+    return Math.max(0, Math.min(1, (s.turnMs - (Date.now() - nsAt)) / s.turnTotal));
+  }
+  const nextInText = () => {
+    const s = net?.s; const ms = s && s.nextMs != null ? Math.max(0, s.nextMs - (Date.now() - nsAt)) : 0;
+    return fmt(ui.net.nextIn, { s: Math.ceil(ms / 1000) });
+  };
+  function renderNetTop() {
+    const connEl = $('pk-conn'), codeEl = $('pk-roomcode');
+    const online = !!net && !!ctl;
+    connEl.hidden = !online; codeEl.hidden = !online;
+    ($('pk-new') as HTMLElement).style.display = ctl && ctl.kind === 'client' ? 'none' : '';
+    root.classList.toggle('pk-online', online);
+    if (online) {
+      connEl.className = 'pk-conn' + (conn === 'lost' ? ' lost' : '');
+      connEl.textContent = conn === 'lost' ? ui.net.connLost : (ctl!.kind === 'host' ? ui.net.connHost : ui.net.connOk);
+      codeEl.textContent = `${ui.net.roomCode}: ${net!.s.code}`;
+    }
+  }
+  setInterval(() => {
+    if (!net || !inGame) return;
+    const p = ringP().toFixed(3);
+    document.querySelectorAll<HTMLElement>('.pk-seat.ring .pk-av').forEach((e) => e.style.setProperty('--p', p));
+    const ni = document.getElementById('pk-nextin'); if (ni) ni.textContent = nextInText();
+  }, 250);
+
+  function onNetState(s: NetState) {
+    nsAt = Date.now(); lastS = s;
+    if (s.phase === 'lobby' || !s.view) {
+      net = null;
+      if (ctl) { if (inGame || $('pk-v-lobby').hidden) showView('lobby'); renderLobby(); }
+      return;
+    }
+    const nt = buildNet(s);
+    net = nt;
+    t = { phase: nt.view.phase, result: nt.view.result, handNo: nt.view.handNo, currentBet: nt.view.currentBet, seats: nt.view.seats, toAct: nt.view.toAct } as unknown as Table;
+    if (!inGame) {
+      inGame = true; menu.hidden = true; intro.hidden = true; gameEl.hidden = false;
+      $('pk-closed').hidden = true; logLines = []; prevBoardLen = 0; dealtFor = -1; raiseVal = 0; lastRaiseHand = -1; lastEvN = -1; lastNetHand = -1;
+    }
+    if (nt.view.handNo !== lastNetHand) { lastNetHand = nt.view.handNo; prevBoardLen = 0; }
+    const me = nt.view.seats[0];
+    if (s.gameOver) over = s.winner === s.mySlot ? ui.winTable : (me.stack <= 0 || s.winner < 0) ? ui.busted : fmt(ui.net.tableWinner, { n: esc(s.slots[s.winner]?.name || '?') });
+    else over = '';
+    if (s.evN !== lastEvN) { lastEvN = s.evN; handleEvents(s.events.map((e) => remapEv(e, nt))); }
+    thinkingSeat = -1;
+    render();
+  }
+
+  function teardownNet() {
+    const c = ctl; ctl = null; net = null; lastS = null;
+    try { if (c?.kind === 'host') c.host.close(); else if (c?.kind === 'client') c.client.leave(); } catch {}
+    lastEvN = -1; lastNetHand = -1; inGame = false; conn = 'online';
+    const cl = document.getElementById('pk-closed'); if (cl) { cl.hidden = true; cl.innerHTML = ''; }
+  }
+  window.addEventListener('pagehide', () => { if (ctl?.kind === 'host') { try { ctl.host.close(); } catch {} } /* khách giữ token để nối lại sau khi tải lại trang */ });
+
+  async function createRoom() {
+    const nameEl = $('pk-name-c') as HTMLInputElement;
+    const name = sanitizeName(nameEl.value, defaultName()); saveName(name);
+    const btn = $('pk-create') as HTMLButtonElement;
+    setErr('pk-err-c', ''); btn.disabled = true; const label = btn.textContent; btn.textContent = ui.net.creating;
+    try {
+      teardownNet();
+      const host = await PKNetHost.create(hub ? () => hub!.create() : peerFactory, realClock, name, (st) => { if (ctl && ctl.kind === 'host' && ctl.host === host) onNetState(st); }, { botNames: ['', ...ui.opp], botMs: AUTO ? [700, 1500] : [0, 0] });
+      ctl = { kind: 'host', host };
+      host.setSettings({ n: 4, stack: 1000, blindEvery: 8, level: 2, timer: 30 });
+      host.publish();
+    } catch { setErr('pk-err-c', ui.net.errs.create); }
+    btn.disabled = false; btn.textContent = label;
+  }
+  $('pk-create').addEventListener('click', () => { sfx.play('click'); createRoom(); });
+
+  async function joinRoom(codeRaw: string, nameRaw: string, token = '', silent = false) {
+    const code = normCode(codeRaw);
+    const name = sanitizeName(nameRaw, defaultName()); saveName(name);
+    if (!validCode(code)) { setErr('pk-err-j', ui.net.errs.badcode); return false; }
+    const btn = $('pk-joinbtn') as HTMLButtonElement;
+    setErr('pk-err-j', ''); btn.disabled = true; const label = btn.textContent; btn.textContent = ui.net.joining;
+    teardownNet();
+    const client: PKNetClient = new PKNetClient(hub ? () => hub!.create() : peerFactory, {
+      onState: (st) => { if (ctl && ctl.kind === 'client' && ctl.client === client) onNetState(st); },
+      onStatus: (st) => { conn = st; if (net && inGame) renderNetTop(); else if (lastS) renderLobby(); },
+      onClosed: (r) => { if (ctl && ctl.kind === 'client' && ctl.client === client) roomClosed(r); },
+    }, realClock);
+    ctl = { kind: 'client', client };
+    try {
+      const info = await client.join(code, name, token);
+      saveRoom({ code, token: info.token, name });
+      btn.disabled = false; btn.textContent = label;
+      return true;
+    } catch (e) {
+      ctl = null;
+      const r = e instanceof RoomError ? e.reason : 'network';
+      if (!silent) setErr('pk-err-j', errText(r));
+      btn.disabled = false; btn.textContent = label;
+      return false;
+    }
+  }
+  $('pk-joinbtn').addEventListener('click', () => { sfx.play('click'); joinRoom(($('pk-code') as HTMLInputElement).value, ($('pk-name-j') as HTMLInputElement).value); });
+  ($('pk-code') as HTMLInputElement).addEventListener('input', (e) => { const el = e.target as HTMLInputElement; el.value = normCode(el.value); });
+
+  function roomClosed(reason: RejectReason) {
+    saveRoom(null);
+    const msg = errText(reason === 'closed' ? 'closed' : reason);
+    const cl = $('pk-closed');
+    if (!inGame) { // đang ở phòng chờ hoặc đang nối lại
+      teardownNet(); showView('home'); const el = $('pk-rejoin'); el.textContent = msg; el.hidden = false; return;
+    }
+    cl.innerHTML = `<div class="pk-box"><h2>${ui.net.roomClosed}</h2><p>${esc(msg)}</p><button type="button" class="pk-nextbtn" id="pk-closed-ok">${ui.net.toMenu}</button></div>`;
+    cl.hidden = false;
+    $('pk-closed-ok').addEventListener('click', () => { teardownNet(); showView('home'); });
+  }
+
+  // ---------- Phòng chờ ----------
+  const lobbyLink = (code: string) => `${location.origin}${location.pathname}?room=${code}`;
+  async function copyText(text: string, btn: HTMLElement) {
+    try { await navigator.clipboard.writeText(text); } catch {
+      const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch {} ta.remove();
+    }
+    const old = btn.textContent; btn.textContent = ui.net.copied; setTimeout(() => { btn.textContent = old; }, 1400);
+  }
+  function renderLobby() {
+    const sN = lastS; const el = $('pk-v-lobby');
+    if (!sN || sN.phase !== 'lobby' || !ctl) return;
+    const NT = ui.net;
+    const isHost = ctl.kind === 'host';
+    const n = sN.settings.n;
+    const maxHumanSlot = Math.max(0, ...sN.slots.map((x, i) => (x.kind === 'human' ? i : 0)));
+    const rows = sN.slots.map((x, i) => {
+      const human = x.kind === 'human';
+      const tags = [x.host ? `<span class="pk-ltag host">${NT.hostTag}</span>` : '', i === sN.mySlot ? `<span class="pk-ltag you">${NT.youTag}</span>` : '', human ? '' : `<span class="pk-ltag bot">${NT.botTag} · ${ui[x.profile]}</span>`].join('');
+      const dot = human ? `<i class="pk-dot${x.online ? ' on' : ''}" title="${x.online ? NT.onlineTag : NT.offlineTag}"></i>` : '<i class="pk-dot bot"></i>';
+      const col = human ? HUMAN_COL[i % HUMAN_COL.length] : ROSTER[(i - 1 + ROSTER.length) % ROSTER.length].color;
+      return `<li class="${human ? 'human' : 'botrow'}"><span class="pk-av2" style="--c:${col}">${esc([...x.name][0]?.toUpperCase() || '?')}</span><b>${esc(x.name)}</b>${tags}${dot}</li>`;
+    }).join('');
+    const opt = (attr: string, vals: (string | number)[], cur: string | number, labels?: string[]) => `<div class="bd-row">${vals.map((v, i) => `<button type="button" class="bd-opt${String(v) === String(cur) ? ' sel' : ''}" data-set-${attr}="${v}"${attr === 'n' && Number(v) <= maxHumanSlot ? ' disabled' : ''}>${labels ? labels[i] : v}</button>`).join('')}</div>`;
+    const timerVals = [0, 20, 30, 45];
+    const settings = isHost ? `
+      <h2 class="bd-h">${NT.seatsLbl}</h2>${opt('n', [2, 3, 4, 5, 6], n)}<p class="meta pk-small">${NT.seatsHint}</p>
+      <h2 class="bd-h">${ui.stackLbl}</h2>${opt('stack', [500, 1000, 2000], sN.settings.stack)}
+      <h2 class="bd-h">${ui.blindsOptLbl}</h2>${opt('blind', [0, 8], sN.settings.blindEvery, ui.blindOpts)}
+      <h2 class="bd-h">${ui.levelLbl}</h2>${opt('level', [1, 2, 3], sN.settings.level, ui.levels)}
+      <h2 class="bd-h">${NT.timerLbl}</h2>${opt('timer', timerVals, sN.settings.timer, NT.timerOpts)}
+    ` : `<p class="meta">${fmt(NT.settingsSummary, { n, s: sN.settings.stack, b: ui.blindOpts[sN.settings.blindEvery ? 1 : 0], l: ui.levels[sN.settings.level - 1], t: NT.timerOpts[Math.max(0, timerVals.indexOf(sN.settings.timer))] })}</p>`;
+    const link = lobbyLink(sN.code);
+    const lostTag = conn === 'lost' ? `<p class="pk-err">${NT.connLost}</p>` : '';
+    el.innerHTML = `
+      <button type="button" class="pk-back" id="pk-leave-lobby">${NT.back}</button>
+      <h2 class="bd-h">${NT.lobbyTitle}</h2>
+      <div class="pk-codebox"><small>${NT.roomCode}</small><b id="pk-bigcode">${esc(sN.code)}</b>
+        <div class="pk-codebtns"><button type="button" class="btn ghost sm" id="pk-copycode">${NT.copyCode}</button><button type="button" class="btn ghost sm" id="pk-copylink">${NT.copyLink}</button>${typeof (navigator as any).share === 'function' ? `<button type="button" class="btn ghost sm" id="pk-share">${NT.shareBtn}</button>` : ''}</div>
+      </div>
+      ${lostTag}
+      <ul class="pk-seatlist">${rows}</ul>
+      ${settings}
+      ${isHost ? `<button class="btn pk-startbtn" type="button" id="pk-startonline">▶ ${NT.startOnline}</button>` : `<p class="pk-wait">${NT.waitHost}</p>`}
+      <p class="meta pk-small">${NT.lobbyNote}</p>`;
+    $('pk-leave-lobby').addEventListener('click', () => showMenu());
+    $('pk-copycode').addEventListener('click', (e) => copyText(sN.code, e.currentTarget as HTMLElement));
+    $('pk-copylink').addEventListener('click', (e) => copyText(link, e.currentTarget as HTMLElement));
+    const sh = document.getElementById('pk-share'); sh?.addEventListener('click', () => { try { (navigator as any).share({ title: ui.net.roomCode, text: `${NT.roomCode}: ${sN.code}`, url: link }); } catch {} });
+    if (isHost) {
+      const host = (ctl as Extract<Ctl, { kind: 'host' }>).host;
+      const bind = (attr: string, f: (v: number) => Record<string, number>) => el.querySelectorAll<HTMLElement>(`[data-set-${attr}]`).forEach((b) => b.addEventListener('click', () => host.setSettings(f(Number(b.getAttribute(`data-set-${attr}`))))));
+      bind('n', (v) => ({ n: v })); bind('stack', (v) => ({ stack: v })); bind('blind', (v) => ({ blindEvery: v })); bind('level', (v) => ({ level: v })); bind('timer', (v) => ({ timer: v }));
+      $('pk-startonline').addEventListener('click', () => { sfx.play('click'); host.start(); });
+    }
+  }
+
+  // ---------- Mở trang: link ?room=MÃ hoặc nối lại phòng đã lưu ----------
+  const roomParam = normCode(new URLSearchParams(location.search).get('room') || '');
+  const debugOn = location.hash.includes('debug');
+  if (roomParam && !debugOn) {
+    ($('pk-code') as HTMLInputElement).value = roomParam;
+    ($('pk-name-j') as HTMLInputElement).value = defaultName();
+    showView('join');
+    try { history.replaceState(null, '', location.pathname); } catch {}
+  } else if (!debugOn) {
+    const saved = loadRoom();
+    if (saved) {
+      const el = $('pk-rejoin'); el.textContent = fmt(ui.net.rejoining, { c: saved.code }); el.hidden = false;
+      joinRoom(saved.code, saved.name, saved.token, true).then((ok) => { if (!ok) saveRoom(null); el.hidden = true; });
+    }
+  }
+
+  // ---------- Menu ----------
+  function pick(attr: string, cb: (v: string) => void) {
+    document.querySelectorAll<HTMLElement>(`#pk-menu [data-${attr}]`).forEach((btn) => btn.addEventListener('click', () => {
+      document.querySelectorAll(`#pk-menu [data-${attr}]`).forEach((x) => x.classList.remove('sel'));
+      btn.classList.add('sel');
+      cb(btn.dataset[attr] as string);
+      sfx.play('click');
+    }));
+  }
+  pick('bots', (v) => { cfg.bots = Number(v); });
+  pick('level', (v) => { cfg.level = Number(v); });
+  pick('stack', (v) => { cfg.stack = Number(v); });
+  pick('blinds', (v) => { cfg.blindEvery = Number(v); });
+  $('pk-start').addEventListener('click', () => { menu.hidden = true; intro.hidden = true; gameEl.hidden = false; newGame(); });
+  $('pk-new').addEventListener('click', () => {
+    if (ctl) {
+      if (ctl.kind !== 'host') return;
+      const busy = net && net.view.handNo > 1;
+      if (busy && !net!.s.gameOver && !window.confirm(ui.net.confirmRestart)) return;
+      ctl.host.intentHost({ type: 'restart' });
+      return;
+    }
+    newGame();
+  });
+  $('pk-menu-btn').addEventListener('click', showMenu);
+  paintStat();
+
+  // ---------- Debug (chỉ khi URL có #debug): điều khiển đồng bộ, không dùng bộ đếm giờ ----------
+  const agents: { client: PKNetClient; st: NetState | null }[] = [];
+  if (location.hash.includes('debug')) {
+    (window as any).__pk = {
+      start: (bots = 3, level = 2, stack = 1000, blindEvery = 8, seed?: number) => {
+        cfg = { bots, level, stack, blindEvery }; menu.hidden = true; intro.hidden = true; gameEl.hidden = false;
+        if (seed !== undefined) rng = mulberry32(seed);
+        newGame();
+        if (seed !== undefined) { /* bàn dùng seed ngẫu nhiên, dùng get table để kiểm tra */ }
+      },
+      get table() { return t; }, get view() { return viewFor(t, 0); }, get over() { return over; },
+      act: (a: Action) => humanAct(a),
+      stepBot: () => { if (t.toAct > 0) botAct(t.toAct); },
+      runBots: () => { let g = 0; while (['preflop', 'flop', 'turn', 'river'].includes(t.phase) && t.toAct > 0 && g++ < 200) botAct(t.toAct); },
+      next: () => nextHand(), render,
+      view: (v: string) => showView(v),
+      get net() { return net; }, get ctl() { return ctl; }, get lastS() { return lastS; },
+      joinForm: (code = 'K7PQ2') => { ($('pk-code') as HTMLInputElement).value = code; ($('pk-name-j') as HTMLInputElement).value = 'Linh'; showView('join'); },
+      // Phòng giả lập trong bộ nhớ (không cần mạng): chủ phòng là giao diện này, các khách tự chơi (gọi agentStep để họ hành động)
+      demoRoom: async (o: { humans?: number; n?: number; start?: boolean; names?: string[]; timer?: number } = {}) => {
+        hub = new LoopbackHub();
+        ($('pk-name-c') as HTMLInputElement).value = 'Khang';
+        await createRoom();
+        const host = (ctl as Extract<Ctl, { kind: 'host' }>).host;
+        host.setSettings({ n: o.n ?? 4, stack: 1000, blindEvery: 8, level: 1, timer: o.timer ?? 0 });
+        const names = o.names || ['Linh', 'Bảo', 'Quỳnh', 'Phát', 'Vy'];
+        for (let i = 0; i < (o.humans ?? 2) - 1; i++) {
+          const a = { client: null as unknown as PKNetClient, st: null as NetState | null };
+          a.client = new PKNetClient(() => hub!.create(), { onState: (st) => { a.st = st; }, onStatus: () => {}, onClosed: () => {} }, realClock);
+          await a.client.join(host.code, names[i % names.length]);
+          agents.push(a);
+        }
+        if (o.start) host.start();
+        return host.code;
+      },
+      agentStep: () => {
+        for (const a of agents) {
+          const st = a.st; const v = st && st.view; if (!st || !v) continue;
+          if (['preflop', 'flop', 'turn', 'river'].includes(v.phase) && v.toAct === st.mySlot && v.legal.canAct) {
+            const lg = v.legal; const r = Math.random();
+            if (r < 0.1) a.client.act({ type: 'fold' });
+            else if (lg.canRaise && r < 0.3) a.client.act({ type: 'raise', amount: lg.minRaiseTo });
+            else a.client.act(lg.canCheck ? { type: 'check' } : { type: 'call' });
+          }
+        }
+      },
+      closed: (r = 'hostLeft') => roomClosed(r as RejectReason),
+    };
+  }
+</script>
+
+<style is:global>
+  /* ===== Trang chung ===== */
+  .pk-note { display: inline-block; margin: 4px 0 10px; padding: 5px 12px; border-radius: 999px; background: color-mix(in srgb, var(--accent) 12%, var(--card)); border: 1px solid var(--line); font-weight: 600; font-size: .9rem; }
+  .pk-intro[hidden] { display: none; }
+  .pk-fine { font-size: .8rem; opacity: .75; text-align: center; }
+  #pk .bd-row { display: flex; flex-wrap: wrap; gap: 10px; }
+
+  /* ===== Menu ===== */
+  .pk-menucard { max-width: 560px; margin: 8px auto 0; padding: 18px 20px 20px; border-radius: 22px; background: var(--card); border: 1px solid var(--line); box-shadow: 0 10px 30px rgba(0, 0, 0, .12); }
+  .pk-menucard[hidden] { display: none; }
+  .pk-illus { max-width: 360px; margin: 0 auto 6px; }
+  .pk-opt .bd-h { margin: 14px 0 8px; font-size: .95rem; letter-spacing: .02em; }
+  #pk-menu .bd-opt { min-width: 46px; padding: 9px 16px; border-radius: 999px; }
+  .pk-startbtn { width: 100%; margin-top: 16px; padding: 14px; font-size: 1.1rem; border-radius: 14px; }
+  .pk-rules { font-size: .82rem; margin-top: 14px; }
+
+  /* ===== Phòng chơi ===== */
+  .pk-wrap { position: relative; width: min(100%, 1000px); margin: 0 auto; }
+  .pk-wrap .sfx-btn { top: 8px !important; right: 10px !important; z-index: 20; }
+  .pk-room {
+    position: relative; border-radius: 26px; overflow: hidden; color: #fff;
+    background: radial-gradient(120% 90% at 50% 20%, #1d2c3f 0%, #101823 55%, #070b11 100%);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, .45), inset 0 0 0 1px rgba(255, 255, 255, .06);
+  }
+  .pk-top { display: flex; align-items: center; gap: 10px; padding: 12px 16px 0; padding-right: 64px; font-size: .82rem; font-weight: 700; color: rgba(255, 255, 255, .78); min-height: 30px; }
+  #pk-info { display: inline-flex; gap: 8px; align-items: center; }
+  .pk-blind { padding: 2px 10px; border-radius: 999px; background: rgba(255, 255, 255, .1); }
+  .pk-virt { margin-left: auto; padding: 2px 10px; border-radius: 999px; background: rgba(255, 213, 74, .14); color: #ffd54a; font-size: .74rem; }
+  .pk-stage { padding: 34px 40px 52px; }
+
+  /* Bàn: thành da có đường may, mặt nỉ có vân và ánh đèn */
+  .pk-felt {
+    position: relative; width: 100%; aspect-ratio: 2 / 1; border-radius: 999px; isolation: isolate;
+  }
+  .pk-cloth {
+    position: absolute; inset: 0; border-radius: 999px; z-index: 0; pointer-events: none;
+    background:
+      repeating-linear-gradient(45deg, rgba(255, 255, 255, .028) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(-45deg, rgba(0, 0, 0, .06) 0 1px, transparent 1px 3px),
+      radial-gradient(70% 90% at 50% 38%, #3aa56d 0%, #238458 40%, #14603c 75%, #0d4529 100%);
+    box-shadow: inset 0 0 50px rgba(0, 0, 0, .55), inset 0 0 0 2px rgba(0, 0, 0, .35);
+  }
+  .pk-felt::before { /* thành bàn da */
+    content: ''; position: absolute; inset: -22px; border-radius: 999px; z-index: -1;
+    background: linear-gradient(180deg, #5a3b28 0%, #3b2418 45%, #22140d 100%);
+    box-shadow: 0 18px 34px rgba(0, 0, 0, .6), inset 0 2px 0 rgba(255, 220, 180, .22), inset 0 -3px 6px rgba(0, 0, 0, .6), 0 0 0 2px #0b0705;
+  }
+  .pk-felt::after { /* đường may */
+    content: ''; position: absolute; inset: -11px; border-radius: 999px; pointer-events: none; z-index: -1;
+    border: 2px dashed rgba(235, 190, 140, .38);
+  }
+  .pk-line { position: absolute; inset: 9% 6%; border-radius: 999px; border: 2px solid rgba(255, 255, 255, .13); pointer-events: none; }
+  .pk-mark { position: absolute; left: 50%; top: 67%; transform: translateX(-50%); font-weight: 900; letter-spacing: .38em; font-size: clamp(11px, 2vw, 20px); text-transform: uppercase; color: rgba(255, 255, 255, .07); text-shadow: 0 -1px 0 rgba(0, 0, 0, .25), 0 1px 0 rgba(255, 255, 255, .06); pointer-events: none; white-space: nowrap; }
+  .pk-center { position: absolute; left: 50%; top: 45%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 2; }
+  .pk-pot { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 4px 14px 4px 6px; border-radius: 999px; background: rgba(8, 18, 12, .62); color: #fff; font-size: .95rem; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .1); }
+  .pk-pot:empty { visibility: hidden; }
+  .pk-pot .lbl { opacity: .75; font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; }
+  .pk-pot b { color: #ffd54a; font-variant-numeric: tabular-nums; font-size: 1.05rem; }
+  .pk-potchip { width: 20px; height: 20px; border-radius: 50%; background: #d32f2f; border: 3px dashed #fff; box-sizing: border-box; box-shadow: 0 1px 3px rgba(0, 0, 0, .6); }
+  .pk-board { display: flex; gap: 8px; --cw: 62px; }
+  .pk-banner { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); z-index: 6; max-width: 86%; text-align: center; padding: 6px 18px; border-radius: 999px; font-weight: 800; font-size: .95rem; color: #3a2600; background: linear-gradient(180deg, #ffe58a, #f5b82e); box-shadow: 0 6px 18px rgba(0, 0, 0, .45), 0 0 22px rgba(255, 213, 74, .6); animation: pk-glow 1.4s ease-in-out infinite alternate; }
+  .pk-banner[hidden] { display: none; }
+  .pk-banner:not(.mine) { background: linear-gradient(180deg, #e9eef5, #b9c4d4); box-shadow: 0 6px 18px rgba(0, 0, 0, .45); animation: none; color: #1b2433; }
+  @keyframes pk-glow { to { box-shadow: 0 6px 18px rgba(0, 0, 0, .45), 0 0 34px rgba(255, 213, 74, .95); } }
+
+  /* ===== Lá bài ===== */
+  .pk-card { width: var(--cw, 62px); aspect-ratio: 5 / 7; border-radius: calc(var(--cw, 62px) * .12); position: relative; flex: none; user-select: none; color: #1b1f2a;
+    background: linear-gradient(160deg, #ffffff 0%, #f7f4ec 60%, #ece7da 100%);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, .4), inset 0 0 0 1px rgba(0, 0, 0, .12), inset 0 -3px 6px rgba(0, 0, 0, .06);
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+  .pk-card.red { color: #cf2a2a; }
+  .pk-card .ci { position: absolute; display: flex; flex-direction: column; align-items: center; line-height: 1; width: calc(var(--cw) * .3); }
+  .pk-card .ci b { font-weight: 800; font-size: calc(var(--cw) * .3); letter-spacing: -.06em; }
+  .pk-card .ci svg { width: calc(var(--cw) * .2); height: calc(var(--cw) * .2); fill: currentColor; margin-top: calc(var(--cw) * .02); }
+  .pk-card .ci.tl { top: calc(var(--cw) * .06); left: calc(var(--cw) * .06); }
+  .pk-card .ci.br { bottom: calc(var(--cw) * .06); right: calc(var(--cw) * .06); transform: rotate(180deg); }
+  .pk-card .mid { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .pk-card .pip { width: calc(var(--cw) * .5); height: calc(var(--cw) * .5); fill: currentColor; margin-left: calc(var(--cw) * .06); margin-top: calc(var(--cw) * .06); filter: drop-shadow(0 1px 0 rgba(0, 0, 0, .12)); }
+  .pk-card .fc { width: calc(var(--cw) * .5); height: calc(var(--cw) * .62); display: flex; align-items: center; justify-content: center; font-family: Georgia, 'Times New Roman', serif; font-weight: 700; font-size: calc(var(--cw) * .44); border-radius: calc(var(--cw) * .06); border: calc(var(--cw) * .025) solid currentColor; background: linear-gradient(180deg, rgba(0, 0, 0, .03), rgba(0, 0, 0, .09)); margin-left: calc(var(--cw) * .06); }
+  .pk-card.back {
+    background:
+      repeating-linear-gradient(45deg, transparent 0 4px, rgba(255, 255, 255, .2) 4px 5px),
+      repeating-linear-gradient(-45deg, transparent 0 4px, rgba(255, 255, 255, .2) 4px 5px),
+      linear-gradient(160deg, #2551b8, #16327a);
+    border: calc(var(--cw) * .07) solid #f6f3ea; box-sizing: border-box;
+  }
+  .pk-card.back::before { content: ''; position: absolute; inset: calc(var(--cw) * .1); border-radius: calc(var(--cw) * .05); border: 1.5px solid rgba(255, 255, 255, .55); }
+  .pk-card.back::after { content: ''; position: absolute; left: 50%; top: 50%; width: calc(var(--cw) * .26); height: calc(var(--cw) * .26); transform: translate(-50%, -50%) rotate(45deg); background: #e8c15b; border-radius: 3px; box-shadow: 0 0 0 calc(var(--cw) * .03) rgba(255, 255, 255, .7); }
+  .pk-card.slot { background: rgba(0, 0, 0, .2); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .13), inset 0 3px 8px rgba(0, 0, 0, .3); }
+  .pk-card.xs { --cw: 30px; box-shadow: 0 2px 4px rgba(0, 0, 0, .45), inset 0 0 0 1px rgba(0, 0, 0, .15); }
+  .pk-card.xs .ci b { font-size: calc(var(--cw) * .36); } .pk-card.xs .ci svg { width: calc(var(--cw) * .24); height: calc(var(--cw) * .24); }
+  .pk-card.xs .pip { width: calc(var(--cw) * .5); height: calc(var(--cw) * .5); }
+  .pk-card.xs .fc { font-size: calc(var(--cw) * .42); }
+  .pk-card.lg { --cw: 100px; }
+  .pk-card.off { opacity: .35; filter: grayscale(.6); }
+  .pk-card.deal { animation: pk-deal .5s cubic-bezier(.2, .8, .3, 1) both; }
+  @keyframes pk-deal { from { transform: translateY(-50px) rotateY(90deg) scale(.7); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  /* ===== Ghế ===== */
+  .pk-seat { position: absolute; transform: translate(-50%, -50%); width: 112px; display: flex; flex-direction: column; align-items: center; z-index: 4; transition: opacity .25s, filter .25s; }
+  .pk-seat.dim { opacity: .5; filter: grayscale(.6); }
+  .pk-cards { display: flex; gap: 0; margin-bottom: -10px; z-index: 0; }
+  .pk-cards .pk-card:first-child { transform: rotate(-9deg) translateX(3px); }
+  .pk-cards .pk-card:last-child { transform: rotate(9deg) translateX(-3px); }
+  .pk-cards.face { margin-bottom: 4px; z-index: 2; }
+  .pk-cards.face .pk-card { --cw: 38px; }
+  .pk-avw { position: relative; z-index: 1; }
+  .pk-av { --c: #888; --p: 1; position: relative; width: 58px; height: 58px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.45rem; color: #fff; background: radial-gradient(circle at 35% 28%, color-mix(in srgb, var(--c) 62%, #fff), var(--c) 70%, color-mix(in srgb, var(--c) 70%, #000)); border: 3px solid color-mix(in srgb, var(--c) 40%, #fff); box-shadow: 0 4px 8px rgba(0, 0, 0, .55), inset 0 -4px 8px rgba(0, 0, 0, .25), inset 0 3px 5px rgba(255, 255, 255, .3); z-index: 1; text-shadow: 0 1px 2px rgba(0, 0, 0, .4); }
+  .pk-seat.turn .pk-av { box-shadow: 0 0 0 4px #ffd54a, 0 0 22px rgba(255, 213, 74, .85), 0 4px 8px rgba(0, 0, 0, .5); animation: pk-turn 1.1s ease-in-out infinite alternate; }
+  @keyframes pk-turn { to { box-shadow: 0 0 0 4px #ffd54a, 0 0 34px rgba(255, 213, 74, 1), 0 4px 8px rgba(0, 0, 0, .5); } }
+  .pk-seat.ring.turn .pk-av::before { content: ''; position: absolute; inset: -11px; border-radius: 50%; background: conic-gradient(#ffd54a calc(var(--p) * 360deg), rgba(255, 255, 255, .15) 0); -webkit-mask: radial-gradient(circle, transparent 62%, #000 64%); mask: radial-gradient(circle, transparent 62%, #000 64%); }
+  .pk-seat.win .pk-av { box-shadow: 0 0 0 4px #ffd54a, 0 0 28px rgba(255, 213, 74, .95); animation: pk-turn .9s ease-in-out infinite alternate; }
+  .pk-seat.win .pk-avw::after { content: '✦'; position: absolute; right: -14px; top: -10px; font-size: 20px; color: #ffe58a; text-shadow: 0 0 10px #ffd54a; animation: pk-spark 1.2s ease-in-out infinite alternate; }
+  @keyframes pk-spark { from { transform: scale(.6) rotate(0); opacity: .6; } to { transform: scale(1.2) rotate(40deg); opacity: 1; } }
+  .pk-plate { margin-top: -8px; padding: 10px 12px 4px; min-width: 92px; border-radius: 12px; background: linear-gradient(180deg, rgba(14, 22, 32, .92), rgba(8, 12, 18, .94)); box-shadow: 0 4px 10px rgba(0, 0, 0, .5), inset 0 0 0 1px rgba(255, 255, 255, .1); text-align: center; z-index: 0; }
+  .pk-seat.me .pk-plate { box-shadow: 0 4px 10px rgba(0, 0, 0, .5), inset 0 0 0 1px rgba(255, 213, 74, .55); }
+  .pk-nm { display: flex; justify-content: center; align-items: baseline; gap: 5px; color: #fff; font-size: .8rem; font-weight: 700; white-space: nowrap; max-width: 108px; }
+  .pk-nm span { overflow: hidden; text-overflow: ellipsis; }
+  .pk-nm small { font-weight: 600; opacity: .6; font-size: .66rem; }
+  .pk-st { display: flex; justify-content: center; align-items: center; gap: 5px; color: #ffd54a; font-weight: 800; font-size: .88rem; font-variant-numeric: tabular-nums; padding-bottom: 3px; }
+  .pk-coin { width: 11px; height: 11px; border-radius: 50%; background: #f5b82e; border: 2px dashed #fff3c4; box-sizing: border-box; display: inline-block; }
+  .pk-lastact { min-height: 18px; margin-top: 3px; font-size: .72rem; font-weight: 700; color: #fff; background: rgba(0, 0, 0, .55); border-radius: 9px; padding: 1px 9px; z-index: 1; }
+  .pk-lastact:empty { visibility: hidden; }
+  .pk-allin { color: #fff; background: linear-gradient(180deg, #ff5a4d, #c62828); padding: 0 6px; border-radius: 6px; font-weight: 900; text-transform: uppercase; letter-spacing: .05em; }
+  .pk-seat.allin .pk-lastact { background: transparent; padding: 0; }
+  .pk-tag { position: absolute; right: -24px; top: 2px; font-style: normal; font-size: .62rem; font-weight: 800; background: #e9eef5; color: #1b2433; border-radius: 7px; padding: 0 5px; z-index: 2; box-shadow: 0 1px 3px rgba(0, 0, 0, .5); }
+  .pk-dealer { position: absolute; left: -16px; bottom: 0; font-style: normal; width: 26px; height: 26px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, #d9dde4); color: #1b2433; font-weight: 900; font-size: .85rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0, 0, 0, .6); border: 2px solid #aab2c0; z-index: 3; }
+  .pk-dots { display: inline-flex; gap: 3px; } .pk-dots i { width: 5px; height: 5px; border-radius: 50%; background: #ffd54a; animation: pk-dot 1s infinite; } .pk-dots i:nth-child(2) { animation-delay: .15s; } .pk-dots i:nth-child(3) { animation-delay: .3s; }
+  @keyframes pk-dot { 0%, 80%, 100% { transform: scale(.5); opacity: .4; } 40% { transform: scale(1); opacity: 1; } }
+
+  /* ===== Chip cược ===== */
+  .pk-bet { position: absolute; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 6px; z-index: 3; color: #fff; font-weight: 800; font-size: .82rem; font-variant-numeric: tabular-nums; animation: pk-pop .22s ease-out; padding: 2px 9px 2px 6px; border-radius: 999px; background: rgba(0, 0, 0, .38); }
+  @keyframes pk-pop { from { transform: translate(-50%, -50%) scale(.4); opacity: 0; } }
+  .pk-piles { display: inline-flex; align-items: flex-end; gap: 2px; }
+  .pk-pile { position: relative; width: 20px; height: 26px; display: inline-block; }
+  .pk-chip { position: absolute; left: 0; bottom: calc(var(--i) * 3px); width: 20px; height: 20px; border-radius: 50%; border: 3px dashed rgba(255, 255, 255, .88); box-sizing: border-box; box-shadow: 0 1.5px 0 rgba(0, 0, 0, .55), 0 2px 3px rgba(0, 0, 0, .4); background: #888; }
+  .pk-chip.d1 { background: #e8ecf2; border-color: #8aa0c4; } .pk-chip.d5 { background: #d32f2f; } .pk-chip.d25 { background: #2e7d32; }
+  .pk-chip.d100 { background: #212121; } .pk-chip.d500 { background: #6a1b9a; } .pk-chip.d1000 { background: #e0a21a; border-color: #fff3c4; }
+
+  /* ===== Khu dưới bàn: bài của bạn + nút ===== */
+  .pk-dock { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 18px; align-items: center; padding: 6px 22px 22px; margin-top: -22px; }
+  .pk-me { display: flex; flex-direction: column; align-items: center; gap: 8px; min-height: 150px; justify-content: center; }
+  .pk-hero { display: flex; gap: 0; }
+  .pk-hero .pk-card { box-shadow: 0 8px 16px rgba(0, 0, 0, .5), inset 0 0 0 1px rgba(0, 0, 0, .12); }
+  .pk-hero .pk-card:first-child { transform: rotate(-6deg) translateX(8px); }
+  .pk-hero .pk-card:last-child { transform: rotate(6deg) translateX(-8px); }
+  .pk-hero .pk-card.deal:first-child { animation-name: pk-deal-l; } .pk-hero .pk-card.deal:last-child { animation-name: pk-deal-r; }
+  @keyframes pk-deal-l { from { transform: translate(40px, -80px) rotate(-30deg) scale(.6); opacity: 0; } to { transform: rotate(-6deg) translateX(8px); opacity: 1; } }
+  @keyframes pk-deal-r { from { transform: translate(-40px, -80px) rotate(30deg) scale(.6); opacity: 0; } to { transform: rotate(6deg) translateX(-8px); opacity: 1; } }
+  .pk-hname { font-weight: 800; padding: 4px 16px; border-radius: 999px; background: rgba(255, 213, 74, .14); color: #ffd54a; border: 1px solid rgba(255, 213, 74, .35); font-size: .88rem; white-space: nowrap; }
+  .pk-hname.dim { background: rgba(255, 255, 255, .08); color: rgba(255, 255, 255, .6); border-color: rgba(255, 255, 255, .15); }
+  .pk-ctl { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .pk-status { margin: 0 !important; min-height: 1.4em; text-align: center; font-weight: 700; font-size: .92rem; color: rgba(255, 255, 255, .75); }
+  .pk-status.mine { color: #ffd54a; font-size: 1.02rem; }
+  .pk-status.done { color: #ffd54a; font-size: 1.15rem; }
+  .pk-actions[hidden], .pk-status[hidden] { display: none; }
+  .pk-actions { }
+  .pk-actions.off { opacity: .4; pointer-events: none; }
+  .pk-main { display: grid; grid-template-columns: 1fr 1.25fr 1.5fr; gap: 10px; }
+  .pk-btn { min-height: 54px; padding: 8px 6px; border-radius: 14px; border: 0; font: inherit; font-weight: 800; font-size: 1rem; cursor: pointer; color: #fff; line-height: 1.15;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .28); text-shadow: 0 1px 2px rgba(0, 0, 0, .35); font-variant-numeric: tabular-nums; transition: transform .08s, box-shadow .08s, filter .15s; }
+  .pk-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .28); }
+  .pk-btn:disabled { filter: grayscale(.8) brightness(.8); }
+  .pk-btn.fold { background: linear-gradient(180deg, #b85a52, #8e3a34); }
+  .pk-btn.call { background: linear-gradient(180deg, #3aa56d, #1f7a4a); }
+  .pk-btn.call.isCall { background: linear-gradient(180deg, #4a8be0, #2b5fb0); }
+  .pk-btn.raise { background: linear-gradient(180deg, #f6c445, #d68910); color: #3a2600; text-shadow: 0 1px 0 rgba(255, 255, 255, .35); }
+  .pk-sizer { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .pk-sizer.off { opacity: .35; pointer-events: none; }
+  .pk-amt { display: flex; align-items: baseline; justify-content: center; gap: 8px; min-height: 30px; }
+  .pk-amt small { color: rgba(255, 255, 255, .6); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; font-size: .72rem; }
+  .pk-amt b { font-size: 1.6rem; color: #ffd54a; font-variant-numeric: tabular-nums; line-height: 1; }
+  .pk-sizer input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 34px; background: transparent; --fill: 0%; margin: 0; cursor: pointer; }
+  .pk-sizer input[type=range]::-webkit-slider-runnable-track { height: 10px; border-radius: 999px; background: linear-gradient(90deg, #f6c445 var(--fill), rgba(255, 255, 255, .16) var(--fill)); box-shadow: inset 0 1px 3px rgba(0, 0, 0, .5); }
+  .pk-sizer input[type=range]::-moz-range-track { height: 10px; border-radius: 999px; background: rgba(255, 255, 255, .16); }
+  .pk-sizer input[type=range]::-moz-range-progress { height: 10px; border-radius: 999px; background: #f6c445; }
+  .pk-sizer input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 30px; height: 30px; margin-top: -10px; border-radius: 50%; background: #d32f2f; border: 4px dashed #fff; box-sizing: border-box; box-shadow: 0 3px 6px rgba(0, 0, 0, .6), 0 0 0 2px #d32f2f; }
+  .pk-sizer input[type=range]::-moz-range-thumb { width: 30px; height: 30px; border-radius: 50%; background: #d32f2f; border: 4px dashed #fff; box-sizing: border-box; box-shadow: 0 3px 6px rgba(0, 0, 0, .6); }
+  .pk-quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .pk-q { min-height: 44px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, .22); background: rgba(255, 255, 255, .08); color: #fff; font: inherit; font-weight: 700; font-size: .88rem; cursor: pointer; transition: background .12s; }
+  .pk-q:hover { background: rgba(255, 255, 255, .16); } .pk-q:active { background: rgba(255, 255, 255, .24); }
+  .pk-q.allin { border-color: rgba(255, 90, 77, .6); color: #ff9188; }
+  .pk-result { padding: 12px 14px; border-radius: 16px; background: linear-gradient(180deg, rgba(255, 255, 255, .1), rgba(255, 255, 255, .05)); border: 1px solid rgba(255, 255, 255, .16); text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .pk-result[hidden] { display: none; }
+  .pk-win { font-weight: 800; } .pk-win.mine { color: #ffd54a; }
+  .pk-lose { font-size: .85rem; opacity: .75; }
+  .pk-over { font-weight: 800; font-size: 1.15rem; color: #ffd54a; }
+  .pk-nextbtn { min-height: 48px; padding: 8px 26px; border-radius: 14px; border: 0; font: inherit; font-weight: 800; font-size: 1rem; cursor: pointer; color: #3a2600; background: linear-gradient(180deg, #f6c445, #d68910); box-shadow: 0 4px 0 rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .4); margin-top: 4px; }
+  .pk-nextbtn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0, 0, 0, .35); }
+  .pk-log { max-width: 100%; margin: 12px auto 0; max-height: 110px; overflow: auto; font-size: .8rem; color: var(--muted); line-height: 1.55; padding: 8px 12px; border-radius: 12px; background: var(--card); border: 1px solid var(--line); }
+  main.is-fs .pk-wrap { max-width: min(1000px, calc((100vh - 300px) * 1.7)); margin-left: auto; margin-right: auto; }
+
+  /* ===== Điện thoại ===== */
+  @media (max-width: 700px) {
+    .pk-top { padding: 10px 12px 0; padding-right: 56px; font-size: .76rem; }
+    .pk-stage { padding: 38px 22px 40px; }
+    .pk-felt { aspect-ratio: 4 / 5.2; }
+    .pk-felt::before { inset: -16px; } .pk-felt::after { inset: -8px; }
+    .pk-line { inset: 7% 8%; }
+    .pk-mark { top: 60%; font-size: 10px; letter-spacing: .3em; }
+    .pk-center { top: 47%; gap: 7px; }
+    .pk-board { --cw: 46px; gap: 4px; }
+    .pk-pot { min-height: 26px; font-size: .86rem; }
+    .pk-banner { display: none; }
+    .pk-seat { width: 84px; }
+    .pk-av { width: 44px; height: 44px; font-size: 1.1rem; border-width: 2px; }
+    .pk-plate { min-width: 72px; padding: 8px 8px 3px; margin-top: -7px; }
+    .pk-nm { font-size: .68rem; max-width: 80px; } .pk-nm small { display: none; }
+    .pk-st { font-size: .74rem; } .pk-coin { width: 9px; height: 9px; }
+    .pk-card.xs { --cw: 24px; }
+    .pk-cards.face .pk-card { --cw: 30px; }
+    .pk-dealer { width: 21px; height: 21px; font-size: .7rem; left: -13px; }
+    .pk-tag { right: -19px; font-size: .56rem; }
+    .pk-lastact { font-size: .62rem; padding: 0 6px; min-height: 15px; }
+    .pk-bet { font-size: .7rem; padding: 1px 7px 1px 4px; gap: 4px; }
+    .pk-pile { width: 15px; height: 20px; } .pk-chip { width: 15px; height: 15px; border-width: 2px; }
+    .pk-dock { grid-template-columns: 1fr; gap: 8px; padding: 0 14px 16px; margin-top: -14px; }
+    .pk-me { min-height: 0; flex-direction: row; gap: 14px; justify-content: center; }
+    .pk-card.lg { --cw: 66px; }
+    .pk-hero .pk-card:first-child { transform: rotate(-5deg) translateX(6px); } .pk-hero .pk-card:last-child { transform: rotate(5deg) translateX(-6px); }
+    .pk-hname { white-space: normal; text-align: center; max-width: 130px; font-size: .78rem; padding: 4px 10px; }
+    .pk-btn { min-height: 54px; font-size: .92rem; }
+    .pk-amt b { font-size: 1.35rem; }
+    .pk-q { min-height: 46px; font-size: .82rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { .pk-card.deal, .pk-bet, .pk-seat.turn .pk-av, .pk-seat.win .pk-av, .pk-banner, .pk-seat.win .pk-avw::after { animation: none !important; } }
+
+  /* ===== Online: chọn cách chơi, phòng chờ, trạng thái kết nối ===== */
+  .pk-view[hidden] { display: none; }
+  #pk-menu .bd-opt:disabled { opacity: .4; cursor: not-allowed; }
+  .pk-homecards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 12px 0 8px; }
+  .pk-hc { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; text-align: left; padding: 14px 14px 12px; border-radius: 16px; cursor: pointer; font: inherit; color: var(--fg);
+    background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 14%, var(--card)), var(--card)); border: 2px solid var(--line); transition: transform .15s, border-color .15s, box-shadow .15s; }
+  .pk-hc:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 10px 24px rgba(0, 0, 0, .16); }
+  .pk-hc-ic { font-size: 1.7rem; line-height: 1; margin-bottom: 2px; }
+  .pk-hc b { font-size: 1rem; }
+  .pk-hc small { color: var(--muted); font-size: .8rem; line-height: 1.3; }
+  .pk-back { background: none; border: 0; color: var(--accent); font: inherit; font-weight: 700; cursor: pointer; padding: 4px 0; margin-bottom: 4px; }
+  .pk-lbl { display: block; font-weight: 700; margin: 14px 0 6px; }
+  .pk-input { display: block; width: min(100%, 360px); padding: 12px 14px; border-radius: 12px; border: 2px solid var(--line); background: var(--card); color: var(--fg); font: inherit; font-size: 1.05rem; box-sizing: border-box; }
+  .pk-input:focus { outline: none; border-color: var(--accent); }
+  .pk-codeinput { text-transform: uppercase; letter-spacing: .4em; font-weight: 800; font-size: 1.4rem; text-align: center; max-width: 260px; }
+  .pk-err { color: #e03131; font-weight: 600; margin: 10px 0 0; max-width: 520px; }
+  .pk-err[hidden], .pk-rejoin[hidden] { display: none; }
+  .pk-rejoin { color: var(--badge, #b45309); font-weight: 600; text-align: center; }
+  .pk-small { font-size: .8rem; }
+  .pk-wait { color: var(--muted); font-weight: 600; text-align: center; margin: 14px 0 6px; }
+  .pk-codebox { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 14px 18px; border-radius: 16px; background: linear-gradient(160deg, #14203a, #0c1426); color: #fff; box-shadow: 0 8px 22px rgba(0, 0, 0, .3); margin-top: 6px; }
+  .pk-codebox small { opacity: .7; text-transform: uppercase; letter-spacing: .08em; font-size: .7rem; }
+  .pk-codebox b { font-size: 2.3rem; letter-spacing: .35em; font-variant-numeric: tabular-nums; color: #ffd54a; text-shadow: 0 2px 10px rgba(255, 213, 74, .35); }
+  .pk-codebtns { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pk-codebtns .btn.ghost { color: #fff; border-color: rgba(255, 255, 255, .4); }
+  .pk-seatlist { list-style: none; margin: 14px 0 6px; padding: 0; display: grid; gap: 7px; }
+  .pk-seatlist li { display: flex; align-items: center; gap: 10px; padding: 7px 12px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); }
+  .pk-seatlist li.botrow { opacity: .75; }
+  .pk-seatlist li b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pk-av2 { width: 30px; aspect-ratio: 1; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--c, #556); color: #fff; font-weight: 800; flex: none; }
+  .pk-ltag { font-size: .66rem; font-weight: 800; padding: 1px 8px; border-radius: 9px; background: #4f46e5; color: #fff; white-space: nowrap; }
+  .pk-ltag.host { background: #e0a63a; color: #2b1d00; } .pk-ltag.you { background: #2f9e44; } .pk-ltag.bot { background: #6b7280; }
+  .pk-dot { width: 10px; height: 10px; border-radius: 50%; background: #e03131; flex: none; } .pk-dot.on { background: #2f9e44; box-shadow: 0 0 8px #2f9e44; } .pk-dot.bot { background: #9aa3b2; }
+  #pk.pk-online .pk-top { flex-wrap: wrap; row-gap: 6px; }
+  #pk.pk-online .pk-stage { padding-top: 60px; }
+  @media (max-width: 700px) { #pk.pk-online .pk-stage { padding-top: 76px; } }
+  .pk-pill { padding: 2px 10px; border-radius: 999px; background: rgba(255, 255, 255, .1); color: rgba(255, 255, 255, .85); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .pk-pill[hidden], .pk-conn[hidden] { display: none; }
+  .pk-conn { padding: 2px 10px; border-radius: 999px; background: rgba(47, 158, 68, .25); color: #8ce99a; white-space: nowrap; }
+  .pk-conn::before { content: '\25CF '; }
+  .pk-conn.lost { background: rgba(224, 49, 49, .25); color: #ffa8a8; animation: pk-blink 1s infinite; }
+  @keyframes pk-blink { 50% { opacity: .45; } }
+  .pk-nextin, .pk-result .pk-wait { margin-top: 8px; color: rgba(255, 255, 255, .8); font-weight: 600; font-size: .9rem; text-align: center; }
+  .pk-closed { position: absolute; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; padding: 14px; background: rgba(4, 10, 16, .78); border-radius: 26px; }
+  .pk-closed[hidden] { display: none; }
+  .pk-box { max-width: 380px; text-align: center; color: #fff; background: linear-gradient(160deg, #1d2c3f, #0d141d); border: 1px solid rgba(255, 255, 255, .15); border-radius: 18px; padding: 20px 22px; box-shadow: 0 16px 40px rgba(0, 0, 0, .5); }
+  .pk-box h2 { margin: 0 0 8px; }
+  @media (prefers-reduced-motion: reduce) { .pk-conn.lost { animation: none !important; } }
+</style>

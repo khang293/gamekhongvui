@@ -1,0 +1,1229 @@
+---
+import Base from '../../layouts/Base.astro';
+import { lp, type Lang } from '../../i18n';
+import { gamesUi } from '../../data/games';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const g = gamesUi[lang];
+
+// Toàn bộ chữ của game (chỉ chuỗi, để gửi sang trình duyệt)
+const TXT = {
+  vi: {
+    title: 'Tiến lên miền Nam',
+    sub: 'Đánh bài tiến lên với máy hoặc với bạn bè qua phòng online: sảnh, đôi thông, tứ quý, chặt heo, tới trắng. Chơi tính chip nhiều ván hoặc từng ván, ai hết bài trước thắng.',
+    players: 'Số người chơi', playersOpt: ['2 người', '3 người', '4 người'],
+    level: 'Độ khó', levels: ['Dễ', 'Thường', 'Khó'],
+    start: 'Bắt đầu', again: 'Ván mới', menu: 'Menu',
+    rulesTitle: 'Luật chơi', rules: [
+      'Mỗi người 13 lá. Thứ tự lá: 3 nhỏ nhất, 2 lớn nhất. Chất: bích < chuồn < rô < cơ.',
+      'Các bộ: lá lẻ, đôi, sám cô, tứ quý, sảnh (từ 3 lá liên tiếp, không có 2), đôi thông (từ 3 đôi liên tiếp, không có 2).',
+      'Phải đánh cùng loại bộ, cùng số lá và lớn hơn bộ trên bàn. Không đánh được thì bỏ lượt, bỏ rồi là hết vòng đó.',
+      'Chặt: tứ quý, 3 / 4 / 5 đôi thông chặt lá 2. Đôi 2 bị tứ quý hoặc 4+ đôi thông chặt. Sám 2 chỉ bị 5+ đôi thông chặt. Tứ quý bị 4 đôi thông chặt. 3 đôi thông bị tứ quý chặt. 4 đôi thông bị 5+ đôi thông chặt.',
+      'Tới trắng (thắng ngay khi chia bài): tứ quý 2, sảnh rồng 3 đến A, 5 đôi thông, 6 đôi.',
+      'Ai hết bài trước thắng ván. Chọn lá bằng cách bấm hoặc quét ngón tay qua các lá, rồi bấm Đánh.',
+    ],
+    stats: 'Thắng / Thua', you: 'Bạn', bots: ['An', 'Mai', 'Cường', 'Hà'],
+    play: 'Đánh', pass: 'Bỏ lượt', hint: 'Gợi ý', clear: 'Bỏ chọn',
+    yourLead: 'Bạn đánh trước, chọn bài rồi bấm Đánh.', yourTurn: 'Đến lượt bạn.', beat: 'Đánh bộ lớn hơn hoặc bỏ lượt.',
+    thinking: '{n} đang nghĩ...', waiting: 'Đang chờ {n}...', lead: '{n} dẫn bài.', passedTag: 'Bỏ',
+    playedBy: '{n} đánh', free: 'Bàn trống, ai thắng vòng sẽ dẫn',
+    chop: 'Chặt!', chopped: '{n} chặt!', chopBanner: 'Chặt heo!',
+    rEmpty: 'Hãy chọn bài trước.', rInvalid: 'Các lá này không tạo thành bộ hợp lệ.', rType: 'Phải đánh cùng loại: {t}.', rLower: 'Bộ này chưa lớn hơn bộ trên bàn.',
+    rTurn: 'Chưa đến lượt bạn.', rMustLead: 'Bạn đang dẫn, phải đánh bài, không bỏ lượt được.', rNoHand: 'Lá bài không có trên tay.',
+    hintPass: 'Gợi ý: nên bỏ lượt.', hintPlay: 'Gợi ý đã chọn sẵn các lá.',
+    combo: { single: 'lá lẻ', pair: 'đôi', triple: 'sám cô', quad: 'tứ quý', run: 'sảnh {k} lá', pairs: '{k} đôi thông' },
+    white: { quad2: 'Tứ quý 2', dragon: 'Sảnh rồng', fivePairs: '5 đôi thông', sixPairs: '6 đôi' },
+    whiteWin: 'Tới trắng! {n} thắng ngay với {k}.', youWin: 'Bạn thắng ván này!', botWin: '{n} thắng ván.', youWhite: 'Tới trắng! Bạn thắng ngay với {k}.',
+    order: 'Thứ tự', left: 'còn {k} lá', burned: 'Cháy bài', winnerTag: 'Về nhất',
+    done: 'Ván đã kết thúc.', note: 'Chơi giải trí, không dùng tiền thật.',
+    mode: 'Cách chơi', modes: ['Tính chip (nhiều ván)', 'Từng ván (không tính chip)'],
+    stackLbl: 'Chip ban đầu', unitLbl: 'Chip mỗi lá',
+    chipRules: [
+      'Chế độ tính chip: mỗi người bắt đầu với số chip đã chọn, chơi nhiều ván liên tiếp. Chip chỉ là điểm ảo để chơi cho vui.',
+      'Hết ván, người thua trả người thắng: số lá còn trên tay × chip mỗi lá. Chưa đánh lá nào (cháy bài) thì số lá nhân đôi.',
+      'Thối heo: mỗi lá 2 còn trên tay thêm chip: 2 đen (bích, chuồn) +1 lá, 2 đỏ (rô, cơ) +2 lá.',
+      'Chặt heo: người bị chặt trả ngay cho người chặt: 3 lá cho mỗi lá 2 đen, 4 lá cho mỗi lá 2 đỏ (đôi 2, sám 2 tính cộng dồn). Chưa có luật chặt chồng.',
+      'Tới trắng: mỗi người còn lại trả người thắng 13 lá. Không đủ chip thì trả hết số chip đang có. Hết chip là bị loại; bạn hết chip thì thua cả bàn.',
+    ],
+    youOut: 'Hết chip! Bạn đã thua cả bàn.', youWinAll: 'Bạn thắng cả bàn!', otherWinAll: '{n} thắng cả bàn!', handNo: 'Ván {k}', unitInfo: '1 lá = {u} chip',
+    nextHand: 'Ván tiếp', restart: 'Bắt đầu lại', confirmRestart: 'Bắt đầu lại và đặt lại chip cho mọi người?', chipsOut: 'Hết chip', settle: 'Thanh toán chip',
+    bestStack: 'Chip cao nhất', handsWon: 'Ván thắng',
+    lnCards: '{c} lá × {u}', lnBurn: '({c} lá × {u}) × 2 cháy bài', lnBlack: 'heo đen {k} × {u}', lnRed: 'heo đỏ {k} × {u}',
+    lnChop: 'chặt heo: {p}', lnWhite: 'tới trắng 13 × {u}', lnShort: 'chỉ trả được {p}',
+    toName: 'trả {n}', fromName: '{n} trả', tagChop: 'Chặt heo', tagChopped: 'Bị chặt heo', tagWhite: 'Tới trắng',
+    // ----- Online -----
+    homeCards: [
+      { k: 'solo', ic: '🤖', t: 'Chơi với máy', d: 'Một mình với 1 đến 3 máy' },
+      { k: 'create', ic: '🌐', t: 'Tạo phòng online', d: 'Gửi mã phòng cho bạn bè để cùng chơi' },
+      { k: 'join', ic: '🔑', t: 'Vào phòng bằng mã', d: 'Nhập mã phòng bạn bè gửi cho bạn' },
+    ],
+    back: '← Quay lại', yourName: 'Tên của bạn', namePh: 'Tên (tối đa 16 ký tự)',
+    createBtn: 'Tạo phòng', joinBtn: 'Vào phòng', roomCode: 'Mã phòng', codePh: 'VD: K7PQ2',
+    creating: 'Đang tạo phòng...', joining: 'Đang vào phòng...', rejoining: 'Đang nối lại phòng {c}...',
+    createHelp: 'Bạn là chủ phòng: máy bạn chạy luật và giữ bài của cả bàn. Chỗ nào không có người sẽ do máy chơi.',
+    joinHelp: 'Nhập mã 5 ký tự mà chủ phòng gửi cho bạn.',
+    lobbyTitle: 'Phòng chờ', copyLink: 'Sao chép link', copyCode: 'Sao chép mã', shareBtn: 'Chia sẻ', copied: 'Đã sao chép!',
+    seatsLbl: 'Số chỗ ngồi', seatsHint: 'Chỗ nào không có người sẽ do máy chơi.',
+    hostTag: 'Chủ phòng', youTag: 'Bạn', botTag: 'Máy', onlineTag: 'Online', offlineTag: 'Mất kết nối', replacedTag: 'Máy chơi thay',
+    timerLbl: 'Đồng hồ mỗi lượt', timerOpts: ['30 giây', 'Tắt'],
+    startOnline: 'Bắt đầu ván', waitHost: 'Đang chờ chủ phòng bắt đầu...', leaveRoom: 'Rời phòng',
+    lobbyNote: 'Chơi online dùng kết nối trực tiếp giữa các máy; chủ phòng chạy luật của ván. Chủ phòng về lý thuyết có thể thấy bài của mọi người, nên hãy chơi với bạn bè.',
+    settingsSummary: 'Thiết lập: {n} chỗ, {m}, độ khó máy {l}.',
+    errs: {
+      noroom: 'Không tìm thấy phòng. Kiểm tra lại mã phòng.', full: 'Phòng đã đủ người.', started: 'Ván đã bắt đầu, không vào thêm được.',
+      version: 'Phiên bản game không khớp, hãy tải lại trang.', timeout: 'Không kết nối được. Mạng của bạn có thể chặn kết nối trực tiếp (thử mạng khác).',
+      network: 'Không kết nối được. Mạng của bạn có thể chặn kết nối trực tiếp (thử mạng khác).', closed: 'Phòng đã đóng.', hostLeft: 'Chủ phòng đã thoát, phòng đã đóng.',
+      kicked: 'Bạn đã bị mời ra khỏi phòng.', lost: 'Mất kết nối quá lâu nên bạn đã rời phòng.', badmsg: 'Phòng không trả lời đúng. Thử lại sau.',
+      badcode: 'Mã phòng gồm 5 ký tự (chữ và số).', create: 'Không tạo được phòng. Mạng có thể chặn kết nối trực tiếp hoặc máy chủ báo hiệu không phản hồi.',
+    },
+    connOk: 'Online', connLost: 'Mất kết nối, đang nối lại...', connHost: 'Chủ phòng', roomClosed: 'Phòng đã đóng', toMenu: 'Về menu',
+    ready: 'Sẵn sàng', readyWait: 'Đã sẵn sàng, chờ mọi người...', readyCount: '{a}/{b} sẵn sàng', waitHostRestart: 'Chờ chủ phòng chơi lại...', playAgain: 'Chơi lại',
+    spectating: 'Bạn đã hết chip, đang xem các ván còn lại.', offlineBot: 'offline, máy chơi thay', timeoutTag: 'Hết giờ',
+    youWinTable: 'Bạn thắng cả bàn!', loseTable: 'Bạn hết chip, ván chơi kết thúc.', tableWinner: '{n} thắng cả bàn!',
+  },
+  en: {
+    title: 'Tien Len (Southern Thirteen)',
+    sub: 'The Vietnamese climbing card game against the computer or against friends in an online room: runs, consecutive pairs, four of a kind, chopping 2s and instant wins. Play for chips over many hands, or one hand at a time; first to empty their hand wins.',
+    players: 'Players', playersOpt: ['2 players', '3 players', '4 players'],
+    level: 'Level', levels: ['Easy', 'Normal', 'Hard'],
+    start: 'Start', again: 'New hand', menu: 'Menu',
+    rulesTitle: 'Rules', rules: [
+      'Everyone gets 13 cards. Rank: 3 is lowest, 2 is highest. Suits: spades < clubs < diamonds < hearts.',
+      'Combinations: single, pair, triple, four of a kind, run (3+ consecutive cards, no 2s), consecutive pairs (3+ pairs in a row, no 2s).',
+      'You must play the same kind and the same size and beat the cards on the table. If you cannot (or do not want to) play, pass; after you pass you are out until the next round.',
+      'Chopping: four of a kind and 3 / 4 / 5 consecutive pairs chop a single 2. A pair of 2s is chopped by four of a kind or 4+ consecutive pairs. A triple of 2s is chopped only by 5+ consecutive pairs. Four of a kind is chopped by 4 consecutive pairs. 3 consecutive pairs are chopped by four of a kind. 4 consecutive pairs are chopped by 5+ consecutive pairs.',
+      'Instant win at the deal: four 2s, dragon run 3 to A, five consecutive pairs, or six pairs.',
+      'First to empty their hand wins. Tap, or swipe a finger across cards, to select them, then press Play.',
+    ],
+    stats: 'Wins / Losses', you: 'You', bots: ['Ann', 'Ben', 'Cal', 'Dee'],
+    play: 'Play', pass: 'Pass', hint: 'Hint', clear: 'Clear',
+    yourLead: 'You lead: select cards and press Play.', yourTurn: 'Your turn.', beat: 'Beat the table or pass.',
+    thinking: '{n} is thinking...', waiting: 'Waiting for {n}...', lead: '{n} leads.', passedTag: 'Pass',
+    playedBy: '{n} played', free: 'Table is empty, the round winner leads',
+    chop: 'Chop!', chopped: '{n} chops!', chopBanner: 'Chop!',
+    rEmpty: 'Select some cards first.', rInvalid: 'These cards do not make a valid combination.', rType: 'You must play the same kind: {t}.', rLower: 'This does not beat the cards on the table.',
+    rTurn: 'It is not your turn.', rMustLead: 'You are leading, so you must play cards (no passing).', rNoHand: 'That card is not in your hand.',
+    hintPass: 'Hint: you should pass.', hintPlay: 'Hint selected the cards for you.',
+    combo: { single: 'single', pair: 'pair', triple: 'triple', quad: 'four of a kind', run: 'run of {k}', pairs: '{k} consecutive pairs' },
+    white: { quad2: 'Four 2s', dragon: 'Dragon run', fivePairs: 'Five consecutive pairs', sixPairs: 'Six pairs' },
+    whiteWin: 'Instant win! {n} wins right away with {k}.', youWin: 'You won this hand!', botWin: '{n} wins the hand.', youWhite: 'Instant win! You win right away with {k}.',
+    order: 'Finish order', left: '{k} cards left', burned: 'Burned', winnerTag: 'Winner',
+    done: 'The hand is over.', note: 'For fun only, no real money.',
+    mode: 'Mode', modes: ['Chips (many hands)', 'One hand at a time (no chips)'],
+    stackLbl: 'Starting chips', unitLbl: 'Chips per card',
+    chipRules: [
+      'Chip mode: everyone starts with the chosen stack and you play hand after hand. Chips are just virtual points for fun.',
+      'At the end of a hand each loser pays the winner: cards left in hand × chips per card. If a loser never played a card (burned), the card count is doubled.',
+      'Pig penalty: every 2 still in hand adds to the payment: a black 2 (spades, clubs) +1 card, a red 2 (diamonds, hearts) +2 cards.',
+      'Chopping a 2: the chopped player pays the chopper at once: 3 cards for each black 2, 4 cards for each red 2 (a pair or triple of 2s adds up). Chopping a chop is not implemented.',
+      'Instant win: every other player pays the winner 13 cards. A player short of chips pays what they have. At 0 chips a player is out; if you hit 0 you lose the table.',
+    ],
+    youOut: 'Out of chips! You lost the table.', youWinAll: 'You won the whole table!', otherWinAll: '{n} won the whole table!', handNo: 'Hand {k}', unitInfo: '1 card = {u} chips',
+    nextHand: 'Next hand', restart: 'Restart', confirmRestart: "Restart and reset everyone's chips?", chipsOut: 'Out', settle: 'Chip settlement',
+    bestStack: 'Best stack', handsWon: 'Hands won',
+    lnCards: '{c} cards × {u}', lnBurn: '({c} cards × {u}) × 2 burned', lnBlack: 'black 2s {k} × {u}', lnRed: 'red 2s {k} × {u}',
+    lnChop: 'chopped 2s: {p}', lnWhite: 'instant win 13 × {u}', lnShort: 'could only pay {p}',
+    toName: 'pays {n}', fromName: '{n} pays', tagChop: 'Chopped a 2', tagChopped: 'Got chopped', tagWhite: 'Instant win',
+    // ----- Online -----
+    homeCards: [
+      { k: 'solo', ic: '🤖', t: 'Play the computer', d: 'Alone against 1 to 3 computer players' },
+      { k: 'create', ic: '🌐', t: 'Create an online room', d: 'Send the room code to friends to play together' },
+      { k: 'join', ic: '🔑', t: 'Join with a code', d: 'Enter the room code a friend sent you' },
+    ],
+    back: '← Back', yourName: 'Your name', namePh: 'Name (max 16 characters)',
+    createBtn: 'Create room', joinBtn: 'Join room', roomCode: 'Room code', codePh: 'e.g. K7PQ2',
+    creating: 'Creating the room...', joining: 'Joining the room...', rejoining: 'Reconnecting to room {c}...',
+    createHelp: 'You are the host: your device runs the rules and holds everyone\'s cards. Empty seats are played by the computer.',
+    joinHelp: 'Enter the 5-character code the host sent you.',
+    lobbyTitle: 'Lobby', copyLink: 'Copy link', copyCode: 'Copy code', shareBtn: 'Share', copied: 'Copied!',
+    seatsLbl: 'Seats', seatsHint: 'Empty seats are played by the computer.',
+    hostTag: 'Host', youTag: 'You', botTag: 'Bot', onlineTag: 'Online', offlineTag: 'Disconnected', replacedTag: 'Bot playing',
+    timerLbl: 'Turn timer', timerOpts: ['30 seconds', 'Off'],
+    startOnline: 'Start the hand', waitHost: 'Waiting for the host to start...', leaveRoom: 'Leave room',
+    lobbyNote: 'Online play uses direct connections between devices; the host runs the rules. In theory the host can see everyone\'s cards, so play with friends.',
+    settingsSummary: 'Settings: {n} seats, {m}, bot level {l}.',
+    errs: {
+      noroom: 'Room not found. Check the code.', full: 'The room is full.', started: 'The hand has already started, nobody can join now.',
+      version: 'Game version mismatch, please reload the page.', timeout: 'Could not connect. Your network may block direct connections (try another network).',
+      network: 'Could not connect. Your network may block direct connections (try another network).', closed: 'The room has closed.', hostLeft: 'The host left, the room is closed.',
+      kicked: 'You were removed from the room.', lost: 'Disconnected for too long, so you left the room.', badmsg: 'The room did not answer correctly. Try again later.',
+      badcode: 'A room code has 5 characters (letters and digits).', create: 'Could not create the room. Your network may block direct connections or the signaling server did not answer.',
+    },
+    connOk: 'Online', connLost: 'Connection lost, reconnecting...', connHost: 'Host', roomClosed: 'Room closed', toMenu: 'Back to menu',
+    ready: 'Ready', readyWait: 'Ready, waiting for the others...', readyCount: '{a}/{b} ready', waitHostRestart: 'Waiting for the host to restart...', playAgain: 'Play again',
+    spectating: 'You are out of chips and watching the rest.', offlineBot: 'offline, bot playing', timeoutTag: 'Timed out',
+    youWinTable: 'You won the whole table!', loseTable: 'You are out of chips, the game is over.', tableWinner: '{n} won the whole table!',
+  },
+};
+const T = TXT[lang];
+---
+<Base lang={lang} title={T.title} description={T.sub} noindex wide>
+  <div class="tl-head">
+    <p class="meta"><a href={lp(lang, '/')}>{g.back}</a></p>
+    <h1>{T.title}</h1>
+    <p class="meta">{T.sub}</p>
+  </div>
+
+  <div id="tl" data-ui={JSON.stringify(T)}>
+    <div id="tl-menu">
+      <!-- Màn hình chính: ba cách chơi -->
+      <div id="tl-v-home" class="tl-view">
+        <div class="tl-homecards">
+          {T.homeCards.map((c) => (
+            <button type="button" class="tl-hc" data-go={c.k}>
+              <span class="tl-hc-ic" aria-hidden="true">{c.ic}</span>
+              <b>{c.t}</b>
+              <small>{c.d}</small>
+            </button>
+          ))}
+        </div>
+        <p class="bd-stat" id="tl-stat"></p>
+        <p class="tl-rejoin" id="tl-rejoin" hidden></p>
+        <details class="tl-rules">
+          <summary>{T.rulesTitle}</summary>
+          <ul>{T.rules.map((r) => <li>{r}</li>)}</ul>
+          <ul class="tl-chiprules">{T.chipRules.map((r) => <li>{r}</li>)}</ul>
+        </details>
+        <p class="meta">{T.note}</p>
+      </div>
+
+      <!-- Chơi với máy -->
+      <div id="tl-v-solo" class="tl-view" hidden>
+        <button type="button" class="tl-back" data-go="home">{T.back}</button>
+        <h2 class="bd-h">{T.mode}</h2>
+        <div class="bd-row">
+          {T.modes.map((l, i) => <button type="button" class={`bd-opt${i === 0 ? ' sel' : ''}`} data-mode={i === 0 ? 'chips' : 'single'}>{l}</button>)}
+        </div>
+        <div id="tl-chipopts">
+          <h2 class="bd-h">{T.stackLbl}</h2>
+          <div class="bd-row">
+            {[500, 1000, 2000].map((v) => <button type="button" class={`bd-opt${v === 1000 ? ' sel' : ''}`} data-stack={v}>{v}</button>)}
+          </div>
+          <h2 class="bd-h">{T.unitLbl}</h2>
+          <div class="bd-row">
+            {[5, 10, 20].map((v) => <button type="button" class={`bd-opt${v === 10 ? ' sel' : ''}`} data-unit={v}>{v}</button>)}
+          </div>
+        </div>
+        <h2 class="bd-h">{T.players}</h2>
+        <div class="bd-row">
+          {T.playersOpt.map((l, i) => <button type="button" class={`bd-opt${i === 2 ? ' sel' : ''}`} data-players={i + 2}>{l}</button>)}
+        </div>
+        <h2 class="bd-h">{T.level}</h2>
+        <div class="bd-row">
+          {T.levels.map((l, i) => <button type="button" class={`bd-opt${i === 1 ? ' sel' : ''}`} data-level={i + 1}>{l}</button>)}
+        </div>
+        <p class="tl-gap"></p>
+        <button class="btn" type="button" id="tl-start">▶ {T.start}</button>
+      </div>
+
+      <!-- Tạo phòng -->
+      <div id="tl-v-create" class="tl-view" hidden>
+        <button type="button" class="tl-back" data-go="home">{T.back}</button>
+        <h2 class="bd-h">{T.homeCards[1].t}</h2>
+        <p class="meta">{T.createHelp}</p>
+        <label class="tl-lbl" for="tl-name-c">{T.yourName}</label>
+        <input id="tl-name-c" class="tl-input" type="text" maxlength="16" autocomplete="nickname" placeholder={T.namePh} />
+        <p class="tl-err" id="tl-err-c" role="alert" hidden></p>
+        <button class="btn" type="button" id="tl-create">🌐 {T.createBtn}</button>
+      </div>
+
+      <!-- Vào phòng -->
+      <div id="tl-v-join" class="tl-view" hidden>
+        <button type="button" class="tl-back" data-go="home">{T.back}</button>
+        <h2 class="bd-h">{T.homeCards[2].t}</h2>
+        <p class="meta">{T.joinHelp}</p>
+        <label class="tl-lbl" for="tl-code">{T.roomCode}</label>
+        <input id="tl-code" class="tl-input tl-codeinput" type="text" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder={T.codePh} />
+        <label class="tl-lbl" for="tl-name-j">{T.yourName}</label>
+        <input id="tl-name-j" class="tl-input" type="text" maxlength="16" autocomplete="nickname" placeholder={T.namePh} />
+        <p class="tl-err" id="tl-err-j" role="alert" hidden></p>
+        <button class="btn" type="button" id="tl-joinbtn">🔑 {T.joinBtn}</button>
+      </div>
+
+      <!-- Phòng chờ (chủ phòng và khách) -->
+      <div id="tl-v-lobby" class="tl-view" hidden></div>
+    </div>
+
+    <!-- Bàn chơi -->
+    <div id="tl-game" hidden>
+      <div class="tl-wrap">
+        <div class="tl-room" id="tl-room">
+          <div class="tl-top">
+            <span class="tl-conn" id="tl-conn" hidden></span>
+            <span class="tl-pill" id="tl-roomcode" hidden></span>
+            <span class="tl-pill" id="tl-handinfo"></span>
+            <span class="tl-pill gold" id="tl-un"></span>
+          </div>
+          <div class="tl-stage">
+            <div class="tl-table" id="tl-table">
+              <div class="tl-seat" id="tl-s-top" hidden></div>
+              <div class="tl-seat" id="tl-s-left" hidden></div>
+              <div class="tl-seat" id="tl-s-right" hidden></div>
+              <div class="tl-line"></div>
+              <div class="tl-mark" aria-hidden="true">gamekhongvui</div>
+              <div class="tl-center">
+                <div class="tl-pile" id="tl-pile"></div>
+                <div class="tl-by" id="tl-by"></div>
+              </div>
+              <div class="tl-banner" id="tl-banner" hidden></div>
+            </div>
+          </div>
+          <div class="tl-dock">
+            <div class="tl-bar" id="tl-bar" hidden><span class="tl-me" id="tl-me"></span></div>
+            <p class="tl-status" id="tl-status" aria-live="polite"></p>
+            <p class="tl-reason" id="tl-reason" aria-live="polite"></p>
+            <div class="tl-timer" id="tl-timer" hidden><i></i></div>
+            <div class="tl-hand" id="tl-hand" role="group"></div>
+            <div class="tl-actions">
+              <button type="button" class="tl-btn pass" id="tl-skip">{T.pass}</button>
+              <button type="button" class="tl-btn go" id="tl-act">{T.play}</button>
+              <button type="button" class="tl-btn hint" id="tl-hint">💡 {T.hint}</button>
+            </div>
+            <div class="tl-actions sub">
+              <button type="button" class="tl-mini-btn" id="tl-clear">{T.clear}</button>
+              <button type="button" class="tl-mini-btn" id="tl-new">{T.again}</button>
+              <button type="button" class="tl-mini-btn" id="tl-menu-btn">{T.menu}</button>
+            </div>
+          </div>
+          <div class="tl-over" id="tl-over" hidden></div>
+          <div class="tl-closed" id="tl-closed" hidden></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Base>
+
+<script>
+  import { detectCombo, canBeat, rankOf, suitOf, RANKS, SUITS, enumerateCombos, type Combo } from '../../data/tienlenEngine';
+  import { botDecide } from '../../data/tienlenBot';
+  import { TLGame, TLNetHost, TLNetClient, TURN_MS, type NetState, type ResItem } from '../../data/tienlenNet';
+  import { PeerTransport } from '../../data/net/peerTransport';
+  import { LoopbackHub } from '../../data/net/loopbackTransport';
+  import { normCode, validCode, sanitizeName, escapeHtml as esc, realClock, RoomError, type RejectReason } from '../../data/net/room';
+  import type { Transport } from '../../data/net/transport';
+  import { sfx, mountMute } from '../../data/sfx';
+
+  const root = document.getElementById('tl') as HTMLElement;
+  const T = JSON.parse(root.dataset.ui || '{}');
+  const $ = (id: string) => document.getElementById(id) as HTMLElement;
+  const menu = $('tl-menu'), gameEl = $('tl-game'), tableEl = $('tl-table'), pileEl = $('tl-pile'), byEl = $('tl-by');
+  const statusEl = $('tl-status'), reasonEl = $('tl-reason'), handEl = $('tl-hand'), overEl = $('tl-over'), closedEl = $('tl-closed');
+  const mainEl = document.querySelector('main') as HTMLElement | null;
+  mountMute(document.querySelector('.tl-wrap') as HTMLElement);
+
+  // ---------- Trạng thái chung ----------
+  type Ctl = { kind: 'solo'; game: TLGame } | { kind: 'host'; host: TLNetHost } | { kind: 'client'; client: TLNetClient };
+  let ctl: Ctl | null = null;
+  let ns: NetState | null = null;
+  let nsAt = 0;                 // giờ nhận bản trạng thái mới nhất (để chạy đồng hồ lượt)
+  let sel = new Set<number>();
+  let reasonMsg = '';
+  let lastEv = 0, lastCur = -1, lastHand = -1, lastHandKey = '';
+  let dealing = false, fast = false, inGame = false;
+  let conn: 'online' | 'lost' = 'online';
+  let hub: LoopbackHub | null = null;
+  let stats = { w: 0, l: 0, best: 0, hw: 0 };
+  try { const s = JSON.parse(localStorage.getItem('tl-stats') || 'null'); if (s) stats = { ...stats, ...s }; } catch {}
+  const saveStats = () => { try { localStorage.setItem('tl-stats', JSON.stringify(stats)); } catch {} };
+  function paintStat() {
+    const a = stats.w + stats.l ? `${T.stats}: ${stats.w} / ${stats.l}` : '';
+    const b = stats.best ? `${T.bestStack}: ${stats.best} · ${T.handsWon}: ${stats.hw}` : '';
+    $('tl-stat').textContent = [a, b].filter(Boolean).join(' · ');
+  }
+  const fmt = (s: string, o: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (_, k) => String(o[k] ?? ''));
+  const AV_COL = ['#2b6cb0', '#c05621', '#2f855a', '#805ad5'];
+  const comboText = (c: Combo) => fmt(T.combo[c.type], { k: c.type === 'run' || c.type === 'pairs' ? c.len : 0 });
+
+  // Lưu thông tin để nối lại phòng sau khi tải lại trang
+  const ROOM_KEY = 'tl-room';
+  const saveRoom = (o: { code: string; token: string; name: string } | null) => { try { if (o) localStorage.setItem(ROOM_KEY, JSON.stringify({ ...o, at: Date.now() })); else localStorage.removeItem(ROOM_KEY); } catch {} };
+  const loadRoom = (): { code: string; token: string; name: string } | null => {
+    try { const o = JSON.parse(localStorage.getItem(ROOM_KEY) || 'null'); if (o && o.code && o.token && Date.now() - o.at < 30 * 60 * 1000) return o; } catch {}
+    return null;
+  };
+  const loadName = () => { try { return localStorage.getItem('tl-name') || ''; } catch { return ''; } };
+  const saveName = (n: string) => { try { localStorage.setItem('tl-name', n); } catch {} };
+  const defaultName = () => (loadName() || (document.documentElement.lang === 'en' ? 'Player ' : 'Người chơi ') + (100 + Math.floor(Math.random() * 900)));
+
+  // ---------- Điều hướng giữa các màn hình ----------
+  const VIEWS = ['home', 'solo', 'create', 'join', 'lobby'];
+  function showView(v: string) {
+    inGame = false; setPlaying(false);
+    gameEl.hidden = true; menu.hidden = false;
+    for (const k of VIEWS) ($('tl-v-' + k)).hidden = k !== v;
+    if (v === 'home') paintStat();
+  }
+  function setPlaying(on: boolean) { mainEl?.classList.toggle('tl-playing', on); }
+  function showGame() { inGame = true; menu.hidden = true; gameEl.hidden = false; setPlaying(true); }
+
+  document.querySelectorAll<HTMLElement>('[data-go]').forEach((b) => b.addEventListener('click', () => {
+    const v = b.dataset.go as string;
+    if (v === 'create') ($('tl-name-c') as HTMLInputElement).value = defaultName();
+    if (v === 'join') { ($('tl-name-j') as HTMLInputElement).value = defaultName(); }
+    showView(v);
+    sfx.play('click');
+  }));
+
+  // ---------- Điều khiển ván: một lớp chung cho chơi máy, chủ phòng và khách ----------
+  function sendIntent(p: { type: 'play'; cards: number[] } | { type: 'pass' } | { type: 'ready' } | { type: 'restart' }) {
+    if (!ctl) return;
+    if (ctl.kind === 'solo') { ctl.game.intent(0, p); }
+    else if (ctl.kind === 'host') { ctl.host.intentHost(p); }
+    else if (p.type === 'play') ctl.client.play(p.cards);
+    else if (p.type === 'pass') ctl.client.pass();
+    else if (p.type === 'ready') ctl.client.ready();
+  }
+
+  function onState(s: NetState) {
+    const prev = ns;
+    ns = s; nsAt = Date.now();
+    if (s.phase === 'lobby') { if (ctl && ctl.kind !== 'solo') { if (!inGame || prev?.phase !== 'lobby') showView('lobby'); renderLobby(); } return; }
+    if (!inGame) { showGame(); sel = new Set(); overEl.hidden = true; overEl.innerHTML = ''; closedEl.hidden = true; }
+    if (prev && prev.phase === 'lobby') { sel = new Set(); }
+    handleEvents(prev, s);
+    renderGame();
+  }
+
+  // Âm thanh và hiệu ứng theo sự kiện mới
+  function handleEvents(prev: NetState | null, s: NetState) {
+    const ev = s.ev;
+    if (s.hand !== lastHand) { lastHand = s.hand; lastHandKey = ''; sel = new Set(); overEl.hidden = true; overEl.innerHTML = ''; reasonMsg = ''; }
+    if (ev && ev.n !== lastEv) {
+      lastEv = ev.n;
+      if (ev.kind === 'deal') { dealing = true; sfx.play('deal'); setTimeout(() => { dealing = false; handEl.querySelectorAll('.deal').forEach((e) => e.classList.remove('deal')); }, 900); }
+      else if (ev.kind === 'chop') { sfx.play('hit'); flashBanner(T.chopBanner); pileEl.dataset.from = fromPos(ev.slot); retrigger(pileEl); }
+      else if (ev.kind === 'play') { sfx.play(ev.slot === s.mySlot ? 'place' : 'tap'); pileEl.dataset.from = fromPos(ev.slot); retrigger(pileEl); }
+      else if (ev.kind === 'pass') sfx.play('click');
+      else if (ev.kind === 'timeout') { sfx.play('error'); }
+    }
+    const v = s.view;
+    if (v && s.phase === 'playing' && !v.over) {
+      const myTurn = s.mySeat >= 0 && v.cur === s.mySeat;
+      if (myTurn && lastCur !== v.cur) sfx.play('turn');
+      lastCur = v.cur;
+    } else lastCur = -1;
+  }
+  const retrigger = (el: HTMLElement) => { el.classList.remove('tl-in'); void el.offsetWidth; el.classList.add('tl-in'); };
+  function flashBanner(text: string) {
+    const b = $('tl-banner'); b.textContent = text; b.hidden = false; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show');
+    setTimeout(() => { b.hidden = true; }, 1500);
+  }
+
+  // ---------- Vị trí chỗ ngồi (tính theo ghế của mình) ----------
+  function posOf(slot: number): 'top' | 'left' | 'right' | 'bottom' {
+    if (!ns) return 'top';
+    const n = ns.settings.n, k = (slot - ns.mySlot + n) % n;
+    if (k === 0) return 'bottom';
+    if (n === 2) return 'top';
+    if (n === 3) return k === 1 ? 'right' : 'left';
+    return k === 1 ? 'right' : k === 2 ? 'top' : 'left';
+  }
+  const fromPos = (slot: number) => posOf(slot);
+
+  // ---------- Vẽ lá bài ----------
+  const isRed = (c: number) => suitOf(c) >= 2;
+  function cardHTML(c: number, cls = '', style = '') {
+    const r = rankOf(c), s = SUITS[suitOf(c)], rk = RANKS[r];
+    const face = r >= 8 && r <= 10 ? `<span class="tl-face"><b>${rk === 'J' ? 'J' : rk === 'Q' ? 'Q' : 'K'}</b></span>` : `<span class="tl-cm">${s}</span>`;
+    return `<button type="button" class="tl-card ${isRed(c) ? 'red' : 'blk'} ${cls}" data-c="${c}" style="${style}" aria-label="${rk}${s}"><span class="tl-ci"><b>${rk}</b><i>${s}</i></span>${face}<span class="tl-cj"><b>${rk}</b><i>${s}</i></span></button>`;
+  }
+  const miniHTML = (c: number, cls = '') => `<span class="tl-mini ${isRed(c) ? 'red' : 'blk'} ${cls}"><b>${RANKS[rankOf(c)]}</b><i>${SUITS[suitOf(c)]}</i></span>`;
+  const backs = (n: number) => `<span class="tl-backs">${Array.from({ length: Math.min(n, 13) }, (_, i) => `<i style="--i:${i}"></i>`).join('')}</span>`;
+  const pileCard = (c: number) => `<span class="tl-pc ${isRed(c) ? 'red' : 'blk'}"><b>${RANKS[rankOf(c)]}</b><i>${SUITS[suitOf(c)]}</i><em>${SUITS[suitOf(c)]}</em></span>`;
+
+  // ---------- Vẽ bàn ----------
+  const chipsMode = () => !!ns && ns.settings.mode === 'chips' && !!ns.stacks;
+  let prevStacks: number[] = [];
+  function chipPill(slot: number) {
+    if (!chipsMode() || !ns!.stacks) return '';
+    const cur = ns!.stacks[slot], prev = prevStacks[slot];
+    const chg = prev !== undefined && prev !== cur ? (cur > prev ? ' up' : ' dn') : '';
+    return `<span class="tl-chip${chg}">🪙 ${cur}</span>`;
+  }
+
+  function renderSeats() {
+    const s = ns!, v = s.view!;
+    const slots: Record<string, HTMLElement> = { top: $('tl-s-top'), left: $('tl-s-left'), right: $('tl-s-right') };
+    for (const k in slots) { slots[k].hidden = true; slots[k].innerHTML = ''; slots[k].className = 'tl-seat'; }
+    const n = s.settings.n;
+    for (let slot = 0; slot < n; slot++) {
+      if (slot === s.mySlot) continue;
+      const el = slots[posOf(slot)];
+      if (!el) continue;
+      const ps = s.slots[slot];
+      el.hidden = false;
+      const seat = s.seats.indexOf(slot);
+      const name = esc(ps.name);
+      const human = ps.kind === 'human';
+      const tags: string[] = [];
+      if (ps.host) tags.push(`<span class="tl-tag host">${T.hostTag}</span>`);
+      if (human && !ps.online) tags.push(`<span class="tl-tag off">${T.offlineTag}</span>`);
+      else if (human && ps.replaced) tags.push(`<span class="tl-tag bot">${T.replacedTag}</span>`);
+      const col = AV_COL[slot % 4];
+      if (seat < 0) {
+        el.className = 'tl-seat out';
+        el.innerHTML = `<span class="tl-avw"><span class="tl-av" style="--c:#6b7280">${esc([...ps.name][0] || '?')}</span></span><span class="tl-nm">${name}</span><span class="tl-chip dn">${T.chipsOut}</span>`;
+        continue;
+      }
+      const on = !v.over && v.cur === seat;
+      const left = v.counts[seat];
+      const win = v.over && v.winner === seat;
+      el.className = 'tl-seat' + (on ? ' on' : '') + (win ? ' win' : '') + (human && (!ps.online || ps.replaced) ? ' away' : '');
+      const cards = v.over && v.hands ? `<span class="tl-rev">${v.hands[seat].map((c) => miniHTML(c)).join('')}</span>` : backs(left);
+      const pass = v.passed[seat] && !v.over ? `<span class="tl-pass">${T.passedTag}</span>` : '';
+      el.innerHTML = `<span class="tl-avw${on ? ' ring' : ''}"><span class="tl-av" style="--c:${col}">${esc([...ps.name][0] || '?')}</span><span class="tl-cnt">${left}</span>${pass}</span><span class="tl-nm">${name}${human ? '' : ' <small>🤖</small>'}</span>${chipPill(slot)}${tags.join('')}${cards}`;
+    }
+  }
+
+  function renderPile() {
+    const v = ns!.view!;
+    if (!v.table) { pileEl.innerHTML = ''; byEl.textContent = v.over ? '' : T.free; return; }
+    const lastLog = v.log.length ? v.log[v.log.length - 1] : null;
+    const chop = !!(lastLog && lastLog.chop && lastLog.seat === v.tableBy);
+    const slot = ns!.seats[v.tableBy];
+    const nm = esc(ns!.slots[slot]?.name || '');
+    pileEl.innerHTML = v.table.cards.map(pileCard).join('');
+    pileEl.classList.toggle('chop', chop);
+    byEl.innerHTML = (chop ? fmt(T.chopped, { n: nm }) + ' ' : fmt(T.playedBy, { n: nm }) + ' ') + '· ' + comboText(v.table);
+  }
+
+  function sizeHand() {
+    const W = handEl.clientWidth || 320;
+    const v = ns?.view;
+    const n = Math.max(1, v ? v.hand.length : 13);
+    const cw = Math.max(48, Math.min(78, Math.floor(W / 8.2)));
+    const step = n > 1 ? Math.min(cw * 0.62, (W - cw - 8) / (n - 1)) : 0;
+    handEl.style.setProperty('--cw', cw + 'px');
+    handEl.style.setProperty('--ov', -(cw - step) + 'px');
+    handEl.style.setProperty('--rot', Math.min(2.6, 18 / Math.max(6, n)) + 'deg');
+    handEl.style.setProperty('--arc', Math.min(1.4, 11 / Math.max(6, n)) + 'px');
+  }
+
+  function renderHand() {
+    const v = ns!.view!;
+    const hand = v.hand;
+    for (const c of [...sel]) if (!hand.includes(c)) sel.delete(c);
+    const key = hand.join(',');
+    if (key !== lastHandKey || dealing) {
+      lastHandKey = key;
+      const m = hand.length;
+      handEl.innerHTML = hand.map((c, i) => cardHTML(c, (sel.has(c) ? 'sel ' : '') + (dealing ? 'deal' : ''), `--i:${i};--o:${(i - (m - 1) / 2).toFixed(2)}`)).join('');
+    } else {
+      handEl.querySelectorAll<HTMLElement>('.tl-card').forEach((b) => b.classList.toggle('sel', sel.has(Number(b.dataset.c))));
+    }
+    sizeHand();
+  }
+
+  function selectionReason(): string {
+    const v = ns?.view;
+    if (!sel.size || !v) return '';
+    const combo = detectCombo([...sel]);
+    if (!combo) return T.rInvalid;
+    if (!v.table) return '';
+    if (!canBeat(v.table, combo)) {
+      const sameKind = combo.type === v.table.type && combo.len === v.table.len;
+      return sameKind ? T.rLower : fmt(T.rType, { t: comboText(v.table) }) + ' ' + T.rLower;
+    }
+    return '';
+  }
+  const myTurn = () => !!ns && ns.phase === 'playing' && !!ns.view && !ns.view.over && ns.mySeat >= 0 && ns.view.cur === ns.mySeat;
+
+  function renderStatus() {
+    const s = ns!, v = s.view!;
+    const st = statusEl;
+    st.classList.remove('done');
+    if (v.over) { st.textContent = T.done; st.classList.add('done'); return; }
+    if (s.mySeat < 0) { st.textContent = T.spectating; return; }
+    if (myTurn()) { st.textContent = v.table ? T.yourTurn + ' ' + T.beat : T.yourLead; return; }
+    const curSlot = s.seats[v.cur], ps = s.slots[curSlot];
+    const nm = ps ? ps.name : '';
+    st.textContent = fmt(ps && ps.kind === 'human' && s.settings.n >= 2 && ctl?.kind !== 'solo' ? T.waiting : T.thinking, { n: nm });
+  }
+
+  function renderButtons() {
+    const s = ns!, v = s.view!;
+    const my = myTurn();
+    const combo = sel.size ? detectCombo([...sel]) : null;
+    const valid = !!combo && canBeat(v.table, combo);
+    ($('tl-act') as HTMLButtonElement).disabled = !(my && valid);
+    ($('tl-skip') as HTMLButtonElement).disabled = !(my && !!v.table);
+    ($('tl-hint') as HTMLButtonElement).disabled = !my;
+    ($('tl-clear') as HTMLButtonElement).disabled = !sel.size;
+    const newBtn = $('tl-new') as HTMLButtonElement;
+    newBtn.hidden = ctl?.kind === 'client';
+    newBtn.textContent = chipsMode() ? T.restart : T.again;
+    handEl.classList.toggle('mine', my);
+  }
+
+  function renderTop() {
+    const s = ns!;
+    const connEl = $('tl-conn'), codeEl = $('tl-roomcode');
+    const online = ctl && ctl.kind !== 'solo';
+    connEl.hidden = !online; codeEl.hidden = !online;
+    if (online) {
+      connEl.className = 'tl-conn' + (conn === 'lost' ? ' lost' : '');
+      connEl.textContent = conn === 'lost' ? T.connLost : (ctl!.kind === 'host' ? T.connHost : T.connOk);
+      codeEl.textContent = `${T.roomCode}: ${s.code}`;
+    }
+    $('tl-handinfo').textContent = fmt(T.handNo, { k: s.hand });
+    const un = $('tl-un');
+    un.hidden = !chipsMode();
+    if (chipsMode()) un.textContent = fmt(T.unitInfo, { u: s.settings.unit });
+    const bar = $('tl-bar');
+    bar.hidden = !chipsMode();
+    if (chipsMode() && s.stacks) {
+      const cur = s.stacks[s.mySlot], prev = prevStacks[s.mySlot];
+      const chg = prev !== undefined && prev !== cur ? (cur > prev ? ' up' : ' dn') : '';
+      $('tl-me').innerHTML = `<span class="tl-chip big${chg}">🪙 ${cur}</span><span class="tl-meName">${esc(s.slots[s.mySlot]?.name || '')}</span>`;
+    }
+  }
+
+  function renderGame() {
+    const s = ns!;
+    if (!s.view) return;
+    renderTop(); renderSeats(); renderPile(); renderHand(); renderStatus();
+    reasonEl.textContent = reasonMsg || selectionReason();
+    renderButtons();
+    if (s.stacks) prevStacks = s.stacks.slice();
+    tableEl.classList.toggle('myturn', myTurn());
+    renderResult();
+    tickTimer();
+  }
+
+  // ---------- Đồng hồ lượt ----------
+  function tickTimer() {
+    const s = ns; const tm = $('tl-timer');
+    if (!s || !s.view || s.phase !== 'playing' || s.view.over || s.turnMs == null) {
+      tm.hidden = true;
+      document.querySelectorAll<HTMLElement>('.tl-avw.ring').forEach((e) => e.style.setProperty('--p', '1'));
+      return;
+    }
+    const left = Math.max(0, s.turnMs - (Date.now() - nsAt));
+    const p = Math.max(0, Math.min(1, left / TURN_MS));
+    document.querySelectorAll<HTMLElement>('.tl-avw.ring').forEach((e) => e.style.setProperty('--p', p.toFixed(3)));
+    const mine = myTurn();
+    tm.hidden = !mine;
+    if (mine) { tm.style.setProperty('--p', p.toFixed(3)); tm.classList.toggle('low', left < 8000); }
+  }
+  setInterval(() => { if (inGame) tickTimer(); }, 250);
+
+  // ---------- Kết quả ván ----------
+  const sgn = (n: number) => (n > 0 ? '+' + n : String(n));
+  function itemLine(it: ResItem, me: number, unit: number): string {
+    const nameOf = (slot: number) => esc(ns!.slots[slot]?.name || '');
+    const u = unit;
+    let parts: string;
+    if (it.kind === 'white') parts = fmt(T.lnWhite, { u });
+    else if (it.kind === 'chop') {
+      const p: string[] = [];
+      if (it.black) p.push(fmt(T.lnBlack, { k: it.black, u: 3 * u }));
+      if (it.red) p.push(fmt(T.lnRed, { k: it.red, u: 4 * u }));
+      parts = fmt(T.lnChop, { p: p.join(' + ') });
+    } else {
+      const p = [it.burned ? fmt(T.lnBurn, { c: it.cards ?? 0, u }) : fmt(T.lnCards, { c: it.cards ?? 0, u })];
+      if (it.black) p.push(fmt(T.lnBlack, { k: it.black, u }));
+      if (it.red) p.push(fmt(T.lnRed, { k: it.red, u: 2 * u }));
+      parts = p.join(' + ');
+    }
+    const short = it.paid < it.due ? ` (${fmt(T.lnShort, { p: it.paid })})` : '';
+    if (it.from === me) return `${parts} = ${it.due}${short} → ${nameOf(it.to)}`;
+    return `${nameOf(it.from)}: +${it.paid}${short}${it.kind === 'chop' ? ' (' + T.tagChop + ')' : ''}`;
+  }
+  let shownResultKey = '';
+  function confettiHTML() {
+    const cols = ['#ffd43b', '#ff6b6b', '#4dabf7', '#69db7c', '#f783ac', '#fff3bf'];
+    let h = '';
+    for (let i = 0; i < 30; i++) h += `<i style="left:${Math.random() * 100}%;background:${cols[i % 6]};animation-delay:${(Math.random() * 0.7).toFixed(2)}s;animation-duration:${(1.6 + Math.random() * 1.3).toFixed(2)}s"></i>`;
+    return `<div class="tl-conf" aria-hidden="true">${h}</div>`;
+  }
+  function renderResult() {
+    const s = ns!;
+    if (s.phase !== 'result' || !s.result || !s.view) { if (!overEl.hidden && s.phase === 'playing') { overEl.hidden = true; overEl.innerHTML = ''; shownResultKey = ''; } return; }
+    const r = s.result, me = s.mySlot, n = s.settings.n;
+    const nameOf = (slot: number) => esc(s.slots[slot]?.name || '');
+    const chips = chipsMode();
+    const key = `${s.hand}|${r.winner}|${r.sessionOver}`;
+    const readyCount = s.slots.filter((x) => x.kind === 'human' && x.online && x.ready).length;
+    const needCount = s.slots.filter((x, i) => x.kind === 'human' && x.online && (!chips || (s.stacks ? s.stacks[i] > 0 : true))).length;
+    const iReady = !!s.slots[me]?.ready;
+    // tiêu đề
+    let msg: string;
+    const winnerName = nameOf(r.winner);
+    if (r.sessionOver) {
+      if (r.sessionWinner === me) msg = T.youWinTable;
+      else if (s.stacks && s.stacks[me] <= 0) msg = T.loseTable;
+      else msg = fmt(T.tableWinner, { n: nameOf(r.sessionWinner) });
+    } else if (r.white) { const k = T.white[r.white]; msg = r.winner === me ? fmt(T.youWhite, { k }) : fmt(T.whiteWin, { n: winnerName, k }); }
+    else msg = r.winner === me ? T.youWin : fmt(T.botWin, { n: winnerName });
+    // chip mode: ghi nhận thống kê một lần cho mỗi ván
+    if (shownResultKey !== key) {
+      shownResultKey = key;
+      if (r.winner === me) stats.hw++;
+      if (ctl?.kind === 'solo') { if (r.sessionOver) { if (r.sessionWinner === me) stats.w++; else stats.l++; } else if (!chips) { if (r.winner === me) stats.w++; else stats.l++; } }
+      if (s.stacks) stats.best = Math.max(stats.best, s.stacks[me] ?? 0);
+      saveStats();
+      sfx.play(r.winner === me || (r.sessionOver && r.sessionWinner === me) ? 'win' : 'lose');
+    }
+    const chopSeats = new Set<number>(), choppedSeats = new Set<number>();
+    for (const c of r.chops) { chopSeats.add(c.chopper); choppedSeats.add(c.victim); }
+    const rows = r.order.map((slot, i) => {
+      const d = r.deltas[slot];
+      const tags: string[] = [];
+      if (i === 0) tags.push(`<em>${r.white ? T.tagWhite : T.winnerTag}</em>`);
+      if (r.burned[slot]) tags.push(`<em class="bad">${T.burned}</em>`);
+      if (chopSeats.has(slot)) tags.push(`<em class="gold">${T.tagChop}</em>`);
+      if (choppedSeats.has(slot)) tags.push(`<em class="bad">${T.tagChopped}</em>`);
+      const lines = chips ? r.items.filter((it) => it.from === slot || it.to === slot).map((it) => `<div>${itemLine(it, slot, s.settings.unit)}</div>`).join('') : '';
+      const left = r.hands[String(slot)]?.length ?? 0;
+      const tail = chips ? `<strong class="${d > 0 ? 'up' : d < 0 ? 'dn' : ''}">${sgn(d)}</strong><small>🪙 ${s.stacks ? s.stacks[slot] : 0}</small>` : `<span>${i === 0 ? '' : fmt(T.left, { k: left })}</span>`;
+      return `<li><span class="tl-av sm" style="--c:${AV_COL[slot % 4]}">${esc([...(s.slots[slot]?.name || '?')][0] || '?')}</span><b>${nameOf(slot)}</b>${tags.join('')}${tail}${lines ? `<div class="tl-bd">${lines}</div>` : ''}</li>`;
+    }).join('');
+    // nút
+    let btns = '';
+    if (r.sessionOver) {
+      btns = ctl?.kind === 'client' ? `<span class="tl-wait">${T.waitHostRestart}</span>` : `<button type="button" class="btn" id="tl-restart">${T.restart}</button>`;
+    } else if (ctl?.kind === 'solo') btns = `<button type="button" class="btn" id="tl-next">${T.nextHand}</button>`;
+    else btns = iReady ? `<span class="tl-wait">${T.readyWait} (${fmt(T.readyCount, { a: readyCount, b: needCount })})</span>` : `<button type="button" class="btn" id="tl-ready">${T.ready}${needCount > 1 ? ` (${fmt(T.readyCount, { a: readyCount, b: needCount })})` : ''}</button>`;
+    const sig = key + '|' + iReady + '|' + readyCount + '|' + needCount + '|' + (s.stacks ? s.stacks.join(',') : '');
+    if (overEl.dataset.sig === sig && !overEl.hidden) return;
+    overEl.dataset.sig = sig;
+    overEl.className = 'tl-over' + (chips ? ' chip' : '');
+    overEl.innerHTML = `${r.winner === me ? confettiHTML() : ''}<div class="tl-box${chips ? ' tl-settle' : ''}"><h2>${msg}</h2><p>${chips ? T.settle + ' · ' + fmt(T.unitInfo, { u: s.settings.unit }) : T.order}</p><ol>${rows}</ol><div class="tl-nextbar">${btns}<button type="button" class="btn ghost" id="tl-menu2">${ctl?.kind === 'solo' ? T.menu : T.leaveRoom}</button></div></div>`;
+    overEl.hidden = false;
+  }
+  overEl.addEventListener('click', (e) => {
+    const t = e.target as HTMLElement;
+    if (t.closest('#tl-next')) sendIntent({ type: 'ready' });
+    else if (t.closest('#tl-ready')) sendIntent({ type: 'ready' });
+    else if (t.closest('#tl-restart')) sendIntent({ type: 'restart' });
+    else if (t.closest('#tl-menu2')) leaveToMenu();
+  });
+
+  // ---------- Thao tác của người chơi ----------
+  function failText(reason: string): string {
+    switch (reason) { case 'notTurn': return T.rTurn; case 'empty': return T.rEmpty; default: return T.rInvalid; }
+  }
+  function humanPlay() {
+    if (!ns || !ns.view) return;
+    if (!myTurn()) { reasonMsg = T.rTurn; reasonEl.textContent = reasonMsg; return; }
+    const cards = [...sel];
+    if (!cards.length) { reasonMsg = T.rEmpty; reasonEl.textContent = reasonMsg; sfx.play('error'); return; }
+    const combo = detectCombo(cards);
+    const v = ns.view;
+    if (!combo) { reasonMsg = T.rInvalid; reasonEl.textContent = reasonMsg; sfx.play('error'); return; }
+    if (!canBeat(v.table, combo)) { reasonMsg = selectionReason() || T.rLower; reasonEl.textContent = reasonMsg; sfx.play('error'); return; }
+    sel = new Set(); reasonMsg = '';
+    sendIntent({ type: 'play', cards });
+    if (ctl?.kind === 'client') { handEl.querySelectorAll('.tl-card.sel').forEach((b) => b.classList.remove('sel')); }
+  }
+  function humanPass() {
+    if (!myTurn() || !ns?.view?.table) return;
+    sel = new Set(); reasonMsg = '';
+    sendIntent({ type: 'pass' });
+  }
+  function humanHint() {
+    if (!myTurn() || !ns?.view) return;
+    const mv = botDecide(ns.view, 3, () => 0.5);
+    if ('pass' in mv) { sel = new Set(); reasonMsg = T.hintPass; const b = $('tl-skip'); b.classList.remove('flash'); void b.offsetWidth; b.classList.add('flash'); }
+    else { sel = new Set(mv.cards); reasonMsg = T.hintPlay; }
+    refreshSel(); sfx.play('select');
+  }
+  function refreshSel() {
+    handEl.querySelectorAll<HTMLElement>('.tl-card').forEach((b) => b.classList.toggle('sel', sel.has(Number(b.dataset.c))));
+    reasonEl.textContent = reasonMsg || selectionReason();
+    if (ns?.view) renderButtons();
+  }
+  // Chạm vào lá, hoặc giữ và quét ngón tay qua nhiều lá để chọn / bỏ chọn cùng lúc
+  let drag: { mode: boolean; seen: Set<number> } | null = null;
+  const cardAt = (x: number, y: number) => (document.elementFromPoint(x, y) as HTMLElement | null)?.closest('.tl-card') as HTMLElement | null;
+  const applyCard = (b: HTMLElement | null) => {
+    if (!b || !drag) return;
+    const c = Number(b.dataset.c);
+    if (drag.seen.has(c)) return;
+    drag.seen.add(c);
+    if (sel.has(c) === drag.mode) return;
+    if (drag.mode) sel.add(c); else sel.delete(c);
+    reasonMsg = ''; sfx.play('select'); refreshSel();
+  };
+  handEl.addEventListener('pointerdown', (e) => {
+    const b = (e.target as HTMLElement).closest('.tl-card') as HTMLElement | null;
+    if (!b) return;
+    drag = { mode: !sel.has(Number(b.dataset.c)), seen: new Set() };
+    applyCard(b);
+  });
+  handEl.addEventListener('pointermove', (e) => { if (drag && e.buttons) applyCard(cardAt(e.clientX, e.clientY)); });
+  const endDrag = () => { drag = null; };
+  window.addEventListener('pointerup', endDrag); window.addEventListener('pointercancel', endDrag);
+  handEl.addEventListener('click', (e) => { // bàn phím (Enter / Space): click không có toạ độ con trỏ
+    if ((e as MouseEvent).detail !== 0) return;
+    const b = (e.target as HTMLElement).closest('.tl-card') as HTMLElement | null;
+    if (!b) return;
+    const c = Number(b.dataset.c);
+    if (sel.has(c)) sel.delete(c); else sel.add(c);
+    reasonMsg = ''; sfx.play('select'); refreshSel();
+  });
+  $('tl-act').addEventListener('click', humanPlay);
+  $('tl-skip').addEventListener('click', humanPass);
+  $('tl-hint').addEventListener('click', humanHint);
+  $('tl-clear').addEventListener('click', () => { sel = new Set(); reasonMsg = ''; refreshSel(); });
+  $('tl-new').addEventListener('click', () => {
+    if (!ctl || ctl.kind === 'client') return;
+    if (chipsMode()) {
+      const busy = ns && ns.phase !== 'lobby' && (ns.hand > 1 || (ns.view && ns.view.log.length > 0));
+      if (busy && !window.confirm(T.confirmRestart)) return;
+    }
+    if (ctl.kind === 'solo') ctl.game.restartNow(); else ctl.host.game.restartNow();
+  });
+  $('tl-menu-btn').addEventListener('click', () => leaveToMenu());
+  window.addEventListener('resize', () => { if (inGame && ns?.view) sizeHand(); });
+
+  // ---------- Thoát / dọn dẹp ----------
+  function teardown() {
+    const c = ctl; ctl = null; ns = null;
+    try { if (c?.kind === 'host') c.host.close(); else if (c?.kind === 'client') c.client.leave(); } catch {}
+    shownResultKey = ''; lastEv = 0; lastHand = -1; lastHandKey = ''; lastCur = -1; prevStacks = []; sel = new Set();
+    overEl.hidden = true; overEl.innerHTML = ''; overEl.dataset.sig = ''; closedEl.hidden = true;
+    conn = 'online';
+  }
+  function leaveToMenu() { teardown(); saveRoom(null); showView('home'); }
+  window.addEventListener('pagehide', () => { if (ctl?.kind === 'host') { try { ctl.host.close(); } catch {} } else if (ctl?.kind === 'client') { /* giữ token để nối lại khi tải lại trang */ } });
+
+  // ---------- Chơi với máy ----------
+  let nPlayers = 4, level = 2, mode: 'chips' | 'single' = 'chips', stackStart = 1000, unit = 10;
+  function pick(attr: string, cb: (v: string) => void) {
+    document.querySelectorAll<HTMLElement>(`#tl-v-solo [data-${attr}]`).forEach((btn) => btn.addEventListener('click', () => {
+      document.querySelectorAll(`#tl-v-solo [data-${attr}]`).forEach((x) => x.classList.remove('sel'));
+      btn.classList.add('sel');
+      cb(btn.dataset[attr] as string);
+    }));
+  }
+  pick('mode', (v) => { mode = v === 'single' ? 'single' : 'chips'; $('tl-chipopts').hidden = mode !== 'chips'; });
+  pick('stack', (v) => { stackStart = Number(v); });
+  pick('unit', (v) => { unit = Number(v); });
+  pick('players', (v) => { nPlayers = Number(v); });
+  pick('level', (v) => { level = Number(v); });
+
+  function startSolo(n: number, lv: number, m: 'chips' | 'single', stack: number, u: number) {
+    teardown();
+    const game = new TLGame(realClock, { botNames: T.bots, botMs: fast ? [0, 0] : [600, 1300], onChange: () => { if (ctl && ctl.kind === 'solo') onState(game.stateFor(0)); } });
+    ctl = { kind: 'solo', game };
+    game.setHuman(0, T.you, true);
+    game.setSettings({ n, mode: m, stack, unit: u, level: lv, timer: false });
+    game.start();
+  }
+  $('tl-start').addEventListener('click', () => { sfx.play('click'); startSolo(nPlayers, level, mode, stackStart, unit); });
+
+  // ---------- Online ----------
+  const peerFactory = (): Transport => new PeerTransport();
+  const errText = (r: string) => (T.errs[r] || T.errs.network);
+  const setErr = (id: string, msg: string) => { const e = $(id); e.textContent = msg; e.hidden = !msg; };
+
+  async function createRoom() {
+    const nameEl = $('tl-name-c') as HTMLInputElement;
+    const name = sanitizeName(nameEl.value, defaultName()); saveName(name);
+    const btn = $('tl-create') as HTMLButtonElement;
+    setErr('tl-err-c', ''); btn.disabled = true; const label = btn.textContent; btn.textContent = T.creating;
+    try {
+      teardown();
+      const host = await TLNetHost.create(hub ? () => hub!.create() : peerFactory, realClock, name, (s) => { if (ctl && ctl.kind === 'host' && ctl.host === host) onState(s); }, { botNames: T.bots, botMs: fast ? [0, 0] : [600, 1300] });
+      ctl = { kind: 'host', host };
+      host.setSettings({ n: 4, mode: 'chips', stack: 1000, unit: 10, level: 2, timer: true });
+      host.publish();
+    } catch (e) { setErr('tl-err-c', T.errs.create); }
+    btn.disabled = false; btn.textContent = label;
+  }
+  $('tl-create').addEventListener('click', () => { sfx.play('click'); createRoom(); });
+
+  async function joinRoom(codeRaw: string, nameRaw: string, token = '', silent = false) {
+    const code = normCode(codeRaw);
+    const name = sanitizeName(nameRaw, defaultName()); saveName(name);
+    const errId = 'tl-err-j';
+    if (!validCode(code)) { setErr(errId, T.errs.badcode); return false; }
+    const btn = $('tl-joinbtn') as HTMLButtonElement;
+    setErr(errId, ''); btn.disabled = true; const label = btn.textContent; btn.textContent = T.joining;
+    teardown();
+    const client = new TLNetClient(hub ? () => hub!.create() : peerFactory, {
+      onState: (s) => { if (ctl && ctl.kind === 'client' && ctl.client === client) onState(s); },
+      onStatus: (st) => { conn = st; if (ns && inGame) renderTop(); else if (ns) renderLobby(); },
+      onClosed: (r) => { if (ctl && ctl.kind === 'client' && ctl.client === client) roomClosed(r); },
+    }, realClock);
+    ctl = { kind: 'client', client };
+    try {
+      const info = await client.join(code, name, token);
+      saveRoom({ code, token: info.token, name });
+      btn.disabled = false; btn.textContent = label;
+      return true;
+    } catch (e) {
+      ctl = null;
+      const r = e instanceof RoomError ? e.reason : 'network';
+      if (!silent) setErr(errId, errText(r));
+      btn.disabled = false; btn.textContent = label;
+      return false;
+    }
+  }
+  $('tl-joinbtn').addEventListener('click', () => { sfx.play('click'); joinRoom(($('tl-code') as HTMLInputElement).value, ($('tl-name-j') as HTMLInputElement).value); });
+  ($('tl-code') as HTMLInputElement).addEventListener('input', (e) => { const el = e.target as HTMLInputElement; el.value = normCode(el.value); });
+
+  function roomClosed(reason: RejectReason) {
+    saveRoom(null);
+    const msg = errText(reason === 'closed' ? 'closed' : reason);
+    if (!inGame) { // đang ở phòng chờ
+      showView('home'); const el = $('tl-rejoin'); el.textContent = msg; el.hidden = false; return;
+    }
+    closedEl.innerHTML = `<div class="tl-box"><h2>${T.roomClosed}</h2><p>${esc(msg)}</p><div class="tl-nextbar"><button type="button" class="btn" id="tl-closed-ok">${T.toMenu}</button></div></div>`;
+    closedEl.hidden = false; overEl.hidden = true;
+    $('tl-closed-ok').addEventListener('click', () => { teardown(); showView('home'); });
+  }
+
+  // ---------- Phòng chờ ----------
+  function lobbyLink(code: string) { return `${location.origin}${location.pathname}?room=${code}`; }
+  async function copyText(text: string, btn: HTMLElement) {
+    try { await navigator.clipboard.writeText(text); } catch {
+      const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch {} ta.remove();
+    }
+    const old = btn.textContent; btn.textContent = T.copied; setTimeout(() => { btn.textContent = old; }, 1400);
+  }
+  function renderLobby() {
+    const s = ns; const el = $('tl-v-lobby');
+    if (!s || s.phase !== 'lobby' || !ctl || ctl.kind === 'solo') return;
+    const isHost = ctl.kind === 'host';
+    const n = s.settings.n;
+    const humans = s.slots.filter((x) => x.kind === 'human').length;
+    const maxHumanSlot = Math.max(0, ...s.slots.map((x, i) => (x.kind === 'human' ? i : 0)));
+    const seatRows = s.slots.map((x, i) => {
+      const human = x.kind === 'human';
+      const tags = [x.host ? `<span class="tl-tag host">${T.hostTag}</span>` : '', i === s.mySlot ? `<span class="tl-tag you">${T.youTag}</span>` : '', human ? '' : `<span class="tl-tag bot">${T.botTag}</span>`].join('');
+      const dot = human ? `<i class="tl-dot${x.online ? ' on' : ''}" title="${x.online ? T.onlineTag : T.offlineTag}"></i>` : '<i class="tl-dot bot"></i>';
+      return `<li class="${human ? 'human' : 'botrow'}"><span class="tl-av sm" style="--c:${AV_COL[i % 4]}">${esc([...x.name][0] || '?')}</span><b>${esc(x.name)}</b>${tags}${dot}</li>`;
+    }).join('');
+    const opt = (attr: string, vals: (string | number)[], cur: string | number, labels?: string[]) => `<div class="bd-row">${vals.map((v, i) => `<button type="button" class="bd-opt${String(v) === String(cur) ? ' sel' : ''}" data-set-${attr}="${v}"${attr === 'n' && Number(v) <= maxHumanSlot ? ' disabled' : ''}>${labels ? labels[i] : v}</button>`).join('')}</div>`;
+    const settings = isHost ? `
+      <h2 class="bd-h">${T.seatsLbl}</h2>${opt('n', [2, 3, 4], n, T.playersOpt)}<p class="meta tl-small">${T.seatsHint}</p>
+      <h2 class="bd-h">${T.mode}</h2>${opt('mode', ['chips', 'single'], s.settings.mode, T.modes)}
+      ${s.settings.mode === 'chips' ? `<h2 class="bd-h">${T.stackLbl}</h2>${opt('stack', [500, 1000, 2000], s.settings.stack)}<h2 class="bd-h">${T.unitLbl}</h2>${opt('unit', [5, 10, 20], s.settings.unit)}` : ''}
+      <h2 class="bd-h">${T.level}</h2>${opt('level', [1, 2, 3], s.settings.level, T.levels)}
+      <h2 class="bd-h">${T.timerLbl}</h2>${opt('timer', ['on', 'off'], s.settings.timer ? 'on' : 'off', T.timerOpts)}
+    ` : `<p class="meta">${fmt(T.settingsSummary, { n, m: s.settings.mode === 'chips' ? `${T.modes[0]}, ${s.settings.stack} / ${s.settings.unit}` : T.modes[1], l: T.levels[s.settings.level - 1] })}</p>`;
+    const link = lobbyLink(s.code);
+    const lostTag = conn === 'lost' ? `<p class="tl-err">${T.connLost}</p>` : '';
+    el.innerHTML = `
+      <button type="button" class="tl-back" id="tl-leave-lobby">${T.back}</button>
+      <h2 class="bd-h">${T.lobbyTitle}</h2>
+      <div class="tl-codebox"><small>${T.roomCode}</small><b id="tl-bigcode">${esc(s.code)}</b>
+        <div class="tl-codebtns"><button type="button" class="btn ghost sm" id="tl-copycode">${T.copyCode}</button><button type="button" class="btn ghost sm" id="tl-copylink">${T.copyLink}</button>${typeof (navigator as any).share === 'function' ? `<button type="button" class="btn ghost sm" id="tl-share">${T.shareBtn}</button>` : ''}</div>
+      </div>
+      ${lostTag}
+      <ul class="tl-seats">${seatRows}</ul>
+      ${settings}
+      <p class="tl-gap"></p>
+      ${isHost ? `<button class="btn" type="button" id="tl-startonline">▶ ${T.startOnline}</button>` : `<p class="tl-wait">${T.waitHost}</p>`}
+      <p class="meta tl-small">${T.lobbyNote}</p>`;
+    $('tl-leave-lobby').addEventListener('click', () => leaveToMenu());
+    $('tl-copycode').addEventListener('click', (e) => copyText(s.code, e.currentTarget as HTMLElement));
+    $('tl-copylink').addEventListener('click', (e) => copyText(link, e.currentTarget as HTMLElement));
+    const sh = document.getElementById('tl-share'); sh?.addEventListener('click', () => { try { (navigator as any).share({ title: T.title, text: `${T.roomCode}: ${s.code}`, url: link }); } catch {} });
+    if (isHost) {
+      const host = (ctl as Extract<Ctl, { kind: 'host' }>).host;
+      el.querySelectorAll<HTMLElement>('[data-set-n]').forEach((b) => b.addEventListener('click', () => host.setSettings({ n: Number(b.dataset.setN) })));
+      el.querySelectorAll<HTMLElement>('[data-set-mode]').forEach((b) => b.addEventListener('click', () => host.setSettings({ mode: b.dataset.setMode as 'chips' | 'single' })));
+      el.querySelectorAll<HTMLElement>('[data-set-stack]').forEach((b) => b.addEventListener('click', () => host.setSettings({ stack: Number(b.dataset.setStack) })));
+      el.querySelectorAll<HTMLElement>('[data-set-unit]').forEach((b) => b.addEventListener('click', () => host.setSettings({ unit: Number(b.dataset.setUnit) })));
+      el.querySelectorAll<HTMLElement>('[data-set-level]').forEach((b) => b.addEventListener('click', () => host.setSettings({ level: Number(b.dataset.setLevel) })));
+      el.querySelectorAll<HTMLElement>('[data-set-timer]').forEach((b) => b.addEventListener('click', () => host.setSettings({ timer: b.dataset.setTimer === 'on' })));
+      $('tl-startonline').addEventListener('click', () => { sfx.play('click'); host.start(); });
+    }
+  }
+
+  // ---------- Mở trang ----------
+  paintStat();
+  ($('tl-chipopts')).hidden = false;
+  const params = new URLSearchParams(location.search);
+  const roomParam = normCode(params.get('room') || '');
+  const debug = location.hash.includes('debug');
+  if (roomParam && !debug) {
+    ($('tl-code') as HTMLInputElement).value = roomParam;
+    ($('tl-name-j') as HTMLInputElement).value = defaultName();
+    showView('join');
+    try { history.replaceState(null, '', location.pathname); } catch {}
+  } else if (!debug) {
+    const saved = loadRoom();
+    if (saved) {
+      const el = $('tl-rejoin'); el.textContent = fmt(T.rejoining, { c: saved.code }); el.hidden = false;
+      joinRoom(saved.code, saved.name, saved.token, true).then((ok) => { if (!ok) { saveRoom(null); el.hidden = true; } else el.hidden = true; });
+    }
+  }
+
+  // ---------- Debug (chỉ khi URL có #debug) ----------
+  if (debug) {
+    const agents: { client: TLNetClient; st: NetState | null }[] = [];
+    let agentTimer: ReturnType<typeof setInterval> | null = null;
+    const agentStep = () => {
+      for (const a of agents) {
+        const s = a.st; if (!s || !s.view) continue;
+        if (s.phase === 'playing' && s.mySeat >= 0 && !s.view.over && s.view.cur === s.mySeat) {
+          const legal = enumerateCombos(s.view.hand).filter((c) => canBeat(s.view!.table, c));
+          if (legal.length && (!s.view.table || Math.random() < 0.85)) a.client.play(legal[Math.floor(Math.random() * legal.length)].cards);
+          else if (s.view.table) a.client.pass(); else a.client.play([Math.min(...s.view.hand)]);
+        } else if (s.phase === 'result' && s.result && !s.result.sessionOver && !s.slots[s.mySlot].ready) a.client.ready();
+      }
+    };
+    (window as any).__tl = {
+      get ns() { return ns; }, get ctl() { return ctl; }, get sel() { return [...sel]; },
+      fast: (f = true) => { fast = f; },
+      solo: (n = 4, lv = 2, m: 'chips' | 'single' = 'chips', stack = 1000, u = 10) => startSolo(n, lv, m, stack, u),
+      view: (v: string) => showView(v),
+      setSel: (cards: number[]) => { sel = new Set(cards); refreshSel(); },
+      play: () => humanPlay(), pass: () => humanPass(), hint: () => humanHint(),
+      // phòng giả lập trong bộ nhớ (không cần mạng): chủ phòng là giao diện này, các khách tự chơi
+      demoRoom: async (o: { humans?: number; n?: number; mode?: 'chips' | 'single'; start?: boolean; timer?: boolean; names?: string[] } = {}) => {
+        fast = true; hub = new LoopbackHub();
+        ($('tl-name-c') as HTMLInputElement).value = 'Khang';
+        await createRoom();
+        const host = (ctl as Extract<Ctl, { kind: 'host' }>).host;
+        host.setSettings({ n: o.n ?? 4, mode: o.mode ?? 'chips', timer: !!o.timer, stack: 1000, unit: 10, level: 2 });
+        const names = o.names || ['Linh', 'Bảo', 'Quỳnh'];
+        for (let i = 0; i < (o.humans ?? 2) - 1; i++) {
+          const a = { client: null as unknown as TLNetClient, st: null as NetState | null };
+          a.client = new TLNetClient(() => hub!.create(), { onState: (s) => { a.st = s; }, onStatus: () => {}, onClosed: () => {} }, realClock);
+          await a.client.join(host.code, names[i % names.length]);
+          agents.push(a);
+        }
+        if (o.start) host.start();
+        if (!agentTimer) agentTimer = setInterval(agentStep, 700);
+        return host.code;
+      },
+      agentsOff: () => { if (agentTimer) clearInterval(agentTimer); agentTimer = null; },
+      agentStep,
+      joinForm: (code = 'K7PQ2') => { ($('tl-code') as HTMLInputElement).value = code; ($('tl-name-j') as HTMLInputElement).value = 'Linh'; showView('join'); },
+      // chơi hết ván ngay (cho ảnh chụp): người chơi cũng đánh theo gợi ý của máy
+      finishHand: () => {
+        const g = ctl && (ctl.kind === 'solo' ? ctl.game : ctl.kind === 'host' ? ctl.host.game : null);
+        if (!g || !g.st) return;
+        const st = g.st; let guard = 0;
+        while (!st.over && guard++ < 800) {
+          const seat = st.cur; const slot = g.seats[seat];
+          if (g.controller(slot) === 'bot') (g as any).botAct((g as any).turnToken);
+          else {
+            const mv = botDecide(g.stateFor(slot).view!, 2);
+            if ('pass' in mv) g.intent(slot, { type: 'pass' }); else g.intent(slot, { type: 'play', cards: mv.cards });
+          }
+        }
+      },
+    };
+  }
+</script>
+
+<style is:global>
+  /* ===== Menu ===== */
+  #tl .bd-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  #tl .bd-opt:disabled { opacity: .4; cursor: not-allowed; }
+  .tl-view[hidden] { display: none; }
+  .tl-homecards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin: 6px 0 14px; }
+  .tl-hc { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; padding: 18px 18px 16px; border-radius: 18px; cursor: pointer; font: inherit; color: var(--fg);
+    background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 14%, var(--card)), var(--card)); border: 2px solid var(--line); transition: transform .15s, border-color .15s, box-shadow .15s; }
+  .tl-hc:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 10px 24px rgba(0, 0, 0, .16); }
+  .tl-hc-ic { font-size: 2rem; line-height: 1; margin-bottom: 4px; }
+  .tl-hc b { font-size: 1.08rem; }
+  .tl-hc small { color: var(--muted); font-size: .86rem; line-height: 1.35; }
+  .tl-back { background: none; border: 0; color: var(--accent); font: inherit; font-weight: 700; cursor: pointer; padding: 4px 0; margin-bottom: 4px; }
+  .tl-gap { margin: 14px 0 0; }
+  .tl-lbl { display: block; font-weight: 700; margin: 14px 0 6px; }
+  .tl-input { width: min(100%, 360px); padding: 12px 14px; border-radius: 12px; border: 2px solid var(--line); background: var(--card); color: var(--fg); font: inherit; font-size: 1.05rem; box-sizing: border-box; }
+  .tl-input:focus { outline: none; border-color: var(--accent); }
+  .tl-view .btn { margin-top: 18px; }
+  .tl-input { display: block; }
+  .tl-codeinput { text-transform: uppercase; letter-spacing: .4em; font-weight: 800; font-size: 1.4rem; text-align: center; max-width: 260px; }
+  .tl-err { color: #e03131; font-weight: 600; margin: 10px 0 0; max-width: 520px; }
+  .tl-err[hidden] { display: none; }
+  .tl-rejoin { color: var(--badge); font-weight: 600; }
+  .tl-rules { margin: 18px 0 8px; max-width: 760px; }
+  .tl-rules summary { cursor: pointer; font-weight: 700; }
+  .tl-rules ul { margin: 8px 0 0; padding-left: 20px; color: var(--muted); font-size: .92rem; }
+  .tl-rules li { margin: 5px 0; }
+  .tl-chiprules { margin-top: 10px !important; border-top: 1px dashed var(--line, #ddd); padding-top: 8px; }
+  #tl-chipopts[hidden] { display: none; }
+  .tl-small { font-size: .82rem; }
+  .tl-wait { color: var(--muted); font-weight: 600; }
+  .tl-codebox { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 14px 18px; border-radius: 16px; background: linear-gradient(160deg, #14203a, #0c1426); color: #fff; max-width: 420px; box-shadow: 0 8px 22px rgba(0, 0, 0, .3); }
+  .tl-codebox small { opacity: .7; text-transform: uppercase; letter-spacing: .08em; font-size: .7rem; }
+  .tl-codebox b { font-size: 2.4rem; letter-spacing: .35em; font-variant-numeric: tabular-nums; color: #ffd54a; text-shadow: 0 2px 10px rgba(255, 213, 74, .35); }
+  .tl-codebtns { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tl-codebtns .btn.ghost { color: #fff; border-color: rgba(255, 255, 255, .4); }
+  .tl-seats { list-style: none; margin: 14px 0 6px; padding: 0; display: grid; gap: 8px; max-width: 460px; }
+  .tl-seats li { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); }
+  .tl-seats li.botrow { opacity: .7; }
+  .tl-seats li b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tl-tag { font-size: .68rem; font-weight: 800; padding: 1px 8px; border-radius: 9px; background: #4f46e5; color: #fff; white-space: nowrap; }
+  .tl-tag.host { background: #e0a63a; color: #2b1d00; } .tl-tag.you { background: #2f9e44; } .tl-tag.bot { background: #6b7280; } .tl-tag.off { background: #e03131; }
+  .tl-dot { width: 10px; height: 10px; border-radius: 50%; background: #e03131; flex: none; } .tl-dot.on { background: #2f9e44; box-shadow: 0 0 8px #2f9e44; } .tl-dot.bot { background: #9aa3b2; }
+
+  /* ===== Phòng chơi ===== */
+  main.tl-playing .tl-head { display: none; }
+  .tl-wrap { position: relative; width: min(100%, 980px); margin: 0 auto; }
+  .tl-wrap .sfx-btn { top: 8px !important; right: 10px !important; z-index: 20; }
+  .tl-room { position: relative; border-radius: 26px; overflow: hidden; color: #fff; padding-bottom: 10px;
+    background: radial-gradient(120% 90% at 50% 20%, #1d2c3f 0%, #101823 55%, #070b11 100%);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, .45), inset 0 0 0 1px rgba(255, 255, 255, .06); }
+  .tl-top { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 12px 64px 0 16px; min-height: 30px; font-size: .78rem; font-weight: 700; }
+  .tl-pill { padding: 2px 10px; border-radius: 999px; background: rgba(255, 255, 255, .1); color: rgba(255, 255, 255, .85); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .tl-pill[hidden], .tl-conn[hidden] { display: none; }
+  .tl-pill.gold { background: rgba(255, 213, 74, .14); color: #ffd54a; }
+  .tl-conn { padding: 2px 10px; border-radius: 999px; background: rgba(47, 158, 68, .25); color: #8ce99a; white-space: nowrap; }
+  .tl-conn::before { content: '● '; }
+  .tl-conn.lost { background: rgba(224, 49, 49, .25); color: #ffa8a8; animation: tl-blink 1s infinite; }
+  .tl-stage { padding: 26px 30px 30px; }
+
+  /* Bàn nỉ có thành da, đường may, vân nỉ và ánh đèn */
+  .tl-table { position: relative; width: 100%; aspect-ratio: 2.05 / 1; border-radius: 999px; isolation: isolate; }
+  .tl-table::before { content: ''; position: absolute; inset: 0; border-radius: 999px; z-index: -1; pointer-events: none;
+    background: repeating-linear-gradient(45deg, rgba(255, 255, 255, .028) 0 1px, transparent 1px 3px), repeating-linear-gradient(-45deg, rgba(0, 0, 0, .06) 0 1px, transparent 1px 3px),
+      radial-gradient(70% 90% at 50% 38%, #3aa56d 0%, #238458 40%, #14603c 75%, #0d4529 100%);
+    box-shadow: inset 0 0 50px rgba(0, 0, 0, .55), inset 0 0 0 2px rgba(0, 0, 0, .35); }
+  .tl-table::after { content: ''; position: absolute; inset: -20px; border-radius: 999px; z-index: -2; pointer-events: none;
+    background: linear-gradient(180deg, #5a3b28 0%, #3b2418 45%, #22140d 100%);
+    box-shadow: 0 18px 34px rgba(0, 0, 0, .6), inset 0 2px 0 rgba(255, 220, 180, .22), inset 0 -3px 6px rgba(0, 0, 0, .6), 0 0 0 2px #0b0705; transition: box-shadow .3s; }
+  .tl-table.myturn::after { box-shadow: 0 18px 34px rgba(0, 0, 0, .6), inset 0 2px 0 rgba(255, 220, 180, .22), inset 0 -3px 6px rgba(0, 0, 0, .6), 0 0 0 2px #0b0705, 0 0 26px rgba(224, 166, 58, .65); }
+  .tl-line { position: absolute; inset: 9% 6%; border-radius: 999px; border: 2px solid rgba(255, 255, 255, .13); pointer-events: none; }
+  .tl-mark { position: absolute; left: 50%; top: 68%; transform: translateX(-50%); font-weight: 900; letter-spacing: .38em; font-size: clamp(10px, 1.9vw, 18px); text-transform: uppercase; color: rgba(255, 255, 255, .07); pointer-events: none; white-space: nowrap; }
+  .tl-center { position: absolute; left: 50%; top: 47%; transform: translate(-50%, -50%); width: min(58%, 440px); text-align: center; z-index: 2; }
+  .tl-pile { display: flex; justify-content: center; align-items: center; min-height: 70px; flex-wrap: wrap; --fx: 0px; --fy: 90px; }
+  .tl-pile[data-from="top"] { --fx: 0px; --fy: -90px; } .tl-pile[data-from="left"] { --fx: -130px; --fy: 0px; } .tl-pile[data-from="right"] { --fx: 130px; --fy: 0px; } .tl-pile[data-from="bottom"] { --fx: 0px; --fy: 110px; }
+  .tl-pile.tl-in .tl-pc { animation: tl-slide .28s cubic-bezier(.2, .8, .3, 1) both; }
+  .tl-pile.chop .tl-pc { box-shadow: 0 0 0 3px #ff6b6b, 0 0 18px rgba(255, 107, 107, .7), 0 3px 6px rgba(0, 0, 0, .4); }
+  .tl-by { color: #eaf7ee; font-size: .82rem; font-weight: 700; margin-top: 8px; text-shadow: 0 1px 2px rgba(0, 0, 0, .6); min-height: 1.2em; }
+  .tl-pc { position: relative; display: inline-block; width: clamp(40px, 6.2vw, 62px); aspect-ratio: 5 / 7; margin-left: calc(clamp(40px, 6.2vw, 62px) * -.34); border-radius: 8px; background: linear-gradient(160deg, #fff 0%, #f7f4ec 60%, #ece7da 100%); box-shadow: 0 4px 8px rgba(0, 0, 0, .45), inset 0 0 0 1px rgba(0, 0, 0, .12); line-height: 1; }
+  .tl-pc:first-child { margin-left: 0; }
+  .tl-pc b { position: absolute; left: 12%; top: 7%; font-weight: 800; font-size: clamp(.8rem, 1.7vw, 1.2rem); } .tl-pc i { position: absolute; left: 12%; top: 33%; font-style: normal; font-size: clamp(.78rem, 1.6vw, 1.1rem); }
+  .tl-pc em { position: absolute; right: 10%; bottom: 6%; font-style: normal; font-size: clamp(1.1rem, 2.6vw, 1.9rem); opacity: .9; }
+  .tl-pc.red { color: #cf2a2a; } .tl-pc.blk { color: #1b1f2a; }
+  .tl-banner { position: absolute; left: 50%; top: 18%; transform: translateX(-50%); z-index: 8; padding: 6px 20px; border-radius: 999px; font-weight: 900; font-size: 1.05rem; color: #3a0b0b; background: linear-gradient(180deg, #ffd0d0, #ff6b6b); box-shadow: 0 6px 18px rgba(0, 0, 0, .5), 0 0 26px rgba(255, 90, 90, .8); }
+  .tl-banner.show { animation: tl-pop 1.4s ease-out both; }
+
+  /* Chỗ ngồi */
+  .tl-seat { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 10px 8px; border-radius: 16px; background: rgba(8, 18, 12, .5); color: #fff; font-size: .8rem; max-width: 36%; transition: box-shadow .2s, background .2s, opacity .2s; backdrop-filter: blur(2px); }
+  #tl-s-top { top: -6%; left: 50%; transform: translateX(-50%); }
+  #tl-s-left { left: -3%; top: 50%; transform: translateY(-50%); }
+  #tl-s-right { right: -3%; top: 50%; transform: translateY(-50%); }
+  .tl-seat[hidden] { display: none; }
+  .tl-seat.on { background: rgba(224, 166, 58, .3); box-shadow: 0 0 0 2px #e0a63a, 0 0 18px rgba(224, 166, 58, .6); }
+  .tl-seat.win { box-shadow: 0 0 0 3px #69db7c, 0 0 20px rgba(105, 219, 124, .7); }
+  .tl-seat.away { opacity: .6; } .tl-seat.out { opacity: .45; }
+  .tl-avw { position: relative; display: inline-flex; padding: 3px; border-radius: 50%; }
+  .tl-avw.ring { background: conic-gradient(#ffd54a calc(var(--p, 1) * 360deg), rgba(255, 255, 255, .2) 0); }
+  .tl-av { width: 40px; aspect-ratio: 1; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #fff; border: 2px solid rgba(255, 255, 255, .85); flex: none; background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--c) 70%, #fff), var(--c)); box-shadow: 0 2px 6px rgba(0, 0, 0, .4); }
+  .tl-av.sm { width: 28px; font-size: .82rem; }
+  .tl-nm { font-weight: 800; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tl-cnt { position: absolute; top: -5px; right: -8px; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 11px; background: #fff; color: #1b1d23; font-weight: 800; font-size: .76rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0, 0, 0, .4); box-sizing: border-box; }
+  .tl-pass { position: absolute; left: -10px; top: -9px; background: #e03131; color: #fff; font-size: .66rem; font-weight: 800; padding: 1px 7px; border-radius: 9px; }
+  .tl-backs { display: flex; height: 30px; align-items: center; padding-left: 12px; }
+  .tl-backs i { width: 20px; height: 29px; margin-left: -12px; border-radius: 4px; border: 1.5px solid #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .5);
+    background: repeating-linear-gradient(45deg, #2a4ea8 0 3px, #1f3f8e 3px 6px); }
+  .tl-rev { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; max-width: 170px; }
+  .tl-mini { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 24px; height: 34px; border-radius: 5px; background: #fff; border: 1px solid #b7bcc6; box-shadow: 0 1px 3px rgba(0, 0, 0, .35); line-height: 1; font-size: .74rem; }
+  .tl-mini i { font-style: normal; font-size: .78rem; } .tl-mini.red { color: #c92a2a; } .tl-mini.blk { color: #1b1d23; }
+  .tl-chip { display: inline-block; padding: 0 8px; border-radius: 10px; background: rgba(0, 0, 0, .42); color: #ffe27a; font-weight: 800; font-size: .72rem; line-height: 1.5; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tl-chip.up { animation: tl-up 1.2s ease-out; } .tl-chip.dn { animation: tl-dn 1.2s ease-out; }
+  .tl-chip.big { font-size: .95rem; padding: 2px 12px; background: rgba(0, 0, 0, .5); border-radius: 14px; }
+  .tl-seat.out .tl-chip { color: #ffb3b3; }
+  .tl-seat .tl-tag { font-size: .6rem; padding: 0 6px; }
+
+  /* Khay của bạn */
+  .tl-dock { padding: 0 14px; display: flex; flex-direction: column; align-items: center; }
+  .tl-bar { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 2px 0 2px; }
+  .tl-meName { font-weight: 800; font-size: .88rem; color: rgba(255, 255, 255, .85); }
+  .tl-status { margin: 4px 0 0; font-weight: 800; font-size: .95rem; text-align: center; color: #fff; min-height: 1.4em; }
+  .tl-status.done { color: #ffd54a; }
+  .tl-reason { min-height: 1.2em; margin: 2px 0 4px; font-size: .84rem; font-weight: 600; color: #ffa8a8; text-align: center; }
+  .tl-timer { width: min(100%, 360px); height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .15); overflow: hidden; margin-bottom: 4px; }
+  .tl-timer[hidden] { display: none; }
+  .tl-timer i { display: block; height: 100%; width: calc(var(--p, 1) * 100%); background: linear-gradient(90deg, #ffd54a, #f08c00); transition: width .25s linear; }
+  .tl-timer.low i { background: linear-gradient(90deg, #ff8787, #e03131); }
+  .tl-hand { --cw: 60px; --ov: -34px; --rot: 1.6deg; --arc: .8px; width: 100%; display: flex; justify-content: center; align-items: flex-end; padding: 28px 8px 30px; min-height: calc(var(--cw) * 1.4 + 62px); touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+  .tl-card { position: relative; flex: none; width: var(--cw); aspect-ratio: 5 / 7; margin-left: var(--ov); padding: 0; border-radius: calc(var(--cw) * .12);
+    background: linear-gradient(160deg, #ffffff 0%, #f7f4ec 60%, #ece7da 100%); border: 0; box-shadow: 0 4px 8px rgba(0, 0, 0, .45), inset 0 0 0 1px rgba(0, 0, 0, .14), inset 0 -3px 6px rgba(0, 0, 0, .06);
+    cursor: pointer; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; text-align: left; -webkit-tap-highlight-color: transparent; touch-action: pan-y;
+    transform-origin: 50% 160%; transform: translateY(calc(var(--o, 0) * var(--o, 0) * var(--arc) - var(--lift, 0px))) rotate(calc(var(--o, 0) * var(--rot)));
+    transition: transform .16s cubic-bezier(.2, .8, .3, 1), box-shadow .16s; }
+  .tl-card:first-child { margin-left: 0; }
+  .tl-card:hover { --lift: 6px; }
+  .tl-card.red { color: #cf2a2a; } .tl-card.blk { color: #1b1f2a; }
+  .tl-card.sel { --lift: 26px; box-shadow: 0 0 0 3px #ffd54a, 0 10px 16px rgba(0, 0, 0, .5), 0 0 18px rgba(255, 213, 74, .55); z-index: 5; }
+  .tl-hand:not(.mine) .tl-card { filter: brightness(.9); }
+  .tl-ci, .tl-cj { position: absolute; display: flex; flex-direction: column; align-items: center; line-height: 1; }
+  .tl-ci { left: calc(var(--cw) * .07); top: calc(var(--cw) * .05); } .tl-cj { right: calc(var(--cw) * .07); bottom: calc(var(--cw) * .05); transform: rotate(180deg); }
+  .tl-ci b, .tl-cj b { font-size: calc(var(--cw) * .32); font-weight: 800; letter-spacing: -.06em; }
+  .tl-ci i, .tl-cj i { font-style: normal; font-size: calc(var(--cw) * .27); margin-top: 1px; }
+  .tl-cm { position: absolute; left: 50%; top: 54%; transform: translate(-50%, -50%); font-size: calc(var(--cw) * .58); opacity: .92; }
+  .tl-face { position: absolute; left: 50%; top: 54%; transform: translate(-50%, -50%); width: 52%; aspect-ratio: 5 / 6; border-radius: 6px; border: 2px solid currentColor; display: flex; align-items: center; justify-content: center; background: linear-gradient(160deg, rgba(255, 255, 255, .9), rgba(255, 233, 160, .55)); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .8); }
+  .tl-face b { font-size: calc(var(--cw) * .42); font-weight: 900; font-family: Georgia, 'Times New Roman', serif; }
+  .tl-card.deal { animation: tl-deal .38s ease-out both; animation-delay: calc(var(--i) * 45ms); }
+  .tl-actions { display: flex; justify-content: center; gap: 10px; width: 100%; max-width: 520px; margin-top: 4px; }
+  .tl-actions.sub { margin-top: 8px; gap: 8px; }
+  .tl-btn { flex: 1; min-height: 54px; padding: 0 14px; border-radius: 16px; border: 0; font: inherit; font-weight: 800; font-size: 1.05rem; cursor: pointer; color: #fff; box-shadow: 0 5px 0 rgba(0, 0, 0, .35), 0 8px 14px rgba(0, 0, 0, .3); transition: transform .08s, box-shadow .08s, filter .15s; }
+  .tl-btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0, 0, 0, .35); }
+  .tl-btn.go { background: linear-gradient(180deg, #ffd54a, #f08c00); color: #3a2600; flex: 1.6; }
+  .tl-btn.pass { background: linear-gradient(180deg, #e66767, #b92a2a); }
+  .tl-btn.hint { background: linear-gradient(180deg, #4dabf7, #1971c2); }
+  .tl-btn:disabled { opacity: .4; cursor: default; box-shadow: 0 3px 0 rgba(0, 0, 0, .25); filter: grayscale(.4); }
+  #tl-skip.flash { animation: tl-flash 1s ease-in-out 2; }
+  .tl-mini-btn { padding: 6px 14px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, .25); background: rgba(255, 255, 255, .08); color: rgba(255, 255, 255, .85); font: inherit; font-size: .82rem; font-weight: 700; cursor: pointer; }
+  .tl-mini-btn:hover:not(:disabled) { background: rgba(255, 255, 255, .16); }
+  .tl-mini-btn:disabled { opacity: .35; cursor: default; }
+  .tl-mini-btn[hidden] { display: none; }
+
+  /* Bảng kết quả và đóng phòng */
+  .tl-over, .tl-closed { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 10px; background: rgba(4, 10, 16, .72); z-index: 30; animation: tl-fade .3s ease-out; overflow: hidden; }
+  .tl-over[hidden], .tl-closed[hidden] { display: none; }
+  .tl-box { position: relative; background: var(--card, #fff); color: var(--fg, #111); border-radius: 18px; padding: 16px 20px; width: min(100%, 440px); max-height: 100%; overflow: auto; box-shadow: 0 14px 40px rgba(0, 0, 0, .55); text-align: center; z-index: 2; }
+  .tl-box h2 { margin: 0 0 6px; font-size: clamp(1.05rem, 3.6vw, 1.4rem); }
+  .tl-box p { margin: 2px 0 8px; color: var(--muted); font-size: .85rem; }
+  .tl-box ol { list-style: none; margin: 0; padding: 0; text-align: left; }
+  .tl-box li { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--line, #ddd); font-size: .92rem; }
+  .tl-box li span:not(.tl-av) { color: var(--muted); margin-left: auto; font-size: .82rem; }
+  .tl-box li em { font-style: normal; font-weight: 800; font-size: .7rem; padding: 1px 8px; border-radius: 9px; background: #2f9e44; color: #fff; }
+  .tl-box li em.bad { background: #e03131; } .tl-box li em.gold { background: #e0a63a; color: #2b1d00; }
+  .tl-settle li { flex-wrap: wrap; row-gap: 2px; }
+  .tl-settle li b { flex: none; }
+  .tl-settle li strong { margin-left: auto; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+  .tl-settle li strong.up { color: #2f9e44; } .tl-settle li strong.dn { color: #e03131; }
+  .tl-settle li small { color: var(--muted); font-size: .76rem; min-width: 64px; text-align: right; }
+  .tl-bd { flex-basis: 100%; padding-left: 36px; color: var(--muted); font-size: .76rem; line-height: 1.35; text-align: left; }
+  .tl-nextbar { position: sticky; bottom: 0; display: flex; align-items: center; gap: 8px; padding: 10px 0 4px; background: linear-gradient(180deg, rgba(255, 255, 255, 0), var(--card, #fff) 35%); }
+  .tl-nextbar .btn { flex: 1; } .tl-nextbar .btn.ghost { flex: 0 0 auto; } .tl-nextbar .tl-wait { flex: 1; font-size: .88rem; }
+  .tl-conf { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 3; }
+  .tl-conf i { position: absolute; top: -10%; width: 9px; height: 14px; border-radius: 2px; animation: tl-fall 2.4s linear infinite; }
+  main.is-fs .tl-head { display: none; }
+  main.is-fs .tl-wrap { max-width: min(980px, calc((100vh - 120px) * 1.5)) !important; margin-left: auto !important; margin-right: auto !important; }
+
+  @media (max-width: 720px) {
+    .tl-stage { padding: 30px 22px 26px; }
+    .tl-table { aspect-ratio: 1.12 / 1; border-radius: 42% / 36%; }
+    .tl-table::before, .tl-table::after { border-radius: 42% / 36%; }
+    .tl-line { border-radius: 42% / 36%; inset: 8% 7%; }
+    .tl-seat { padding: 5px 7px 6px; font-size: .74rem; max-width: 40%; }
+    .tl-backs { display: none; }
+    .tl-av { width: 34px; }
+    #tl-s-top { top: -10%; } #tl-s-left { left: -5%; top: 52%; } #tl-s-right { right: -5%; top: 52%; }
+    .tl-center { width: 62%; top: 54%; }
+    .tl-pc { width: clamp(34px, 11vw, 48px); margin-left: calc(clamp(34px, 11vw, 48px) * -.36); }
+    .tl-rev { max-width: 92px; } .tl-mini { width: 17px; height: 25px; font-size: .62rem; }
+    .tl-mark { display: none; }
+    .tl-actions { gap: 8px; }
+    .tl-btn { min-height: 56px; font-size: 1rem; }
+    .tl-over.chip { position: fixed; z-index: 60; padding: 12px; background: rgba(4, 10, 16, .78); }
+    .tl-over.chip .tl-box { max-height: 94vh; }
+  }
+  @media (max-width: 420px) { .tl-stage { padding: 30px 14px 22px; } .tl-av { width: 30px; } .tl-top { gap: 6px; padding-right: 56px; } .tl-btn { font-size: .9rem; padding: 0 6px; } .tl-actions { gap: 6px; } .tl-dock { padding: 0 8px; } }
+  .tl-btn { white-space: nowrap; }
+  @keyframes tl-up { 0% { background: #2f9e44; color: #fff; transform: scale(1.25); } 100% { transform: scale(1); } }
+  @keyframes tl-dn { 0% { background: #e03131; color: #fff; transform: scale(1.25); } 100% { transform: scale(1); } }
+  @keyframes tl-deal { from { opacity: 0; transform: translateY(-60px) scale(.8) rotate(0); } }
+  @keyframes tl-slide { from { opacity: 0; transform: translate(var(--fx), var(--fy)) scale(.7) rotate(-8deg); } }
+  @keyframes tl-fade { from { opacity: 0; } }
+  @keyframes tl-flash { 50% { box-shadow: 0 0 0 4px #ffd54a, 0 5px 0 rgba(0, 0, 0, .35); } }
+  @keyframes tl-pop { 0% { opacity: 0; transform: translateX(-50%) scale(.4); } 18% { opacity: 1; transform: translateX(-50%) scale(1.18); } 30% { transform: translateX(-50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateX(-50%) translateY(-14px) scale(1); } }
+  @keyframes tl-fall { to { transform: translateY(125vh) rotate(540deg); } }
+  @keyframes tl-blink { 50% { opacity: .5; } }
+  @media (prefers-reduced-motion: reduce) { .tl-card.deal, .tl-pile.tl-in .tl-pc, .tl-over, .tl-closed, .tl-chip, .tl-banner.show, .tl-conf i, .tl-conn.lost { animation: none !important; } .tl-card, .tl-timer i { transition: none; } }
+</style>

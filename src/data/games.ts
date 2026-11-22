@@ -6,6 +6,7 @@ export const gamesUi = {
     play: 'Chơi',
     back: '← Trò chơi',
     cards: {
+      poker: { icon: '🃏', title: 'Poker (Texas Hold\'em)', desc: 'Texas Hold\'em với 1 đến 5 máy ngồi cùng bàn, 3 mức độ. Chơi giải trí bằng chip ảo, không dùng tiền thật.' },
       badminton: { icon: '🏸', title: 'Cầu Lông Người Que', desc: 'Đánh cầu lông với người que: chạy, nhảy, đập cầu và bỏ nhỏ. Đấu với máy 3 mức hoặc hai người một máy.' },
       link: { icon: '🔗', title: 'Nối Cặp Cổ Điển', desc: 'Nối hai hình giống nhau bằng đường gấp khúc tối đa 3 đoạn, xóa hết bàn trước khi hết giờ.' },
       blocks: { icon: '🧱', title: 'Xếp Khối', desc: 'Xoay và xếp các khối rơi thành hàng kín để ghi điểm. Càng lâu càng nhanh, có khối giữ và bóng đáp.' },
@@ -20,6 +21,7 @@ export const gamesUi = {
       mines: { icon: '💥', title: 'Dò Mìn', desc: 'Dò mìn kinh điển với 3 cỡ bàn, cắm cờ bằng chuột phải hoặc nhấn giữ.' },
       memory: { icon: '🃏', title: 'Lật Hình', desc: 'Lật thẻ tìm các cặp giống nhau, ít lượt và ít thời gian nhất.' },
       billiards: { icon: '🎱', title: 'Bida', desc: 'Bida lỗ 8, 9, 10 bi và bida 3 băng, có xoáy bi. Đấu với máy 3 mức độ hoặc chơi với bạn.' },
+      tienlen: { icon: '🎴', title: 'Tiến lên miền Nam', desc: 'Đánh bài tiến lên với 1 đến 3 máy: sảnh, đôi thông, tứ quý, chặt heo, tới trắng. 3 mức độ.' },
       xiangqi: { icon: '🏯', title: 'Cờ Tướng', desc: 'Cờ tướng đủ luật, đấu với máy 3 mức độ hoặc chơi với bạn.' },
       chess: { icon: '♟️', title: 'Cờ Vua', desc: 'Đủ luật nhập thành, bắt tốt qua đường, phong cấp. Đấu với máy 3 mức độ hoặc chơi với bạn.' },
       caro: { icon: '⭕', title: 'Cờ Caro', desc: 'Bàn 15×15, xếp 5 quân liền nhau để thắng. Đấu với máy hoặc chơi với bạn.' },
@@ -125,6 +127,7 @@ export const gamesUi = {
     play: 'Play',
     back: '← Games',
     cards: {
+      poker: { icon: '🃏', title: 'Poker (Texas Hold\'em)', desc: 'Texas Hold\'em against 1 to 5 computer players on 3 levels. Virtual chips for fun only, no real money.' },
       badminton: { icon: '🏸', title: 'Stickman Badminton', desc: 'Badminton with stick figures: run, jump, smash and drop shots. Play the computer on 3 levels or a friend on one device.' },
       link: { icon: '🔗', title: 'Classic Pair Link', desc: 'Connect two matching tiles with a path of at most 3 segments and clear the board before time runs out.' },
       blocks: { icon: '🧱', title: 'Block Stack', desc: 'Rotate and stack falling blocks into full rows to score. It speeds up over time, with hold and ghost piece.' },
@@ -139,6 +142,7 @@ export const gamesUi = {
       mines: { icon: '💥', title: 'Minesweeper', desc: 'The classic in 3 board sizes. Flag with right click or long press.' },
       memory: { icon: '🃏', title: 'Memory Match', desc: 'Flip cards to find the pairs with the fewest moves and the best time.' },
       billiards: { icon: '🎱', title: 'Billiards', desc: '8-ball, 9-ball, 10-ball pool and three-cushion carom, with spin. Play the computer on 3 levels or a friend.' },
+      tienlen: { icon: '🎴', title: 'Tien Len (Southern Thirteen)', desc: 'The Vietnamese card game against 1 to 3 computer players: runs, consecutive pairs, chopping 2s, instant wins. 3 levels.' },
       xiangqi: { icon: '🏯', title: 'Xiangqi', desc: 'Full Chinese chess rules. Play the computer on 3 levels or a friend.' },
       chess: { icon: '♟️', title: 'Chess', desc: 'Full rules with castling, en passant and promotion. Play the computer on 3 levels or a friend.' },
       caro: { icon: '⭕', title: 'Caro (Gomoku)', desc: '15×15 board, line up 5 stones to win. Play the computer or a friend.' },

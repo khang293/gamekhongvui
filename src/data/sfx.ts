@@ -101,6 +101,14 @@ const presets: Record<string, (v?: number) => void> = {
   power: () => { tone(N(7), 0.1, 'triangle', 0.22); tone(N(14), 0.1, 'triangle', 0.22, undefined, 0.08); tone(N(19), 0.2, 'triangle', 0.22, undefined, 0.16); },
   bomb: () => { tone(120, 0.12, 'sine', 0.3, 90); },
   fuse: () => { noise(0.15, 0.08, 5000, 2500); },
+  // poker
+  deal: () => { noise(0.06, 0.16, 6500, 2200); tone(1100, 0.03, 'triangle', 0.05, 700); },
+  chip: () => { tone(2100, 0.04, 'triangle', 0.16, 1500); tone(2900, 0.03, 'triangle', 0.1, 2200, 0.035); noise(0.03, 0.06, 9000, 4000); },
+  chips: () => { for (let i = 0; i < 4; i++) { tone(1900 + i * 230, 0.04, 'triangle', 0.13, 1400, i * 0.05); noise(0.025, 0.05, 9000, 4000); } },
+  fold: () => { noise(0.14, 0.14, 1800, 300); tone(240, 0.1, 'sine', 0.08, 120); },
+  tap: () => { tone(190, 0.07, 'sine', 0.3, 110); noise(0.035, 0.08, 700); },
+  allin: () => { tone(260, 0.45, 'sawtooth', 0.1, 900); for (let i = 0; i < 5; i++) tone(2000 + i * 200, 0.04, 'triangle', 0.12, 1500, 0.1 + i * 0.05); },
+  turn: () => { tone(N(19), 0.09, 'sine', 0.16); tone(N(24), 0.14, 'sine', 0.14, undefined, 0.08); },
 };
 
 // Tiếng động cơ liên tục: gọi engine(tốc_độ_0_đến_1) mỗi khung hình, engine(-1) để tắt
