@@ -106,7 +106,7 @@ export function botDecide(v: View, level = 2, rng: () => number = Math.random, c
   }
 
   // theo bài: chọn nước mà phần còn lại chia ra ít bộ nhất; tránh phí lá 2 và tứ quý
-  const threat = danger <= 3 || v.counts[v.tableBy] <= 2;
+  const threat = danger <= 3 || (v.counts[v.tableBy] > 0 && v.counts[v.tableBy] <= 2); // người đánh cuối đã hết bài (0 lá) thì không phải mối đe dọa
   const cands = legal.slice().sort((a, b) => a.top - b.top || a.cards.length - b.cards.length);
   const pool = cands.slice(0, 14);
   for (const c of cands) if (isChop(v.table, c) && !pool.includes(c)) pool.push(c);

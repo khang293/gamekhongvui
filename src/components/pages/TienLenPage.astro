@@ -55,7 +55,7 @@ const TXT = {
     // ----- Chế độ tính điểm -----
     pointRules: [
       'Chế độ tính điểm (luôn 4 người, chỗ trống do máy chơi): chơi nhiều ván, điểm cộng dồn và có thể âm. Ai chạm điểm đích trước thì thắng; nhiều người cùng chạm trong một ván thì người điểm cao nhất thắng (bằng điểm thì ai được nhiều điểm hơn ở ván đó). Có thể chọn "Không đặt đích" rồi bấm "Kết thúc" khi muốn dừng.',
-      'Điểm hạng cuối ván: nhất +20, nhì +10, ba −10, bét −20 (xếp hạng theo số lá còn trên tay).',
+      'Điểm hạng cuối ván: nhất +20, nhì +10, ba −10, bét −20, xếp theo thứ tự về đích. Người đầu tiên hết bài về nhất nhưng ván vẫn tiếp tục: người đã hết bài ngồi xem, những người còn bài đánh tiếp cho tới khi biết người về nhì, về ba và người bét (ván kết thúc khi chỉ còn một người còn bài). Nếu người đánh cuối vừa hết bài và mọi người còn lại đều bỏ lượt thì quyền đánh về người kế tiếp còn bài.',
       'Điểm chặt, cộng dồn: người bị chặt bị trừ, người chặt được cộng. Mỗi lá 2 đen 10 điểm, mỗi lá 2 đỏ 20 điểm (đôi 2, sám 2 tính từng lá). Chặt đôi thông 20 điểm, chặt tứ quý 20 điểm.',
       'Chặt chồng: nếu một lần chặt lại bị chặt tiếp trong cùng vòng thì cả chuỗi tính về người chặt cuối cùng: mọi người bị chặt trong chuỗi (kể cả người chặt trung gian) đều trả giá trị bộ bài của mình cho người chặt cuối.',
       'Không có thối heo hay cháy bài. Tới trắng: người thắng +20, ba người còn lại xếp hạng theo thứ tự ngồi từ người thắng (+10, −10, −20), không có điểm chặt.',
@@ -65,6 +65,8 @@ const TXT = {
     chopKinds: { black: 'heo đen', red: 'heo đỏ', twos: 'heo', quad: 'tứ quý', pairs: 'đôi thông' },
     chopPts: 'Chặt {k} −{v}',
     rankLn: ['Về nhất', 'Về nhì', 'Về ba', 'Về bét'], tagChopPts: 'Chặt', tagChoppedPts: 'Bị chặt',
+    finPlace: ['nhất', 'nhì', 'ba'], finBadge: ['🥇 Nhất', '🥈 Nhì', '🥉 Ba', 'Bét'],
+    finStatus: '{n} về {p}, tiếp tục đánh.', finBanner: '{n} về {p}!', specTitle: 'Bạn về {p}!', specWait: 'Đang chờ các bạn khác đánh xong...',
     lnChopped: '{k} bị chặt: −{v} (trả {n})', lnChopOf: 'chặt {k}: +{v} (từ {n})', lnChain: 'chặt chồng',
     ptsWinYou: 'Bạn thắng cả cuộc chơi với {p} điểm!', ptsWinOther: '{n} thắng cả cuộc chơi với {p} điểm.', ptsEndNote: 'Đã kết thúc theo ý bạn, người dẫn đầu thắng.',
     standings: 'Xếp hạng cuối cùng', endBtn: 'Kết thúc', confirmRestartPts: 'Bắt đầu lại và đặt điểm của mọi người về 0?',
@@ -144,7 +146,7 @@ const TXT = {
     // ----- Points mode -----
     pointRules: [
       'Points mode (always 4 players, empty seats are played by the computer): play hand after hand; points add up and can go negative. The first player to reach the target wins; if several reach it in the same hand the highest total wins (equal totals: the better score in that hand). Choose "No target" and press "End" whenever you want to stop.',
-      'Rank points at the end of a hand: 1st +20, 2nd +10, 3rd −10, 4th −20 (ranked by cards left in hand).',
+      'Rank points at the end of a hand: 1st +20, 2nd +10, 3rd −10, 4th −20, by finishing order. The first player to empty their hand finishes 1st but the hand goes on: finished players watch while those still holding cards keep playing until 2nd, 3rd and 4th place are known (the hand ends when only one player still holds cards). If the player who made the last play of a round has just finished and everyone else passes, the lead goes to the next player who still has cards.',
       'Chop points, cumulative: the chopped player loses them and the chopper gains them. Each black 2 is 10 points, each red 2 is 20 points (a pair or triple of 2s counts card by card). Chopping consecutive pairs is 20 points, chopping a four of a kind is 20 points.',
       'Chop on chop: if a chop is itself chopped in the same round, the whole chain is paid to the LAST chopper: everyone chopped in the chain (including the middle choppers) pays the value of their own combination to the final chopper.',
       'No pig penalty and no burned-hand penalty. Instant win: the winner gets +20 and the other three are ranked by seating order after the winner (+10, −10, −20); there are no chop points.',
@@ -154,6 +156,8 @@ const TXT = {
     chopKinds: { black: 'black 2', red: 'red 2', twos: '2s', quad: 'four of a kind', pairs: 'consecutive pairs' },
     chopPts: 'Chop {k} −{v}',
     rankLn: ['1st place', '2nd place', '3rd place', '4th place'], tagChopPts: 'Chopper', tagChoppedPts: 'Got chopped',
+    finPlace: ['1st', '2nd', '3rd'], finBadge: ['🥇 1st', '🥈 2nd', '🥉 3rd', '4th'],
+    finStatus: '{n} finished {p}, play continues.', finBanner: '{n} finished {p}!', specTitle: 'You finished {p}!', specWait: 'Waiting for the others to finish...',
     lnChopped: '{k} chopped: −{v} (pays {n})', lnChopOf: 'chopped {k}: +{v} (from {n})', lnChain: 'chop on chop',
     ptsWinYou: 'You won the whole game with {p} points!', ptsWinOther: '{n} won the whole game with {p} points.', ptsEndNote: 'Ended at your request; the leader wins.',
     standings: 'Final standings', endBtn: 'End', confirmRestartPts: "Restart and reset everyone's points to 0?",
@@ -367,6 +371,8 @@ const MODE_KEYS = ['chips', 'single', 'points'];
   let reasonMsg = '';
   let reasonKind: 'bad' | 'info' = 'bad';
   let lastEv = 0, lastCur = -1, lastHand = -1, lastHandKey = '';
+  let finMsg = '', finUntil = 0; // thông báo ngắn khi có người về đích (chế độ tính điểm)
+  const dockEl = document.querySelector('.tl-dock') as HTMLElement;
   let dealing = false, fast = false, inGame = false;
   let conn: 'online' | 'lost' = 'online';
   let hub: LoopbackHub | null = null;
@@ -445,6 +451,14 @@ const MODE_KEYS = ['chips', 'single', 'points'];
       else if (ev.kind === 'play') { sfx.play(ev.slot === s.mySlot ? 'place' : 'tap'); pileEl.dataset.from = fromPos(ev.slot); retrigger(pileEl); }
       else if (ev.kind === 'pass') sfx.play('click');
       else if (ev.kind === 'timeout') { sfx.play('error'); }
+      if (ev.place && s.settings.mode === 'points') {
+        const nm = s.slots[ev.slot]?.name || '', pl = T.finPlace[ev.place - 1] || '';
+        if (ev.slot !== s.mySlot) { finMsg = fmt(T.finStatus, { n: nm, p: pl }); finUntil = Date.now() + 2800; } // chính mình về đích thì đã có lời nhắn ở khu bài
+        const medal = ['🥇', '🥈', '🥉'][ev.place - 1] || '';
+        setTimeout(() => flashBanner(`${medal} ${fmt(T.finBanner, { n: ev.slot === s.mySlot ? T.you : nm, p: pl })}`), ev.kind === 'chop' ? 950 : 150);
+        setTimeout(() => { if (inGame && ns && ns.view) renderStatus(); }, 2900);
+        if (ev.slot === s.mySlot) sfx.play('correct');
+      }
     }
     const v = s.view;
     if (v && s.phase === 'playing' && !v.over) {
@@ -528,10 +542,14 @@ const MODE_KEYS = ['chips', 'single', 'points'];
       const on = !v.over && v.cur === seat;
       const left = v.counts[seat];
       const win = v.over && v.winner === seat;
-      el.className = 'tl-seat' + (on ? ' on' : '') + (win ? ' win' : '') + (human && (!ps.online || ps.replaced) ? ' away' : '');
-      const cards = v.over && v.hands ? `<span class="tl-rev">${v.hands[seat].map((c) => miniHTML(c)).join('')}</span>` : backs(left);
-      const pass = v.passed[seat] && !v.over ? `<span class="tl-pass">${T.passedTag}</span>` : '';
-      el.innerHTML = `<span class="tl-avw${on ? ' ring' : ''}"><span class="tl-av" style="--c:${col}">${esc([...ps.name][0] || '?')}</span><span class="tl-cnt">${left}</span>${pass}</span><span class="tl-nm">${name}${human ? '' : ' <small>🤖</small>'}</span>${chipPill(slot)}${tags.join('')}${cards}`;
+      const place = v.multi ? v.finished.indexOf(seat) : -1; // chế độ nhiều hạng: hạng đã về đích (0 = nhất)
+      const done = place >= 0 && (place < 3 || !!v.over);
+      el.className = 'tl-seat' + (on ? ' on' : '') + (win ? ' win' : '') + (done ? ' fin' : '') + (human && (!ps.online || ps.replaced) ? ' away' : '');
+      const cards = v.over && v.hands ? `<span class="tl-rev">${v.hands[seat].map((c) => miniHTML(c)).join('')}</span>` : done ? '' : backs(left);
+      const finTag = done ? `<span class="tl-fin p${place}">${T.finBadge[Math.min(place, 3)]}</span>` : '';
+      const pass = v.passed[seat] && !v.over && !done ? `<span class="tl-pass">${T.passedTag}</span>` : '';
+      const cnt = done && place < 3 ? `<span class="tl-cnt medal">${['🥇', '🥈', '🥉'][place]}</span>` : `<span class="tl-cnt">${left}</span>`;
+      el.innerHTML = `<span class="tl-avw${on ? ' ring' : ''}"><span class="tl-av" style="--c:${col}">${esc([...ps.name][0] || '?')}</span>${cnt}${pass}</span><span class="tl-nm">${name}${human ? '' : ' <small>🤖</small>'}</span>${chipPill(slot)}${tags.join('')}${finTag}${cards}`;
     }
   }
 
@@ -590,8 +608,24 @@ const MODE_KEYS = ['chips', 'single', 'points'];
     });
   }
 
+  // Người chơi đã hết bài sớm (chế độ nhiều hạng) thì ngồi xem tiếp, khu bài của mình hiện lời nhắn thay cho bài
+  function spectating(): boolean {
+    const s = ns;
+    return !!s && !!s.view && !!s.view.multi && s.phase === 'playing' && !s.view.over && s.mySeat >= 0 && s.view.finished.indexOf(s.mySeat) >= 0;
+  }
   function renderHand() {
     const v = ns!.view!;
+    if (spectating()) {
+      const p = v.finished.indexOf(ns!.mySeat);
+      const key = '__spec' + p;
+      if (lastHandKey !== key) {
+        lastHandKey = key; sel = new Set();
+        handEl.innerHTML = `<div class="tl-spec"><b>${['🥇', '🥈', '🥉'][p] || ''} ${fmt(T.specTitle, { p: T.finPlace[p] || '' })}</b><span>${T.specWait}</span></div>`;
+      }
+      dockEl.classList.add('spec');
+      return;
+    }
+    dockEl.classList.remove('spec');
     const hand = v.hand;
     for (const c of [...sel]) if (!hand.includes(c)) sel.delete(c);
     const key = hand.join(',');
@@ -635,6 +669,7 @@ const MODE_KEYS = ['chips', 'single', 'points'];
     st.classList.remove('done');
     if (v.over) { st.textContent = T.done; st.classList.add('done'); return; }
     if (s.mySeat < 0) { st.textContent = T.spectating; return; }
+    if (finMsg && Date.now() < finUntil) { st.textContent = finMsg; return; }
     if (myTurn()) { st.textContent = v.table ? T.yourTurn + ' ' + T.beat : T.yourLead; return; }
     const curSlot = s.seats[v.cur], ps = s.slots[curSlot];
     const nm = ps ? ps.name : '';
@@ -676,7 +711,9 @@ const MODE_KEYS = ['chips', 'single', 'points'];
     const bar = $('tl-bar');
     bar.hidden = !(chipsMode() || pm);
     if (pm) {
-      $('tl-me').innerHTML = `${scorePill(s.mySlot, true)}<span class="tl-meName">${esc(s.slots[s.mySlot]?.name || '')}</span>`;
+      const myPl = s.view && s.view.multi ? s.view.finished.indexOf(s.mySeat) : -1;
+      const myFin = myPl >= 0 && myPl < 3 ? `<span class="tl-fin p${myPl}">${T.finBadge[myPl]}</span>` : '';
+      $('tl-me').innerHTML = `${scorePill(s.mySlot, true)}<span class="tl-meName">${esc(s.slots[s.mySlot]?.name || '')}</span>${myFin}`;
     } else if (chipsMode() && s.stacks) {
       const cur = s.stacks[s.mySlot], prev = prevStacks[s.mySlot];
       const chg = prev !== undefined && prev !== cur ? (cur > prev ? ' up' : ' dn') : '';
@@ -1342,6 +1379,14 @@ const MODE_KEYS = ['chips', 'single', 'points'];
   .tl-backs { display: flex; height: 30px; align-items: center; padding-left: 12px; }
   .tl-backs i { width: 20px; height: 29px; margin-left: -12px; border-radius: 4px; border: 1.5px solid #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .5);
     background: repeating-linear-gradient(45deg, #2a4ea8 0 3px, #1f3f8e 3px 6px); }
+  .tl-fin { display: inline-flex; align-items: center; justify-content: center; padding: 1px 9px; border-radius: 10px; font-size: 12px; font-weight: 800; line-height: 1.4; background: rgba(255, 255, 255, .16); color: #fff; white-space: nowrap; }
+  .tl-fin.p0 { background: linear-gradient(180deg, #ffe27a, #e0a63a); color: #3b2a00; } .tl-fin.p1 { background: linear-gradient(180deg, #e9edf3, #aab4c3); color: #1d2430; } .tl-fin.p2 { background: linear-gradient(180deg, #e8b98a, #b9763a); color: #2a1604; }
+  .tl-cnt.medal { background: transparent; box-shadow: none; font-size: 18px; top: -9px; right: -12px; min-width: 24px; }
+  .tl-seat.fin { background: rgba(8, 18, 12, .42); }
+  .tl-spec { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; color: #fff; padding: 0 12px; }
+  .tl-spec b { font-size: 20px; } .tl-spec span { font-size: 14px; font-weight: 600; color: rgba(255, 255, 255, .78); }
+  .tl-dock.spec .tl-actions { visibility: hidden; }
+  .tl-me .tl-fin { margin-left: 6px; }
   .tl-rev { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; max-width: 170px; }
   .tl-mini { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 24px; height: 34px; border-radius: 5px; background: #fff; border: 1px solid #b7bcc6; box-shadow: 0 1px 3px rgba(0, 0, 0, .35); line-height: 1; font-size: 12px; }
   .tl-mini i { font-style: normal; font-size: 12px; } .tl-mini.red { color: #c92a2a; } .tl-mini.blk { color: #1b1d23; }

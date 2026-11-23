@@ -229,7 +229,7 @@ export function leaderOf(s: PointSession): number {
   return best;
 }
 export function dealHandPoints(s: PointSession, rng: () => number = Math.random): TLState {
-  return newGame(4, s.lastWinner, rng);
+  return newGame(4, s.lastWinner, rng, { multi: true }); // chế độ tính điểm: đánh tiếp sau khi có người về nhất
 }
 /** Kết thúc ván: cộng điểm, kiểm tra đích. */
 export function finishHandPoints(s: PointSession, st: TLState): PointsSettlement {

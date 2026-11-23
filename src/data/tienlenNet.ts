@@ -27,7 +27,8 @@ export interface NetResult {
   sessionOver: boolean; sessionWinner: number; pts?: PtsResult;
 }
 // vc / vk: với sự kiện chặt, các lá và loại bộ bị chặt (công khai, dùng để hiện điểm chặt)
-export interface NetEvent { n: number; kind: 'deal' | 'play' | 'chop' | 'pass' | 'timeout'; slot: number; cards?: number[]; vc?: number[]; vk?: string }
+// place: chế độ tính điểm, nước đánh này làm người chơi hết bài và về hạng place (1 = nhất, 2 = nhì, 3 = ba)
+export interface NetEvent { n: number; kind: 'deal' | 'play' | 'chop' | 'pass' | 'timeout'; slot: number; cards?: number[]; vc?: number[]; vk?: string; place?: number }
 export interface NetState {
   seq: number; code: string; phase: 'lobby' | 'playing' | 'result'; settings: NetSettings; slots: PubSlot[]; mySlot: number;
   hand: number; seats: number[]; mySeat: number; view: View | null; stacks: number[] | null;
@@ -218,6 +219,7 @@ export class TLGame {
     if (!r.ok) return false;
     this.ev = { n: ++this.evN, kind: kind === 'timeout' ? 'timeout' : r.chop ? 'chop' : 'play', slot, cards: r.combo.cards.slice() };
     if (r.chop && prevTable) { this.ev.vc = prevTable.cards.slice(); const k = victimKey(prevTable); if (k) this.ev.vk = k; }
+    if (st.multi && !st.hands[seat].length) this.ev.place = st.finished.indexOf(seat) + 1;
     this.afterMove();
     return true;
   }

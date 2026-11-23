@@ -174,9 +174,11 @@ export interface TLState {
   chopEvents: ChopEvt[];  // mọi lần chặt trong ván (chế độ tính điểm); chops ở trên giữ nguyên cho chế độ chip
   tableChop: boolean;     // bộ đang trên bàn có phải là một lần chặt không (để nối chuỗi chặt chồng)
   chainSeq: number;       // số chuỗi chặt chồng đã dùng
+  multi: boolean;         // chế độ tính điểm: ván tiếp tục sau khi có người về nhất cho tới khi xếp xong hạng nhất, nhì, ba, bét
+  finished: number[];     // thứ tự những người đã hết bài (chỉ dùng khi multi); khi ván xong có đủ n người, người cuối là bét
 }
 
-export function newGame(n: number, leader = -1, rng: () => number = Math.random): TLState {
+export function newGame(n: number, leader = -1, rng: () => number = Math.random, opts: { multi?: boolean } = {}): TLState {
   if (n < 2 || n > 4) throw new Error('n must be 2..4');
   const deck = Array.from({ length: 52 }, (_, i) => i);
   for (let i = 51; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; }
@@ -189,7 +191,7 @@ export function newGame(n: number, leader = -1, rng: () => number = Math.random)
   }
   const st: TLState = {
     n, hands, cur, table: null, tableBy: cur, passed: new Array(n).fill(false), played: new Array(n).fill(0),
-    log: [], playedCards: [], over: false, winner: -1, white: null, order: [], firstHand, chops: [], chopEvents: [], tableChop: false, chainSeq: 0,
+    log: [], playedCards: [], over: false, winner: -1, white: null, order: [], firstHand, chops: [], chopEvents: [], tableChop: false, chainSeq: 0, multi: !!opts.multi, finished: [],
   };
   for (let i = 0; i < n; i++) {
     const k = checkWhite(hands[i]);
@@ -223,12 +225,19 @@ export function legalPlays(st: TLState, seat: number): Combo[] {
   return playsBeating(st.hands[seat], st.table);
 }
 
-// Chuyển lượt: bỏ qua người đã bỏ vòng; hết vòng thì người đánh cuối dẫn tiếp
+// Chuyển lượt: bỏ qua người đã bỏ vòng và người đã hết bài; hết vòng thì người đánh cuối dẫn tiếp.
+// Nếu người đánh cuối vừa hết bài (chế độ nhiều hạng) và mọi người còn lại đều bỏ, quyền dẫn về người kế tiếp còn bài theo thứ tự ghế.
 function advance(st: TLState) {
+  const done = (s: number) => st.hands[s].length === 0;
   for (let i = 1; i <= st.n; i++) {
     const s = (st.cur + i) % st.n;
+    if (done(s)) continue;
     if (s === st.tableBy) { st.table = null; st.tableChop = false; st.passed = new Array(st.n).fill(false); st.cur = s; return; }
     if (!st.passed[s]) { st.cur = s; return; }
+  }
+  for (let k = 1; k <= st.n; k++) {
+    const s = (st.tableBy + k) % st.n;
+    if (!done(s)) { st.table = null; st.tableChop = false; st.passed = new Array(st.n).fill(false); st.cur = s; return; }
   }
 }
 
@@ -247,7 +256,16 @@ export function play(st: TLState, seat: number, cards: number[]): { ok: true; co
   st.table = combo; st.tableBy = seat; st.tableChop = chop; st.played[seat]++;
   st.playedCards.push(...combo.cards);
   st.log.push({ seat, combo, chop });
-  if (!st.hands[seat].length) { st.over = true; st.winner = seat; st.order = finishOrder(st, seat); return { ok: true, combo, chop }; }
+  if (!st.hands[seat].length) {
+    if (!st.multi) { st.over = true; st.winner = seat; st.order = finishOrder(st, seat); return { ok: true, combo, chop }; }
+    // nhiều hạng: người này về hạng kế tiếp; ván xong khi chỉ còn một người còn bài (người đó về bét)
+    st.finished.push(seat);
+    if (st.finished.length >= st.n - 1) {
+      for (let k = 0; k < st.n; k++) if (!st.finished.includes(k)) st.finished.push(k);
+      st.order = st.finished.slice(); st.winner = st.order[0]; st.over = true;
+      return { ok: true, combo, chop };
+    }
+  }
   advance(st);
   return { ok: true, combo, chop };
 }
@@ -268,6 +286,7 @@ export interface View {
   table: Combo | null; tableBy: number; passed: boolean[]; cur: number; played: number[];
   playedCards: number[]; log: LogEntry[]; over: boolean; winner: number; white: TLState['white']; order: number[];
   chopEvents: ChopEvt[]; // công khai: ai chặt ai trong ván
+  multi: boolean; finished: number[]; // chế độ nhiều hạng: ai đã về đích và theo thứ tự nào (công khai)
   hands?: number[][]; // chỉ có khi ván đã kết thúc
 }
 export function viewFor(st: TLState, seat: number): View {
@@ -276,6 +295,7 @@ export function viewFor(st: TLState, seat: number): View {
     table: st.table, tableBy: st.tableBy, passed: st.passed.slice(), cur: st.cur, played: st.played.slice(),
     playedCards: st.playedCards.slice(), log: st.log.slice(), over: st.over, winner: st.winner, white: st.white, order: st.order.slice(),
     chopEvents: st.chopEvents.map((e) => ({ ...e, cards: e.cards.slice() })),
+    multi: st.multi, finished: st.finished.slice(),
   };
   if (st.over) v.hands = st.hands.map((h) => h.slice());
   return v;
