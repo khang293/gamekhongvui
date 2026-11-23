@@ -8,6 +8,7 @@ const { lang } = Astro.props;
 const g = gamesUi[lang];
 const cards = [
   { key: 'billiards', href: lp(lang, '/billiards/'), ...g.cards.billiards },
+  { key: 'rubik', href: lp(lang, '/rubik/'), ...g.cards.rubik },
   { key: 'poker', href: lp(lang, '/poker/'), ...g.cards.poker },
   { key: 'badminton', href: lp(lang, '/badminton/'), ...g.cards.badminton },
   { key: 'link', href: lp(lang, '/link/'), ...g.cards.link },

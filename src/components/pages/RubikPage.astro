@@ -1,0 +1,758 @@
+---
+import Base from '../../layouts/Base.astro';
+import { lp, type Lang } from '../../i18n';
+import { gamesUi } from '../../data/games';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const g = gamesUi[lang];
+
+type Alg = { label: string; moves: string; reps?: number; orient?: string; mode?: 'play' | 'restore'; note?: string };
+type Step = { short: string; title: string; goal: string; hint?: string; body: string[]; algs: Alg[] };
+
+const VI = {
+  title: 'Học xoay Rubik 3×3',
+  sub: 'Học giải khối Rubik từng bước cho người mới: khối 3D xoay được, có thuật toán chạy thử và nút kiểm tra bước bạn đang làm.',
+  stepWord: 'Bước', goal: 'Mục tiêu:', watch: 'Xem', check: 'Kiểm tra bước này',
+  okMsg: 'Đúng rồi, bước này đã xong!', noMsg: 'Chưa xong bước này. ', solvedMsg: '🎉 Khối đã được giải!',
+  solvedState: '🎉 Khối đang ở trạng thái đã giải. Bấm "Xáo trộn" để luyện tập và bấm giờ.',
+  botBtn: 'Bot giải cho tôi xem', botHint: 'Bot giải khối hiện tại theo đúng 7 bước đã học và chạy từng nước để bạn xem. Chữ x, y, z là xoay cả khối. Bạn có thể dừng, chạy từng nước hoặc chạy hết từng bước.',
+  botMoves: 'nước', botTotal: 'Tổng cộng {n} nước', botSolved: 'Khối đang giải sẵn rồi. Bấm "Xáo trộn" trước để bot có việc làm nhé.', botFail: 'Bot chưa giải được trạng thái này.',
+  nextStageT: 'Chạy hết bước này', turbo: 'Rất nhanh',
+  timeLbl: 'Thời gian', movesLbl: 'Nước', bestLbl: 'Kỷ lục', newBest: 'Kỷ lục mới!', resultMsg: '🎉 Giải xong trong {t} giây, {n} nước.',
+  scramble: 'Xáo trộn', reset: 'Đã giải', flip: 'Lật khối', turnL: '⟲', turnR: '⟳',
+  labels: 'Tên mặt', speed: 'Tốc độ', slow: 'Chậm', normal: 'Vừa', fast: 'Nhanh',
+  play: '▶', pause: '⏸', next: '⏭', restart: '↺', playT: 'Chạy', pauseT: 'Dừng', nextT: 'Nước kế tiếp', restartT: 'Về trạng thái ban đầu',
+  tryTitle: 'Tự thử', drag: 'Vuốt trên một ô để xoay lớp đó. Kéo từ ngoài khối để đổi góc nhìn.', keys: 'Phím tắt: U D L R F B (giữ Shift để xoay ngược).',
+  progress: 'Đã xong đến bước', none: 'chưa bước nào', prev: '← Bước trước', nextStep: 'Bước sau →',
+  demoNote: 'Khối được đặt sẵn ở trạng thái mà thuật toán này sẽ sửa lại, để bạn xem từng nước chạy. Các mảnh khác có thể tạm thay đổi, đó là bình thường.',
+  flipT: 'Lật khối để mặt trắng xuống dưới', turnLT: 'Xoay cả khối sang trái', turnRT: 'Xoay cả khối sang phải',
+  steps: [
+    { short: 'Làm quen', title: 'Làm quen với khối', goal: 'Biết gọi tên các mặt, các mảnh và cách đọc ký hiệu.', body: [
+      'Khối có 6 mặt, mỗi mặt 9 ô. Có 3 loại mảnh: <b>6 mảnh tâm</b> (1 màu), <b>12 mảnh cạnh</b> (2 màu) và <b>8 mảnh góc</b> (3 màu).',
+      'Các mảnh tâm <b>không bao giờ đổi chỗ so với nhau</b>, và màu của tâm là màu của cả mặt đó. Khối này đặt trắng đối vàng, xanh lá đối xanh dương, đỏ đối cam. Hãy luôn dựa vào màu tâm, đừng dựa vào góc nhìn.',
+      'Ký hiệu: mỗi chữ cái là một mặt cần xoay: <b>U</b> (trên), <b>D</b> (dưới), <b>L</b> (trái), <b>R</b> (phải), <b>F</b> (trước), <b>B</b> (sau). Bật nút "Tên mặt" để thấy chữ trên khối.',
+      'Chữ đứng một mình: xoay 90° theo chiều kim đồng hồ khi bạn nhìn thẳng vào mặt đó. Thêm dấu <b>\'</b>: xoay ngược chiều kim đồng hồ. Thêm số <b>2</b>: xoay 180°.',
+      'Cách giải trong bài là phương pháp từng tầng, gồm 7 bước: dấu cộng trắng, góc trắng, tầng giữa, dấu cộng vàng, cạnh vàng, vị trí góc vàng, xoay góc vàng.',
+    ], algs: [
+      { label: 'R', moves: 'R', mode: 'play', note: 'Mặt phải xoay theo chiều kim đồng hồ.' },
+      { label: "R'", moves: "R'", mode: 'play', note: 'Mặt phải xoay ngược chiều.' },
+      { label: 'R2', moves: 'R2', mode: 'play', note: 'Mặt phải xoay 180°.' },
+      { label: 'U', moves: 'U', mode: 'play', note: 'Mặt trên xoay theo chiều kim đồng hồ.' },
+      { label: 'F', moves: 'F', mode: 'play', note: 'Mặt trước xoay theo chiều kim đồng hồ.' },
+    ] },
+    { short: 'Cộng trắng', title: 'Dấu cộng trắng', goal: 'Có 4 cạnh trắng quanh tâm trắng tạo thành dấu cộng, và màu còn lại của mỗi cạnh trùng với tâm bên cạnh.',
+      hint: 'Cần đủ 4 cạnh trắng quanh tâm trắng, và màu còn lại của mỗi cạnh phải trùng với tâm bên cạnh.', body: [
+      'Đặt mặt có tâm trắng lên trên. Bước này không cần thuộc thuật toán dài: hãy nhìn và đưa từng cạnh trắng vào đúng chỗ.',
+      'Chọn một cạnh trắng. Xoay cả khối để mặt có tâm trùng với màu còn lại của cạnh đó hướng về bạn (đó là mặt F), rồi đưa cạnh lên phía trên mặt đó.',
+      'Ba trường hợp hay gặp, bấm "Xem" để thấy cách làm:',
+    ], algs: [
+      { label: 'Cạnh ở tầng dưới, mặt trắng hướng xuống', moves: 'F2', note: 'Xoay tầng dưới (D) cho màu bên cạnh trùng tâm mặt F, rồi xoay F nửa vòng.' },
+      { label: 'Cạnh ở tầng giữa, mặt trắng hướng sang phải', moves: "F'", note: 'Xoay mặt F ngược chiều, cạnh lên đúng chỗ.' },
+      { label: 'Cạnh ở tầng giữa, mặt trắng hướng sang trái', moves: 'F', note: 'Xoay mặt F thuận chiều, cạnh lên đúng chỗ.' },
+    ] },
+    { short: 'Góc trắng', title: 'Góc trắng (xong tầng đầu)', goal: 'Cả mặt trắng đã xong, kể cả 4 góc, và dải màu quanh viền mặt trắng khớp với các tâm bên cạnh.',
+      hint: 'Mặt trắng phải xong hoàn toàn, cả 4 góc, và dải màu quanh viền khớp với các tâm bên cạnh.', body: [
+      'Bấm "Lật khối" để mặt trắng xuống dưới. Từ đây luôn giữ trắng ở dưới.',
+      'Tìm một góc có màu trắng đang ở tầng trên. Xoay U để đưa nó ngay <b>phía trên chỗ nó cần vào</b> (chỗ vào là nơi 3 màu của góc khớp với 3 tâm xung quanh). Chỗ phải-trước-dưới là chỗ ví dụ.',
+      'Đưa góc vào vị trí phía trên-trước-phải (UFR), rồi lặp thuật toán bên dưới cho đến khi góc vào đúng chỗ và màu trắng hướng xuống (tối đa 5 lần).',
+      'Đừng dừng giữa chừng. Khi đang lặp, tầng dưới tạm lộn xộn nhưng sẽ trở lại đúng khi góc vào chỗ.',
+      'Góc trắng đang nằm sai chỗ ở tầng dưới: đưa nó về vị trí phải-trước-dưới rồi chạy thuật toán một lần để đẩy nó lên tầng trên, sau đó làm như trên.',
+      'Làm đủ 4 góc, dùng nút xoay khối để đổi mặt hướng về bạn.',
+    ], algs: [
+      { label: 'Chạy một lần', moves: "R U R' U'", orient: 'x2', note: 'Lặp cho đến khi góc vào đúng chỗ.' },
+      { label: 'Ví dụ: lặp 3 lần', moves: "R U R' U'", reps: 3, orient: 'x2', note: 'Có góc cần lặp 1 đến 5 lần.' },
+    ] },
+    { short: 'Tầng giữa', title: 'Tầng giữa', goal: 'Hai tầng dưới đã xong: 4 cạnh ở tầng giữa nằm đúng chỗ.',
+      hint: 'Hai tầng dưới phải xong hoàn toàn, 4 cạnh ở tầng giữa nằm đúng chỗ và đúng hướng.', body: [
+      'Tìm một cạnh ở tầng trên <b>không có màu vàng</b>.',
+      'Xoay U cho màu ở mặt trước của cạnh trùng với tâm mặt trước.',
+      'Nhìn màu còn lại của cạnh ở mặt trên: nếu nó hợp với tâm bên <b>phải</b> thì dùng thuật toán sang phải, hợp với tâm bên <b>trái</b> thì dùng thuật toán sang trái.',
+      'Có cạnh kẹt sai chỗ ở tầng giữa: dùng một thuật toán cho vị trí đó để đẩy nó lên tầng trên, rồi làm lại.',
+      'Lặp cho đến khi trên mặt vàng không còn cạnh nào không vàng.',
+    ], algs: [
+      { label: 'Cạnh sang phải', moves: "U R U' R' U' F' U F", orient: 'x2', note: 'Cạnh ở phía trên-trước đi vào khe phải-trước.' },
+      { label: 'Cạnh sang trái', moves: "U' L' U L U F U' F'", orient: 'x2', note: 'Cạnh ở phía trên-trước đi vào khe trái-trước.' },
+    ] },
+    { short: 'Cộng vàng', title: 'Dấu cộng vàng', goal: 'Mặt trên có dấu cộng vàng (4 cạnh vàng hướng lên; các góc chưa cần đúng).',
+      hint: 'Mặt trên phải có dấu cộng vàng, 4 cạnh vàng đều hướng lên (góc chưa cần đúng).', body: [
+      'Nhìn các cạnh vàng đang hướng lên: có thể là một chấm (không cạnh nào), chữ L, một đường thẳng hoặc đã là dấu cộng.',
+      'Chữ L: cầm khối sao cho chữ L nằm ở phía sau và bên trái (như khi bấm "Xem"), rồi chạy thuật toán chữ L.',
+      'Đường thẳng: cầm khối sao cho đường nằm ngang (trái-phải), rồi chạy thuật toán đường thẳng.',
+      'Chỉ có một chấm: chạy một trong hai thuật toán một lần, bạn sẽ được chữ L rồi làm tiếp.',
+    ], algs: [
+      { label: 'Chữ L (nằm sau-trái)', moves: "F U R U' R' F'", orient: 'x2', note: 'Từ chữ L ra đường thẳng.' },
+      { label: 'Đường thẳng (nằm ngang)', moves: "F R U R' U' F'", orient: 'x2', note: 'Từ đường thẳng ra dấu cộng.' },
+    ] },
+    { short: 'Cạnh vàng', title: 'Cạnh vàng đúng chỗ', goal: 'Cả 4 cạnh vàng khớp màu với tâm bên cạnh.',
+      hint: 'Mỗi cạnh vàng phải khớp màu với tâm bên cạnh nó.', body: [
+      'Xoay U cho đến khi ít nhất 2 cạnh vàng khớp màu với tâm bên cạnh.',
+      'Hai cạnh khớp nằm <b>cạnh nhau</b>: cầm khối để hai cạnh đó ở mặt sau và mặt phải, rồi chạy thuật toán.',
+      'Hai cạnh khớp nằm <b>đối diện nhau</b>, hoặc chỉ khớp một cạnh: chạy thuật toán một lần từ góc nhìn bất kỳ, rồi xoay U và xét lại.',
+      'Thuật toán đổi chỗ cạnh trước và cạnh trái, giữ yên cạnh sau và cạnh phải. Các góc tạm thời bị xáo trộn, sẽ sửa ở các bước sau.',
+    ], algs: [
+      { label: 'Đổi chỗ cạnh', moves: "R U R' U R U2 R' U", orient: 'x2', note: 'Có thể cần chạy 1 đến 3 lần.' },
+    ] },
+    { short: 'Vị trí góc', title: 'Vị trí góc vàng', goal: 'Mỗi góc vàng nằm đúng chỗ (3 màu của góc khớp với 3 tâm quanh nó), chưa cần đúng hướng.',
+      hint: 'Mỗi góc vàng phải nằm đúng chỗ: 3 màu của góc khớp với 3 tâm quanh nó, dù góc còn xoay lệch.', body: [
+      'Một góc "đúng chỗ" khi 3 màu của nó là màu của 3 tâm xung quanh, dù góc đang xoay lệch.',
+      'Tìm một góc đúng chỗ và đưa nó về vị trí phía trên-trước-phải (UFR) bằng cách xoay cả khối quanh trục dọc. Chạy thuật toán: 3 góc còn lại đổi vòng quanh, góc này đứng yên.',
+      'Chưa có góc nào đúng chỗ: chạy thuật toán một lần từ góc nhìn bất kỳ, rồi tìm lại.',
+      'Lặp cho đến khi cả 4 góc đúng chỗ.',
+    ], algs: [
+      { label: 'Đổi vòng 3 góc', moves: "U R U' L' U R' U' L", orient: 'x2', note: 'Góc ở phía trên-trước-phải đứng yên.' },
+    ] },
+    { short: 'Xoay góc', title: 'Xoay góc vàng', goal: 'Khối được giải hoàn toàn.',
+      hint: 'Khối phải được giải hoàn toàn, mỗi mặt cùng một màu.', body: [
+      'Cầm khối với mặt vàng hướng lên, góc vàng chưa đúng hướng ở vị trí phía trên-trước-phải (UFR).',
+      'Lặp thuật toán 2 lần hoặc 4 lần cho đến khi ô vàng của góc đó quay lên trên. Khi đang lặp khối trông như bị xáo trộn, đó là bình thường.',
+      'Chỉ xoay mặt trên (U), <b>không xoay cả khối</b>, để đưa góc chưa đúng kế tiếp vào vị trí UFR rồi lặp lại. Không dừng giữa chừng.',
+      'Sau góc cuối cùng, xoay U cho các tầng thẳng hàng là bạn đã giải xong.',
+    ], algs: [
+      { label: 'Lặp 2 lần', moves: "R' D' R D", reps: 2, orient: 'x2', note: 'Dùng khi ô vàng của góc hướng sang một bên.' },
+      { label: 'Lặp 4 lần', moves: "R' D' R D", reps: 4, orient: 'x2', note: 'Dùng khi ô vàng của góc hướng ra phía trước.' },
+    ] },
+  ] as Step[],
+};
+
+const EN = {
+  title: 'Learn the Rubik\'s Cube 3×3',
+  sub: 'A step-by-step beginner course for solving the Rubik\'s Cube: a 3D cube you can turn, algorithms to watch, and a button that checks the step you are on.',
+  stepWord: 'Step', goal: 'Goal:', watch: 'Watch', check: 'Check this step',
+  okMsg: 'Correct, this step is done!', noMsg: 'This step is not done yet. ', solvedMsg: '🎉 The cube is solved!',
+  solvedState: '🎉 The cube is in the solved state. Press "Scramble" to practise and time yourself.',
+  botBtn: 'Let the bot solve it', botHint: 'The bot solves the current cube using the same 7 steps you learned and plays each move so you can watch. The letters x, y, z turn the whole cube. You can pause, step one move, or run a whole step.',
+  botMoves: 'moves', botTotal: '{n} moves in total', botSolved: 'The cube is already solved. Press "Scramble" first so the bot has something to do.', botFail: 'The bot could not solve this state.',
+  nextStageT: 'Run the rest of this step', turbo: 'Turbo',
+  timeLbl: 'Time', movesLbl: 'Moves', bestLbl: 'Best', newBest: 'New best!', resultMsg: '🎉 Solved in {t} seconds, {n} moves.',
+  scramble: 'Scramble', reset: 'Solved', flip: 'Flip', turnL: '⟲', turnR: '⟳',
+  labels: 'Face names', speed: 'Speed', slow: 'Slow', normal: 'Normal', fast: 'Fast',
+  play: '▶', pause: '⏸', next: '⏭', restart: '↺', playT: 'Play', pauseT: 'Pause', nextT: 'Next move', restartT: 'Back to the starting position',
+  tryTitle: 'Try it yourself', drag: 'Swipe on a sticker to turn that layer. Drag from outside the cube to change the view.', keys: 'Shortcuts: U D L R F B (hold Shift to turn the other way).',
+  progress: 'Done up to step', none: 'no step yet', prev: '← Previous step', nextStep: 'Next step →',
+  demoNote: 'The cube is set up in a state this algorithm will fix, so you can watch each move. Other pieces may change temporarily, which is normal.',
+  flipT: 'Flip the cube so white is on the bottom', turnLT: 'Turn the whole cube left', turnRT: 'Turn the whole cube right',
+  steps: [
+    { short: 'Basics', title: 'Getting to know the cube', goal: 'Know the faces, the pieces and how to read the notation.', body: [
+      'The cube has 6 faces with 9 stickers each. There are 3 kinds of pieces: <b>6 centres</b> (1 colour), <b>12 edges</b> (2 colours) and <b>8 corners</b> (3 colours).',
+      'The centres <b>never move relative to each other</b>, and the centre colour is the colour of that whole face. Here white is opposite yellow, green opposite blue, red opposite orange. Always go by the centre colours, not by how you hold the cube.',
+      'Notation: each letter is a face to turn: <b>U</b> (up), <b>D</b> (down), <b>L</b> (left), <b>R</b> (right), <b>F</b> (front), <b>B</b> (back). Switch on "Face names" to see the letters on the cube.',
+      'A letter on its own: turn 90° clockwise as you look straight at that face. Add <b>\'</b> for counter-clockwise. Add <b>2</b> for a half turn (180°).',
+      'The method here is layer by layer in 7 steps: white cross, white corners, middle layer, yellow cross, yellow edges, place yellow corners, twist yellow corners.',
+    ], algs: [
+      { label: 'R', moves: 'R', mode: 'play', note: 'Right face, clockwise.' },
+      { label: "R'", moves: "R'", mode: 'play', note: 'Right face, counter-clockwise.' },
+      { label: 'R2', moves: 'R2', mode: 'play', note: 'Right face, half turn.' },
+      { label: 'U', moves: 'U', mode: 'play', note: 'Top face, clockwise.' },
+      { label: 'F', moves: 'F', mode: 'play', note: 'Front face, clockwise.' },
+    ] },
+    { short: 'White cross', title: 'The white cross', goal: 'Four white edges around the white centre form a cross, and the other colour of each edge matches the centre next to it.',
+      hint: 'You need all 4 white edges around the white centre, and the other colour of each must match the centre beside it.', body: [
+      'Put the white centre on top. This step needs no long algorithm: look and place each white edge.',
+      'Pick a white edge. Turn the whole cube so the centre matching that edge\'s other colour faces you (that is the F face), then bring the edge up to the top of that face.',
+      'Three common cases, press "Watch" to see each one:',
+    ], algs: [
+      { label: 'Edge on the bottom layer, white facing down', moves: 'F2', note: 'Turn the bottom (D) until the side colour matches the F centre, then half-turn F.' },
+      { label: 'Edge in the middle layer, white facing right', moves: "F'", note: 'Turn F counter-clockwise and the edge is in place.' },
+      { label: 'Edge in the middle layer, white facing left', moves: 'F', note: 'Turn F clockwise and the edge is in place.' },
+    ] },
+    { short: 'White corners', title: 'White corners (first layer)', goal: 'The whole white face is done, corners included, and the band of colours around it matches the side centres.',
+      hint: 'The white face must be complete including all 4 corners, and the colours around its edge must match the side centres.', body: [
+      'Press "Flip" so white is on the bottom. From now on keep white down.',
+      'Find a corner with white on the top layer. Turn U to bring it right <b>above its slot</b> (its slot is where its 3 colours match the 3 surrounding centres). The bottom-front-right slot is the example.',
+      'Bring the corner to the top-front-right position (UFR), then repeat the algorithm below until the corner drops in with white facing down (at most 5 times).',
+      'Do not stop in the middle. While repeating, the bottom layer is temporarily messy but is restored once the corner is in.',
+      'A white corner stuck in the wrong place on the bottom: bring it to the bottom-front-right slot and run the algorithm once to lift it to the top layer, then continue as above.',
+      'Do all 4 corners, using the turn buttons to change which face you look at.',
+    ], algs: [
+      { label: 'Run once', moves: "R U R' U'", orient: 'x2', note: 'Repeat until the corner is in place.' },
+      { label: 'Example: repeat 3 times', moves: "R U R' U'", reps: 3, orient: 'x2', note: 'A corner may need 1 to 5 repeats.' },
+    ] },
+    { short: 'Middle layer', title: 'The middle layer', goal: 'The bottom two layers are done: the 4 middle-layer edges are in place.',
+      hint: 'The two bottom layers must be complete, with the 4 middle-layer edges in the right place and orientation.', body: [
+      'Find an edge on the top layer that <b>has no yellow</b>.',
+      'Turn U until the colour on the front of that edge matches the front centre.',
+      'Look at its other colour on top: if it belongs to the <b>right</b> centre use the right algorithm, if it belongs to the <b>left</b> centre use the left algorithm.',
+      'An edge stuck in the wrong middle slot: use an algorithm for that slot once to kick it up to the top layer, then redo it.',
+      'Repeat until the top face has no non-yellow edge left.',
+    ], algs: [
+      { label: 'Edge to the right', moves: "U R U' R' U' F' U F", orient: 'x2', note: 'The top-front edge goes into the front-right slot.' },
+      { label: 'Edge to the left', moves: "U' L' U L U F U' F'", orient: 'x2', note: 'The top-front edge goes into the front-left slot.' },
+    ] },
+    { short: 'Yellow cross', title: 'The yellow cross', goal: 'The top face has a yellow cross (4 yellow edges facing up; corners need not be right yet).',
+      hint: 'The top face must show a yellow cross: all 4 yellow edges facing up (the corners do not matter yet).', body: [
+      'Look at the yellow edges facing up: it may be a dot (none), an L shape, a straight line, or already a cross.',
+      'L shape: hold the cube so the L is at the back and left (as shown when you press "Watch"), then run the L algorithm.',
+      'Line: hold the cube so the line is horizontal (left-right), then run the line algorithm.',
+      'Only a dot: run either algorithm once and you get an L, then carry on.',
+    ], algs: [
+      { label: 'L shape (at back-left)', moves: "F U R U' R' F'", orient: 'x2', note: 'From an L to a line.' },
+      { label: 'Line (horizontal)', moves: "F R U R' U' F'", orient: 'x2', note: 'From a line to a cross.' },
+    ] },
+    { short: 'Yellow edges', title: 'Place the yellow edges', goal: 'All 4 yellow edges match the colour of the centre beside them.',
+      hint: 'Each yellow edge must match the colour of the centre beside it.', body: [
+      'Turn U until at least 2 yellow edges match the centre beside them.',
+      'Two matched edges <b>next to each other</b>: hold the cube so they are at the back and right, then run the algorithm.',
+      'Two matched edges <b>opposite</b> each other, or just one: run the algorithm once from any side, then turn U and look again.',
+      'The algorithm swaps the front and left edges and leaves the back and right edges alone. The corners get scrambled for now and are fixed in the next steps.',
+    ], algs: [
+      { label: 'Swap edges', moves: "R U R' U R U2 R' U", orient: 'x2', note: 'You may need to run it 1 to 3 times.' },
+    ] },
+    { short: 'Place corners', title: 'Place the yellow corners', goal: 'Each yellow corner is in the right place (its 3 colours match the 3 centres around it), orientation not needed yet.',
+      hint: 'Each yellow corner must be in the right place: its 3 colours match the 3 centres around it, even if it is twisted.', body: [
+      'A corner is "in place" when its 3 colours are the colours of the 3 surrounding centres, even if it is twisted.',
+      'Find a corner that is in place and bring it to the top-front-right position (UFR) by turning the whole cube around the vertical axis. Run the algorithm: the other 3 corners cycle around while this one stays put.',
+      'No corner in place: run the algorithm once from any side, then look again.',
+      'Repeat until all 4 corners are in place.',
+    ], algs: [
+      { label: 'Cycle 3 corners', moves: "U R U' L' U R' U' L", orient: 'x2', note: 'The top-front-right corner stays put.' },
+    ] },
+    { short: 'Twist corners', title: 'Twist the yellow corners', goal: 'The cube is fully solved.',
+      hint: 'The cube must be fully solved, each face a single colour.', body: [
+      'Hold the cube with yellow on top and a wrongly twisted yellow corner at the top-front-right position (UFR).',
+      'Repeat the algorithm 2 or 4 times until the yellow sticker of that corner faces up. While repeating, the cube looks scrambled, which is normal.',
+      'Turn only the top face (U), <b>not the whole cube</b>, to bring the next wrong corner to UFR and repeat. Do not stop in the middle.',
+      'After the last corner, turn U to line up the layers and you are done.',
+    ], algs: [
+      { label: 'Repeat 2 times', moves: "R' D' R D", reps: 2, orient: 'x2', note: 'Use it when the corner\'s yellow sticker faces sideways.' },
+      { label: 'Repeat 4 times', moves: "R' D' R D", reps: 4, orient: 'x2', note: 'Use it when the corner\'s yellow sticker faces the front.' },
+    ] },
+  ] as Step[],
+};
+const T = lang === 'vi' ? VI : EN;
+---
+<Base lang={lang} title={T.title} description={T.sub} noindex>
+  <p class="meta"><a href={lp(lang, '/')}>{g.back}</a></p>
+  <h1>{T.title}</h1>
+  <p class="meta">{T.sub}</p>
+
+  <div id="rb" data-ui={JSON.stringify({ stepWord: T.stepWord, stepTitles: ['', ...T.steps.slice(1).map((s) => s.title)], botMoves: T.botMoves, botTotal: T.botTotal, botSolved: T.botSolved, botFail: T.botFail, timeLbl: T.timeLbl, movesLbl: T.movesLbl, bestLbl: T.bestLbl, newBest: T.newBest, resultMsg: T.resultMsg, solvedState: T.solvedState, okMsg: T.okMsg, noMsg: T.noMsg, solvedMsg: T.solvedMsg, progress: T.progress, none: T.none, hints: T.steps.map((s) => s.hint || ''), demoNote: T.demoNote })}>
+    <div class="rb-wrap">
+      <div class="rb-left">
+        <div class="rb-sticky">
+          <div class="rb-stage" id="rb-stage" aria-label="3D">
+            <div class="rb-cube" id="rb-cube"></div>
+            <div class="rb-stats" id="rb-stats" hidden></div>
+          </div>
+          <div class="rb-player" id="rb-player" hidden>
+            <div class="rb-pstage" id="rb-pstage" hidden></div>
+            <div class="rb-tok" id="rb-tok"></div>
+            <div class="rb-pbtns">
+              <button type="button" class="btn sm" id="rb-play" title={T.playT} aria-label={T.playT}>{T.play}</button>
+              <button type="button" class="btn sm" id="rb-next" title={T.nextT} aria-label={T.nextT}>{T.next}</button>
+              <button type="button" class="btn sm" id="rb-nstage" title={T.nextStageT} aria-label={T.nextStageT} hidden>⏩</button>
+              <button type="button" class="btn sm" id="rb-restart" title={T.restartT} aria-label={T.restartT}>{T.restart}</button>
+            </div>
+          </div>
+          <div class="rb-bar">
+            <button type="button" class="btn sm" id="rb-scr">{T.scramble}</button>
+            <button type="button" class="btn sm" id="rb-reset">{T.reset}</button>
+            <button type="button" class="btn sm" id="rb-flip" title={T.flipT}>{T.flip} ⤵</button>
+            <button type="button" class="btn sm" id="rb-yl" title={T.turnLT} aria-label={T.turnLT}>{T.turnL}</button>
+            <button type="button" class="btn sm" id="rb-yr" title={T.turnRT} aria-label={T.turnRT}>{T.turnR}</button>
+          </div>
+        </div>
+        <div class="rb-bar rb-opts">
+          <label class="rb-chk-l"><input type="checkbox" id="rb-lbl" /> {T.labels}</label>
+          <span class="rb-speed" id="rb-speed">
+            <span>{T.speed}:</span>
+            <button type="button" data-ms="650">{T.slow}</button>
+            <button type="button" data-ms="380" class="sel">{T.normal}</button>
+            <button type="button" data-ms="190">{T.fast}</button>
+            <button type="button" data-ms="85">{T.turbo}</button>
+          </span>
+        </div>
+        <p class="meta rb-hint">{T.drag}</p>
+      </div>
+
+      <div class="rb-side">
+        <div class="rb-botcard">
+          <button type="button" class="btn" id="rb-bot">🤖 {T.botBtn}</button>
+          <p class="meta">{T.botHint}</p>
+          <ol class="rb-botst" id="rb-botst" hidden></ol>
+        </div>
+        <p class="rb-prog" id="rb-prog" aria-live="polite"></p>
+        <nav class="rb-nav" id="rb-nav" aria-label="steps">
+          {T.steps.map((s, i) => (
+            <button type="button" class="rb-pill" data-i={i}><span class="n">{i === 0 ? '★' : i}</span><span class="t">{s.short}</span></button>
+          ))}
+        </nav>
+
+        {T.steps.map((s, i) => (
+          <section class="rb-step" data-i={i} hidden={i !== 0}>
+            <h2>{i === 0 ? '' : `${T.stepWord} ${i}: `}{s.title}</h2>
+            <p class="rb-goal"><b>{T.goal}</b> {s.goal}</p>
+            <ul class="rb-list">{s.body.map((b) => <li set:html={b} />)}</ul>
+            {s.algs.length > 0 && (
+              <div class="rb-algs">
+                {s.algs.map((a) => (
+                  <div class="rb-algcard">
+                    <div class="rb-alginfo">
+                      <b>{a.label}</b>
+                      <code class="rb-code">{Array(a.reps || 1).fill(a.moves).join(' ')}</code>
+                      {a.note && <small>{a.note}</small>}
+                    </div>
+                    <button type="button" class="btn sm rb-alg" data-moves={a.moves} data-reps={a.reps || 1} data-orient={a.orient || ''} data-mode={a.mode || 'restore'}>▶ {T.watch}</button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {i > 0 && (
+              <div class="rb-chk">
+                <button type="button" class="btn sm rb-check" data-i={i}>{T.check}</button>
+                <span class="rb-msg" aria-live="polite"></span>
+              </div>
+            )}
+            <div class="rb-nav2">
+              {i > 0 ? <button type="button" class="btn sm rb-go" data-d="-1">{T.prev}</button> : <span></span>}
+              {i < T.steps.length - 1 && <button type="button" class="btn sm rb-go" data-d="1">{T.nextStep}</button>}
+            </div>
+          </section>
+        ))}
+
+        <div class="rb-try">
+          <h3>{T.tryTitle}</h3>
+          <div class="rb-pad" id="rb-pad">
+            {['U', 'D', 'L', 'R', 'F', 'B'].map((m) => <button type="button" data-m={m}>{m}</button>)}
+            {['U', 'D', 'L', 'R', 'F', 'B'].map((m) => <button type="button" data-m={m + "'"}>{m}'</button>)}
+          </div>
+          <p class="meta">{T.keys}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</Base>
+
+<script>
+  import { sfx, mountMute } from '../../data/sfx';
+  import { solve, type Stage } from '../../data/rubikSolver';
+  import { solved, clone, applyAlg, applyMove, parseMove, inLayer, rotMatrix, invertAlg, repeatAlg, tokens, isSolved, stepDone, progress, randomMoves, COLORS, type State, type V3 } from '../../data/rubikEngine';
+
+  const root = document.getElementById('rb') as HTMLElement;
+  const ui = JSON.parse(root.dataset.ui || '{}');
+  const $ = (id: string) => document.getElementById(id) as HTMLElement;
+  const stage = $('rb-stage'), cubeEl = $('rb-cube');
+
+  // ---------- dựng 26 khối nhỏ ----------
+  const HALF = 'translateZ(calc(var(--s) / 2))';
+  const FACE_CSS: Record<string, string> = {
+    '0,0,1': HALF, '0,0,-1': 'rotateY(180deg) ' + HALF, '1,0,0': 'rotateY(90deg) ' + HALF,
+    '-1,0,0': 'rotateY(-90deg) ' + HALF, '0,-1,0': 'rotateX(90deg) ' + HALF, '0,1,0': 'rotateX(-90deg) ' + HALF,
+  };
+  const LABEL: Record<string, string> = { '0,-1,0': 'U', '0,1,0': 'D', '-1,0,0': 'L', '1,0,0': 'R', '0,0,1': 'F', '0,0,-1': 'B' };
+  interface Cubie { el: HTMLElement; p: V3; base: string; faces: Map<string, HTMLElement>; }
+  const cubies: Cubie[] = [];
+  for (let x = -1; x <= 1; x++) for (let y = -1; y <= 1; y++) for (let z = -1; z <= 1; z++) {
+    if (!x && !y && !z) continue;
+    const el = document.createElement('div');
+    el.className = 'cb';
+    const base = `translate3d(calc(var(--s) * ${x}), calc(var(--s) * ${y}), calc(var(--s) * ${z}))`;
+    el.style.transform = base;
+    el.dataset.p = `${x},${y},${z}`;
+    const faces = new Map<string, HTMLElement>();
+    for (const dk of Object.keys(FACE_CSS)) {
+      const f = document.createElement('div');
+      f.className = 'f';
+      f.dataset.d = dk;
+      f.style.transform = FACE_CSS[dk];
+      const d = dk.split(',').map(Number);
+      if (d[0] * x + d[1] * y + d[2] * z === 1 && Math.abs(x) + Math.abs(y) + Math.abs(z) === 1) { f.dataset.l = LABEL[dk]; f.classList.add('lbl'); }
+      el.appendChild(f); faces.set(dk, f);
+    }
+    cubeEl.appendChild(el);
+    cubies.push({ el, p: [x, y, z], base, faces });
+  }
+
+  // ---------- trạng thái và vẽ ----------
+  let state: State = solved();
+  function paint() {
+    const m = new Map<string, number>();
+    for (const t of state) m.set(t.p.join(',') + '|' + t.d.join(','), t.c);
+    for (const c of cubies) for (const [dk, f] of c.faces) {
+      const col = m.get(c.p.join(',') + '|' + dk);
+      if (col === undefined) { f.style.background = ''; f.classList.remove('col'); }
+      else { f.style.background = COLORS[col]; f.classList.add('col'); }
+    }
+  }
+  paint();
+
+  // ---------- hoạt ảnh một nước xoay ----------
+  let ms = 380, instant = false;
+  const ease = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+  function animate(m: string, speed = ms): Promise<void> {
+    const mv = parseMove(m);
+    const group = cubies.filter((c) => inLayer(c.p, mv));
+    const total = mv.turns * Math.PI / 2;
+    const dur = instant ? 0 : speed * Math.pow(Math.abs(mv.turns), 0.6);
+    return new Promise((res) => {
+      const t0 = performance.now();
+      const frame = (now: number) => {
+        const k = dur === 0 ? 1 : Math.min(1, (now - t0) / dur);
+        const a = rotMatrix(mv.axis, total * ease(k));
+        const css = `matrix3d(${a[0][0]},${a[1][0]},${a[2][0]},0,${a[0][1]},${a[1][1]},${a[2][1]},0,${a[0][2]},${a[1][2]},${a[2][2]},0,0,0,0,1) `;
+        for (const c of group) c.el.style.transform = css + c.base;
+        if (k < 1) requestAnimationFrame(frame);
+        else { applyMove(state, m); for (const c of group) c.el.style.transform = c.base; paint(); res(); }
+      };
+      requestAnimationFrame(frame);
+    });
+  }
+  let chain: Promise<void> = Promise.resolve();
+  function doMove(m: string): Promise<void> {
+    (window as any).__rbLast = m;
+    chain = chain.then(() => animate(m)).then(() => { sfx.play('click', 0.35); onChange(); });
+    return chain;
+  }
+  let wasSolved = true;
+
+  // ---------- bấm giờ: sau khi Xáo trộn, chạy từ nước xoay đầu tiên của bạn, dừng khi giải xong ----------
+  type Tm = 'idle' | 'armed' | 'running' | 'done';
+  let tm: Tm = 'idle', t0 = 0, tEnd = 0, nMoves = 0, lastResult = '', tmr = 0, best = 0;
+  try { best = +(localStorage.getItem('rubik-best') || 0) || 0; } catch {}
+  const statsEl = $('rb-stats');
+  const fmt = (ms: number) => { const s = ms / 1000; if (s < 60) return s.toFixed(2); const m = Math.floor(s / 60); return m + ':' + (s - m * 60).toFixed(2).padStart(5, '0'); };
+  function paintStats() {
+    if (tm === 'idle') { statsEl.hidden = true; return; }
+    statsEl.hidden = false;
+    const t = tm === 'running' ? performance.now() - t0 : tm === 'done' ? tEnd - t0 : 0;
+    statsEl.innerHTML = `<b>${fmt(t)}</b><span>${ui.movesLbl}: ${nMoves}</span>` + (best ? `<span>${ui.bestLbl}: ${fmt(best)}</span>` : '');
+  }
+  function tmReset() { tm = 'idle'; lastResult = ''; nMoves = 0; clearInterval(tmr); paintStats(); }
+  function tmArm() { tmReset(); tm = 'armed'; paintStats(); }
+  function tmStart() { tm = 'running'; t0 = performance.now(); clearInterval(tmr); tmr = window.setInterval(paintStats, 50); paintStats(); }
+  function tmFinish() {
+    tm = 'done'; tEnd = performance.now(); clearInterval(tmr);
+    const t = tEnd - t0, nb = !best || t < best;
+    if (nb) { best = t; try { localStorage.setItem('rubik-best', String(Math.round(t))); } catch {} }
+    lastResult = ui.resultMsg.replace('{t}', fmt(t)).replace('{n}', String(nMoves)) + (nb ? ' ' + ui.newBest : '');
+    paintStats();
+  }
+
+  // ---------- tiến độ ----------
+  const pills = Array.from(document.querySelectorAll('.rb-pill')) as HTMLElement[];
+  function onChange() {
+    const p = progress(state);
+    pills.forEach((b, i) => b.classList.toggle('done', i >= 1 && i <= p));
+    const sv = isSolved(state);
+    if (tm === 'running' && sv) tmFinish();
+    $('rb-prog').textContent = sv ? (tm === 'done' && lastResult ? lastResult : ui.solvedState) : ui.progress + ': ' + (p ? p : ui.none);
+    if (sv && !wasSolved) { sfx.play('win'); }
+    wasSolved = sv;
+  }
+
+  // ---------- trình chạy thuật toán ----------
+  type BotStage = { step: number; start: number; end: number };
+  type Demo = { tokens: string[]; idx: number; setup: State; stages?: BotStage[] };
+  let demo: Demo | null = null, playing = false, playId = 0, shownStage = -2, gen = 0;
+  const player = $('rb-player'), tokEl = $('rb-tok'), playBtn = $('rb-play'), pstage = $('rb-pstage'), nstage = $('rb-nstage'), botSt = $('rb-botst');
+  const chipHtml = (t: string) => `<span${/^[xyz]/.test(t) ? ' class="rot"' : ''}>${t}</span>`;
+  const sleep = (n: number) => new Promise<void>((r) => setTimeout(r, n));
+  function curStageIdx(): number {
+    if (!demo || !demo.stages) return -1;
+    for (let i = 0; i < demo.stages.length; i++) if (demo.idx < demo.stages[i].end) return i;
+    return demo.stages.length - 1;
+  }
+  function paintToks() {
+    if (!demo) return;
+    const si = curStageIdx(), st = si >= 0 ? demo.stages![si] : null;
+    const a = st ? st.start : 0, b = st ? st.end : demo.tokens.length;
+    if (st && si !== shownStage) { shownStage = si; tokEl.innerHTML = demo.tokens.slice(a, b).map(chipHtml).join(''); }
+    Array.from(tokEl.children).forEach((c, i) => { c.classList.toggle('done', a + i < demo!.idx); c.classList.toggle('cur', a + i === demo!.idx); });
+    playBtn.textContent = playing ? '⏸' : '▶';
+    pstage.hidden = !st; nstage.hidden = !st;
+    if (st) {
+      pstage.textContent = `${ui.stepWord} ${st.step}: ${ui.stepTitles[st.step]}  ·  ${Math.min(demo.idx, b) - a}/${b - a} ${ui.botMoves}`;
+      Array.from(botSt.children).forEach((c, i) => { c.classList.toggle('on', i === si); c.classList.toggle('done', i < si || demo!.idx >= demo!.tokens.length); });
+    }
+  }
+  function cancelDemo() { playId++; gen++; playing = false; demo = null; shownStage = -2; player.hidden = true; botSt.hidden = true; }
+  // ---------- bot giải: tính lời giải theo 7 bước rồi chạy từng nước ----------
+  function startBot() {
+    if (isSolved(state)) { $('rb-prog').textContent = ui.botSolved; return; }
+    cancelDemo(); tmReset();
+    let stages: Stage[];
+    try { stages = solve(clone(state)); } catch { $('rb-prog').textContent = ui.botFail; return; }
+    const tk: string[] = [], bs: BotStage[] = [];
+    for (const s of stages) { bs.push({ step: s.step, start: tk.length, end: tk.length + s.tokens.length }); tk.push(...s.tokens); }
+    demo = { tokens: tk, idx: 0, setup: clone(state), stages: bs };
+    shownStage = -2;
+    botSt.innerHTML = bs.map((s) => `<li>${ui.stepWord} ${s.step}: ${ui.stepTitles[s.step]} <b>${s.end - s.start}</b></li>`).join('') + `<li class="tot">${ui.botTotal.replace('{n}', String(tk.length))}</li>`;
+    botSt.hidden = false; player.hidden = false;
+    paintToks();
+    setTimeout(() => void runDemo(), 400);
+  }
+  async function nextStage() {
+    if (!demo || !demo.stages) return;
+    if (playing) { playId++; playing = false; }
+    await chain;
+    if (!demo || !demo.stages) return;
+    if (demo.idx >= demo.tokens.length) { await resetDemo(); return; }
+    const target = demo.stages[curStageIdx()].end, id = playId, g = gen;
+    while (demo && id === playId && demo.idx < target) {
+      await doMove(demo.tokens[demo.idx]);
+      if (!demo || g !== gen) return;
+      demo.idx++; paintToks();
+    }
+  }
+  function loadDemo(a: HTMLElement) {
+    playId++; gen++; playing = false; tmReset();
+    const moves = a.dataset.moves!, reps = +(a.dataset.reps || 1), orient = a.dataset.orient || '', mode = a.dataset.mode || 'restore';
+    const s = solved();
+    if (orient) applyAlg(s, orient);
+    if (mode !== 'play') applyAlg(s, invertAlg(repeatAlg(moves, reps)));
+    chain = chain.then(() => { state = clone(s); paint(); onChange(); });
+    const tk = tokens(repeatAlg(moves, reps));
+    demo = { tokens: tk, idx: 0, setup: s };
+    botSt.hidden = true; shownStage = -2;
+    tokEl.innerHTML = tk.map(chipHtml).join('');
+    player.hidden = false;
+    paintToks();
+    return chain;
+  }
+  async function runDemo() {
+    if (!demo) return;
+    if (demo.idx >= demo.tokens.length) { await resetDemo(); }
+    const id = ++playId, g = gen; playing = true; paintToks();
+    await chain; // nếu còn một nước đang xoay (vừa bấm Dừng rồi chạy lại ngay) thì chờ nó xong và đếm xong đã
+    if (!demo || id !== playId || g !== gen) return;
+    while (demo && id === playId && demo.idx < demo.tokens.length) {
+      await doMove(demo.tokens[demo.idx]);
+      // nước vừa xoay xong đã áp dụng lên khối, nên luôn tính vào bộ đếm (kể cả khi bạn vừa bấm Dừng); chỉ bỏ qua nếu bộ chạy đã bị làm lại/đóng
+      if (!demo || g !== gen) return;
+      demo.idx++; paintToks();
+      if (id !== playId) return;
+      // dừng một nhịp giữa hai bước để bạn kịp thấy bước đã xong
+      if (demo.stages && demo.idx < demo.tokens.length && demo.stages.some((s) => s.end === demo!.idx)) { await sleep(900); if (id !== playId || !demo) return; paintToks(); }
+    }
+    if (id === playId) { playing = false; paintToks(); }
+  }
+  async function resetDemo() {
+    if (!demo) return;
+    playId++; playing = false; gen++;
+    const s = demo.setup; demo.idx = 0;
+    chain = chain.then(() => { state = clone(s); paint(); onChange(); });
+    await chain; paintToks();
+  }
+  async function stepDemo() {
+    if (!demo) return;
+    if (playing) { playId++; playing = false; }
+    await chain; // chờ nước đang xoay (nếu có) xong để bộ đếm đã cập nhật
+    if (!demo) return;
+    if (demo.idx >= demo.tokens.length) { await resetDemo(); return; }
+    const g = gen;
+    await doMove(demo.tokens[demo.idx]);
+    if (demo && g === gen) { demo.idx++; paintToks(); }
+  }
+  playBtn.addEventListener('click', () => { if (playing) { playId++; playing = false; paintToks(); } else void runDemo(); });
+  $('rb-next').addEventListener('click', () => void stepDemo());
+  $('rb-restart').addEventListener('click', () => void resetDemo());
+  nstage.addEventListener('click', () => void nextStage());
+  $('rb-bot').addEventListener('click', startBot);
+  document.querySelectorAll('.rb-alg').forEach((b) => b.addEventListener('click', async () => {
+    await loadDemo(b as HTMLElement);
+    setTimeout(() => void runDemo(), 350);
+  }));
+
+  // ---------- nút điều khiển ----------
+  function manual(m: string) {
+    cancelDemo();
+    if (tm === 'armed') tmStart();
+    if (tm === 'running' && 'UDLRFB'.includes(m[0])) { nMoves++; paintStats(); } // xoay cả khối (x, y, z) không tính là nước
+    void doMove(m);
+  }
+  document.querySelectorAll('#rb-pad button').forEach((b) => b.addEventListener('click', () => manual((b as HTMLElement).dataset.m!)));
+  $('rb-flip').addEventListener('click', () => manual('x2'));
+  $('rb-yl').addEventListener('click', () => manual("y'"));
+  $('rb-yr').addEventListener('click', () => manual('y'));
+  $('rb-reset').addEventListener('click', () => { cancelDemo(); tmReset(); chain = chain.then(() => { state = solved(); paint(); wasSolved = true; onChange(); }); });
+  $('rb-scr').addEventListener('click', () => {
+    cancelDemo();
+    chain = chain.then(() => {
+      const s = solved();
+      for (const m of randomMoves(25)) applyMove(s, m);
+      state = s; paint(); wasSolved = false; tmArm(); onChange(); sfx.play('flip');
+    });
+  });
+  ($('rb-lbl') as HTMLInputElement).addEventListener('change', (e) => cubeEl.classList.toggle('show-l', (e.target as HTMLInputElement).checked));
+  document.querySelectorAll('#rb-speed button').forEach((b) => b.addEventListener('click', () => {
+    ms = +(b as HTMLElement).dataset.ms!;
+    document.querySelectorAll('#rb-speed button').forEach((x) => x.classList.toggle('sel', x === b));
+  }));
+  document.addEventListener('keydown', (e) => {
+    const t = e.target as HTMLElement;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const k = e.key.toUpperCase();
+    if ('UDLRFB'.includes(k) && k.length === 1) { e.preventDefault(); manual(e.shiftKey ? k + "'" : k); }
+  });
+
+  // ---------- xoay góc nhìn bằng cách kéo ----------
+  let rx = -28, ry = -38;
+  const setView = () => { cubeEl.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`; };
+  setView();
+  // Vuốt trên một ô: xoay lớp chứa ô đó theo hướng vuốt. Vuốt ngoài khối (hoặc trên lớp giữa): đổi góc nhìn.
+  const FACE_NAME: Record<string, string> = { '0,-1,0': 'U', '0,1,0': 'D', '-1,0,0': 'L', '1,0,0': 'R', '0,0,1': 'F', '0,0,-1': 'B' };
+  const AXES: V3[] = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]];
+  const cr = (a: V3, b: V3): V3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+  // Vector 3D -> hướng trên màn hình theo góc nhìn hiện tại (bỏ qua phối cảnh)
+  function toScreen(v: V3): [number, number] {
+    const a = ry * Math.PI / 180, b = rx * Math.PI / 180;
+    const x1 = v[0] * Math.cos(a) + v[2] * Math.sin(a), z1 = -v[0] * Math.sin(a) + v[2] * Math.cos(a);
+    return [x1, v[1] * Math.cos(b) - z1 * Math.sin(b)];
+  }
+  function swipeToMove(face: HTMLElement, dx: number, dy: number): string | null {
+    const d = (face.dataset.d || '').split(',').map(Number) as V3;
+    const p = ((face.parentElement as HTMLElement).dataset.p || '').split(',').map(Number) as V3;
+    let best: V3 | null = null, bs = 0;
+    for (const t of AXES) {
+      if (t[0] * d[0] + t[1] * d[1] + t[2] * d[2] !== 0) continue;
+      const s = toScreen(t), len = Math.hypot(s[0], s[1]);
+      if (len < 0.25) continue; // hướng này gần như hướng thẳng vào màn hình, không dùng được
+      const score = (dx * s[0] + dy * s[1]) / len;
+      if (score > bs) { bs = score; best = t; }
+    }
+    if (!best) return null;
+    const n = cr(d, best); // quay thuận chiều kim đồng hồ quanh n thì ô chạm đi theo hướng "best"
+    const layer = p[0] * n[0] + p[1] * n[1] + p[2] * n[2];
+    if (layer === 1) return FACE_NAME[n.join(',')];
+    if (layer === -1) return FACE_NAME[[-n[0], -n[1], -n[2]].join(',')] + "'";
+    return null; // lớp giữa: khối này chưa hỗ trợ
+  }
+  let drag: { x: number; y: number; id: number; face: HTMLElement | null; sx: number; sy: number; mode: 'view' | 'turn' | 'done' } | null = null;
+  stage.addEventListener('pointerdown', (e) => {
+    if ((e.target as HTMLElement).closest('.sfx-btn')) return;
+    const f = (e.target as HTMLElement).closest('.f.col') as HTMLElement | null;
+    drag = { x: e.clientX, y: e.clientY, id: e.pointerId, face: f, sx: e.clientX, sy: e.clientY, mode: f ? 'turn' : 'view' };
+    try { stage.setPointerCapture(e.pointerId); } catch {}
+  });
+  stage.addEventListener('pointermove', (e) => {
+    if (!drag || e.pointerId !== drag.id || drag.mode === 'done') return;
+    if (drag.mode === 'turn') {
+      const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
+      if (Math.hypot(dx, dy) < 14) return;
+      const m = swipeToMove(drag.face!, dx, dy);
+      if (m) { manual(m); drag.mode = 'done'; return; }
+      drag.mode = 'view'; drag.x = e.clientX; drag.y = e.clientY; return; // lớp giữa hoặc hướng không dùng được: đổi góc nhìn
+    }
+    ry += (e.clientX - drag.x) * 0.45; rx = Math.max(-88, Math.min(88, rx - (e.clientY - drag.y) * 0.45));
+    drag.x = e.clientX; drag.y = e.clientY; setView();
+  });
+  const endDrag = () => { drag = null; };
+  stage.addEventListener('pointerup', endDrag); stage.addEventListener('pointercancel', endDrag);
+
+  // ---------- các bước ----------
+  const sections = Array.from(document.querySelectorAll('.rb-step')) as HTMLElement[];
+  let cur = 0;
+  function showStep(i: number) {
+    cur = Math.max(0, Math.min(sections.length - 1, i));
+    sections.forEach((s, j) => { s.hidden = j !== cur; });
+    pills.forEach((b, j) => b.classList.toggle('on', j === cur));
+    try { localStorage.setItem('rubik-step', String(cur)); } catch {}
+  }
+  pills.forEach((b, i) => b.addEventListener('click', () => { showStep(i); (document.getElementById('rb-nav') as HTMLElement).scrollIntoView({ block: 'nearest' }); }));
+  document.querySelectorAll('.rb-go').forEach((b) => b.addEventListener('click', () => { showStep(cur + +(b as HTMLElement).dataset.d!); window.scrollTo({ top: root.offsetTop - 10, behavior: 'smooth' }); }));
+  document.querySelectorAll('.rb-check').forEach((b) => b.addEventListener('click', () => {
+    const i = +(b as HTMLElement).dataset.i!;
+    const msg = (b.parentElement as HTMLElement).querySelector('.rb-msg') as HTMLElement;
+    const ok = stepDone(state, i as any);
+    msg.className = 'rb-msg ' + (ok ? 'ok' : 'no');
+    msg.textContent = ok ? ui.okMsg : ui.noMsg + (ui.hints[i] || '');
+    if (ok) sfx.play('win');
+  }));
+  mountMute(stage);
+  let start = 0;
+  try { start = +(localStorage.getItem('rubik-step') || 0) || 0; } catch {}
+  showStep(start);
+  onChange();
+  // dùng cho kiểm thử tự động
+  (window as any).__rb = { get state() { return state; }, arm: tmArm, doMove, cancelDemo, setState(s: State) { state = s; paint(); onChange(); }, setInstant(v: boolean) { instant = v; } };
+</script>
+
+<style is:global>
+  #rb { max-width: 1060px; }
+  .rb-wrap { display: grid; grid-template-columns: minmax(0, 440px) minmax(0, 1fr); gap: 28px; margin-top: 14px; align-items: start; }
+  .rb-left { position: sticky; top: 12px; }
+  .rb-stage .sfx-btn { top: 10px !important; right: 10px !important; }
+  .rb-stats { position: absolute; left: 12px; top: 8px; display: flex; flex-direction: column; gap: 1px; pointer-events: none; font: 600 .78rem system-ui, sans-serif; color: var(--muted); z-index: 2; }
+  .rb-stats[hidden] { display: none; }
+  .rb-botcard { margin: 0 0 12px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: color-mix(in srgb, var(--accent) 6%, var(--card)); }
+  .rb-botcard .meta { margin: 8px 0 0; font-size: .88rem; line-height: 1.45; }
+  .rb-botst { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 4px; }
+  .rb-botst[hidden] { display: none; }
+  .rb-botst li { display: flex; justify-content: space-between; gap: 8px; padding: 5px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); font-size: .88rem; opacity: .8; }
+  .rb-botst li.on { opacity: 1; border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--card)); font-weight: 600; }
+  .rb-botst li.done { opacity: .55; }
+  .rb-botst li.done::before { content: "✓"; color: #22c55e; font-weight: 800; margin-right: 4px; }
+  .rb-botst li.tot { justify-content: center; border-style: dashed; font-weight: 600; opacity: 1; }
+  .rb-pstage { flex: 1 1 100%; font-weight: 700; font-size: .92rem; }
+  .rb-pstage[hidden], #rb-nstage[hidden] { display: none; }
+  .rb-tok span.rot { font-style: italic; border-style: dashed; }
+  .rb-stats b { font: 800 1.5rem ui-monospace, Menlo, Consolas, monospace; color: var(--fg); letter-spacing: -.02em; }
+  .rb-stage { --st: min(100%, 440px); position: relative; width: 100%; aspect-ratio: 1; perspective: 1100px; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none;
+    border-radius: 18px; border: 1px solid var(--line); background: radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--accent) 14%, var(--card)), var(--card) 72%); overflow: hidden; --s: min(25vw, 78px); }
+  .rb-stage:active { cursor: grabbing; }
+  .rb-cube { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; will-change: transform; }
+  .cb { position: absolute; width: var(--s); height: var(--s); left: calc(var(--s) / -2); top: calc(var(--s) / -2); transform-style: preserve-3d; }
+  .f { position: absolute; inset: 0; box-sizing: border-box; background: #0f0f10; border: calc(var(--s) * .055) solid #0b0b0c; border-radius: calc(var(--s) * .17); backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    display: grid; place-items: center; font: 800 calc(var(--s) * .42) / 1 system-ui, sans-serif; color: rgba(0, 0, 0, .58); }
+  .f.col::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(135deg, rgba(255, 255, 255, .34), transparent 46%, rgba(0, 0, 0, .16)); pointer-events: none; }
+  .rb-cube.show-l .f.lbl::after { content: attr(data-l); position: relative; }
+  .rb-player { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); }
+  .rb-player[hidden] { display: none; }
+  .rb-tok { flex: 1 1 160px; display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; }
+  .rb-tok span { font: 700 .95rem ui-monospace, Menlo, Consolas, monospace; padding: 3px 7px; border-radius: 7px; background: color-mix(in srgb, var(--accent) 8%, transparent); border: 1px solid var(--line); opacity: .75; }
+  .rb-tok span.done { opacity: .35; }
+  .rb-tok span.cur { opacity: 1; background: var(--accent); color: #fff; border-color: var(--accent); }
+  .rb-pbtns { display: flex; gap: 6px; }
+  .rb-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
+  .rb-bar .btn { min-height: 40px; }
+  .rb-opts { font-size: .9rem; color: var(--muted); }
+  .rb-chk-l { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+  .rb-speed { display: inline-flex; align-items: center; gap: 4px; }
+  .rb-speed button { border: 1px solid var(--line); background: var(--card); color: var(--fg); border-radius: 999px; padding: 4px 10px; font-size: .85rem; cursor: pointer; }
+  .rb-speed button.sel { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .rb-hint { margin: 8px 0 0; font-size: .85rem; }
+  .rb-prog { margin: 0 0 10px; font-weight: 600; }
+  .rb-nav { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .rb-pill { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--card); color: var(--fg); border-radius: 999px; padding: 6px 12px 6px 8px; font-size: .88rem; cursor: pointer; min-height: 38px; }
+  .rb-pill .n { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: color-mix(in srgb, var(--accent) 14%, transparent); font-weight: 700; font-size: .78rem; }
+  .rb-pill.on { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); }
+  .rb-pill.done .n { background: #22c55e; color: #fff; }
+  .rb-pill.done .n::before { content: "✓"; }
+  .rb-pill.done .n { font-size: 0; }
+  .rb-pill.done .n::before { font-size: .78rem; }
+  .rb-step h2 { margin: 6px 0 8px; font-size: 1.35rem; }
+  .rb-goal { margin: 0 0 10px; padding: 8px 12px; border-left: 4px solid var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); border-radius: 0 10px 10px 0; }
+  .rb-list { padding-left: 1.2rem; display: grid; gap: 7px; margin: 0 0 12px; line-height: 1.55; }
+  .rb-algs { display: grid; gap: 8px; margin: 10px 0 12px; }
+  .rb-algcard { display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); }
+  .rb-alginfo { display: grid; gap: 3px; min-width: 0; }
+  .rb-alginfo small { color: var(--muted); line-height: 1.4; }
+  .rb-code { font: 700 1rem ui-monospace, Menlo, Consolas, monospace; word-break: break-word; color: var(--accent); }
+  .rb-chk { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 12px 0; }
+  .rb-msg.ok { color: #16a34a; font-weight: 600; }
+  .rb-msg.no { color: var(--muted); }
+  .rb-nav2 { display: flex; justify-content: space-between; gap: 10px; margin-top: 12px; }
+  .rb-try { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .rb-try h3 { margin: 0 0 8px; }
+  .rb-pad { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+  .rb-pad button { min-height: 44px; border: 1px solid var(--line); background: var(--card); color: var(--fg); border-radius: 10px; font: 700 1rem ui-monospace, Menlo, Consolas, monospace; cursor: pointer; }
+  .rb-pad button:active { background: var(--accent); color: #fff; }
+  @media (max-width: 860px) {
+    .rb-wrap { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+    .rb-left { display: contents; }
+    .rb-sticky { position: sticky; top: 0; z-index: 6; background: var(--bg); padding: 6px 0 8px; box-shadow: 0 6px 10px -8px rgba(0, 0, 0, .4); }
+    .rb-stage { aspect-ratio: auto; height: min(30vh, 58vw, 260px); --s: min(10vw, 5.4vh, 46px); }
+    .rb-hint { margin-top: 4px; font-size: .8rem; }
+    .rb-opts { font-size: .8rem; margin-top: 6px; }
+    .rb-bar { margin-top: 6px; gap: 5px; flex-wrap: nowrap; }
+    .rb-opts { flex-wrap: wrap; }
+    .rb-bar .btn { min-height: 40px; padding: 6px 8px; font-size: .82rem; flex: 1 1 auto; white-space: nowrap; }
+    #rb-yl, #rb-yr { flex: 0 0 44px !important; }
+    .rb-player { margin-top: 6px; padding: 6px 8px; }
+  }
+  @media (max-width: 860px) and (orientation: landscape) {
+    .rb-sticky { position: static; box-shadow: none; }
+    .rb-stage { height: min(80vh, 60vw, 300px); --s: min(10vw, 11vh, 52px); }
+  }
+</style>
