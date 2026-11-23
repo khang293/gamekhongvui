@@ -1,5 +1,6 @@
 // Máy chơi Tiến lên miền Nam (/tienlen/). Chỉ dùng bài của chính nó và thông tin công khai (số lá của người khác, bài đã ra).
-import { rankOf, detectCombo, canBeat, isChop, enumerateCombos, type Combo, type View } from './tienlenEngine';
+import { rankOf, detectCombo, canBeat, isChop, enumerateCombos, victimKey, type Combo, type View } from './tienlenEngine';
+import { chopValue } from './tienlenScore';
 
 export type BotMove = { cards: number[] } | { pass: true };
 const TWO = 12;
@@ -64,7 +65,8 @@ const usesTwo = (c: Combo) => c.cards.some((x) => rankOf(x) === TWO);
 
 // Quyết định nước đi. level 1 = Dễ, 2 = Thường, 3 = Khó
 // chips = true: chế độ tính chip (chặt heo có lời, đừng giữ heo đỏ trên tay đến cuối ván)
-export function botDecide(v: View, level = 2, rng: () => number = Math.random, chips = false): BotMove {
+// points = true: chế độ tính điểm (chặt heo đỏ / tứ quý / đôi thông có lời 20 điểm, tránh về bét)
+export function botDecide(v: View, level = 2, rng: () => number = Math.random, chips = false, points = false): BotMove {
   const hand = v.hand;
   const all = enumerateCombos(hand);
   const legal = all.filter((c) => canBeat(v.table, c));
@@ -121,11 +123,17 @@ export function botDecide(v: View, level = 2, rng: () => number = Math.random, c
       const red = c.cards.filter((x) => rankOf(x) === TWO && x % 4 >= 2).length;
       s -= red * 12; // đánh được heo đỏ ra thì bớt thối heo đỏ
     }
+    if (points && level >= 2 && v.table && isChop(v.table, c)) {
+      const k = victimKey(v.table);
+      if (k) s -= chopValue(k, v.table.cards) * 2; // chặt heo đen -20, heo đỏ / tứ quý / đôi thông -40 (đổi điểm thật: 10 / 20)
+    }
     if (threat) s -= 500;
     if (s < bestScore) { bestScore = s; bestC = c; }
   }
   if (!bestC) return { pass: true };
-  const passScore = base * 100 + (threat ? 0 : level === 3 ? 15 : 40);
+  let passScore = base * 100 + (threat ? 0 : level === 3 ? 15 : 40);
+  // tính điểm: còn nhiều lá hơn hẳn đối thủ gần hết thì đừng bỏ lượt dễ dàng (tránh về bét, -20 điểm)
+  if (points && level >= 2 && !threat && hand.length - danger >= 6) passScore -= 25;
   if (!threat && bestScore > passScore && level >= 2) return { pass: true };
   return { cards: bestC.cards };
 }

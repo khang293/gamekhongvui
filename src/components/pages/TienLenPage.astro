@@ -37,7 +37,7 @@ const TXT = {
     whiteWin: 'Tới trắng! {n} thắng ngay với {k}.', youWin: 'Bạn thắng ván này!', botWin: '{n} thắng ván.', youWhite: 'Tới trắng! Bạn thắng ngay với {k}.',
     order: 'Thứ tự', left: 'còn {k} lá', burned: 'Cháy bài', winnerTag: 'Về nhất',
     done: 'Ván đã kết thúc.', note: 'Chơi giải trí, không dùng tiền thật.',
-    mode: 'Cách chơi', modes: ['Tính chip (nhiều ván)', 'Từng ván (không tính chip)'],
+    mode: 'Cách chơi', modes: ['Tính chip (nhiều ván)', 'Từng ván (không tính chip)', 'Tính điểm (4 người)'],
     stackLbl: 'Chip ban đầu', unitLbl: 'Chip mỗi lá',
     chipRules: [
       'Chế độ tính chip: mỗi người bắt đầu với số chip đã chọn, chơi nhiều ván liên tiếp. Chip chỉ là điểm ảo để chơi cho vui.',
@@ -52,6 +52,22 @@ const TXT = {
     lnCards: '{c} lá × {u}', lnBurn: '({c} lá × {u}) × 2 cháy bài', lnBlack: 'heo đen {k} × {u}', lnRed: 'heo đỏ {k} × {u}',
     lnChop: 'chặt heo: {p}', lnWhite: 'tới trắng 13 × {u}', lnShort: 'chỉ trả được {p}',
     toName: 'trả {n}', fromName: '{n} trả', tagChop: 'Chặt heo', tagChopped: 'Bị chặt heo', tagWhite: 'Tới trắng',
+    // ----- Chế độ tính điểm -----
+    pointRules: [
+      'Chế độ tính điểm (luôn 4 người, chỗ trống do máy chơi): chơi nhiều ván, điểm cộng dồn và có thể âm. Ai chạm điểm đích trước thì thắng; nhiều người cùng chạm trong một ván thì người điểm cao nhất thắng (bằng điểm thì ai được nhiều điểm hơn ở ván đó). Có thể chọn "Không đặt đích" rồi bấm "Kết thúc" khi muốn dừng.',
+      'Điểm hạng cuối ván: nhất +20, nhì +10, ba −10, bét −20 (xếp hạng theo số lá còn trên tay).',
+      'Điểm chặt, cộng dồn: người bị chặt bị trừ, người chặt được cộng. Mỗi lá 2 đen 10 điểm, mỗi lá 2 đỏ 20 điểm (đôi 2, sám 2 tính từng lá). Chặt đôi thông 20 điểm, chặt tứ quý 20 điểm.',
+      'Chặt chồng: nếu một lần chặt lại bị chặt tiếp trong cùng vòng thì cả chuỗi tính về người chặt cuối cùng: mọi người bị chặt trong chuỗi (kể cả người chặt trung gian) đều trả giá trị bộ bài của mình cho người chặt cuối.',
+      'Không có thối heo hay cháy bài. Tới trắng: người thắng +20, ba người còn lại xếp hạng theo thứ tự ngồi từ người thắng (+10, −10, −20), không có điểm chặt.',
+    ],
+    ptsTarget: 'Điểm đích', ptsCustom: 'Tự nhập (10 đến 1000)', ptsEndless: 'Không đặt đích', ptsFour: 'Chế độ này luôn 4 người, chỗ trống do máy chơi.',
+    targetInfo: 'Đích {t}', noTarget: 'Không đích', ptsSettle: 'Tính điểm ván này', ptsTotal: 'Tổng',
+    chopKinds: { black: 'heo đen', red: 'heo đỏ', twos: 'heo', quad: 'tứ quý', pairs: 'đôi thông' },
+    chopPts: 'Chặt {k} −{v}',
+    rankLn: ['Về nhất', 'Về nhì', 'Về ba', 'Về bét'], tagChopPts: 'Chặt', tagChoppedPts: 'Bị chặt',
+    lnChopped: '{k} bị chặt: −{v} (trả {n})', lnChopOf: 'chặt {k}: +{v} (từ {n})', lnChain: 'chặt chồng',
+    ptsWinYou: 'Bạn thắng cả cuộc chơi với {p} điểm!', ptsWinOther: '{n} thắng cả cuộc chơi với {p} điểm.', ptsEndNote: 'Đã kết thúc theo ý bạn, người dẫn đầu thắng.',
+    standings: 'Xếp hạng cuối cùng', endBtn: 'Kết thúc', confirmRestartPts: 'Bắt đầu lại và đặt điểm của mọi người về 0?',
     // ----- Online -----
     homeCards: [
       { k: 'solo', ic: '🤖', t: 'Chơi với máy', d: 'Một mình với 1 đến 3 máy' },
@@ -110,7 +126,7 @@ const TXT = {
     whiteWin: 'Instant win! {n} wins right away with {k}.', youWin: 'You won this hand!', botWin: '{n} wins the hand.', youWhite: 'Instant win! You win right away with {k}.',
     order: 'Finish order', left: '{k} cards left', burned: 'Burned', winnerTag: 'Winner',
     done: 'The hand is over.', note: 'For fun only, no real money.',
-    mode: 'Mode', modes: ['Chips (many hands)', 'One hand at a time (no chips)'],
+    mode: 'Mode', modes: ['Chips (many hands)', 'One hand at a time (no chips)', 'Points (4 players)'],
     stackLbl: 'Starting chips', unitLbl: 'Chips per card',
     chipRules: [
       'Chip mode: everyone starts with the chosen stack and you play hand after hand. Chips are just virtual points for fun.',
@@ -125,6 +141,22 @@ const TXT = {
     lnCards: '{c} cards × {u}', lnBurn: '({c} cards × {u}) × 2 burned', lnBlack: 'black 2s {k} × {u}', lnRed: 'red 2s {k} × {u}',
     lnChop: 'chopped 2s: {p}', lnWhite: 'instant win 13 × {u}', lnShort: 'could only pay {p}',
     toName: 'pays {n}', fromName: '{n} pays', tagChop: 'Chopped a 2', tagChopped: 'Got chopped', tagWhite: 'Instant win',
+    // ----- Points mode -----
+    pointRules: [
+      'Points mode (always 4 players, empty seats are played by the computer): play hand after hand; points add up and can go negative. The first player to reach the target wins; if several reach it in the same hand the highest total wins (equal totals: the better score in that hand). Choose "No target" and press "End" whenever you want to stop.',
+      'Rank points at the end of a hand: 1st +20, 2nd +10, 3rd −10, 4th −20 (ranked by cards left in hand).',
+      'Chop points, cumulative: the chopped player loses them and the chopper gains them. Each black 2 is 10 points, each red 2 is 20 points (a pair or triple of 2s counts card by card). Chopping consecutive pairs is 20 points, chopping a four of a kind is 20 points.',
+      'Chop on chop: if a chop is itself chopped in the same round, the whole chain is paid to the LAST chopper: everyone chopped in the chain (including the middle choppers) pays the value of their own combination to the final chopper.',
+      'No pig penalty and no burned-hand penalty. Instant win: the winner gets +20 and the other three are ranked by seating order after the winner (+10, −10, −20); there are no chop points.',
+    ],
+    ptsTarget: 'Target score', ptsCustom: 'Custom (10 to 1000)', ptsEndless: 'No target', ptsFour: 'This mode is always 4 players; empty seats are played by the computer.',
+    targetInfo: 'Target {t}', noTarget: 'No target', ptsSettle: 'Points for this hand', ptsTotal: 'Total',
+    chopKinds: { black: 'black 2', red: 'red 2', twos: '2s', quad: 'four of a kind', pairs: 'consecutive pairs' },
+    chopPts: 'Chop {k} −{v}',
+    rankLn: ['1st place', '2nd place', '3rd place', '4th place'], tagChopPts: 'Chopper', tagChoppedPts: 'Got chopped',
+    lnChopped: '{k} chopped: −{v} (pays {n})', lnChopOf: 'chopped {k}: +{v} (from {n})', lnChain: 'chop on chop',
+    ptsWinYou: 'You won the whole game with {p} points!', ptsWinOther: '{n} won the whole game with {p} points.', ptsEndNote: 'Ended at your request; the leader wins.',
+    standings: 'Final standings', endBtn: 'End', confirmRestartPts: "Restart and reset everyone's points to 0?",
     // ----- Online -----
     homeCards: [
       { k: 'solo', ic: '🤖', t: 'Play the computer', d: 'Alone against 1 to 3 computer players' },
@@ -157,6 +189,7 @@ const TXT = {
   },
 };
 const T = TXT[lang];
+const MODE_KEYS = ['chips', 'single', 'points'];
 ---
 <Base lang={lang} title={T.title} description={T.sub} noindex wide>
   <div class="tl-head">
@@ -184,6 +217,7 @@ const T = TXT[lang];
           <summary>{T.rulesTitle}</summary>
           <ul>{T.rules.map((r) => <li>{r}</li>)}</ul>
           <ul class="tl-chiprules">{T.chipRules.map((r) => <li>{r}</li>)}</ul>
+          <ul class="tl-chiprules tl-ptsrules">{T.pointRules.map((r) => <li>{r}</li>)}</ul>
         </details>
         <p class="meta">{T.note}</p>
       </div>
@@ -193,7 +227,7 @@ const T = TXT[lang];
         <button type="button" class="tl-back" data-go="home">{T.back}</button>
         <h2 class="bd-h">{T.mode}</h2>
         <div class="bd-row">
-          {T.modes.map((l, i) => <button type="button" class={`bd-opt${i === 0 ? ' sel' : ''}`} data-mode={i === 0 ? 'chips' : 'single'}>{l}</button>)}
+          {T.modes.map((l, i) => <button type="button" class={`bd-opt${i === 0 ? ' sel' : ''}`} data-mode={MODE_KEYS[i]}>{l}</button>)}
         </div>
         <div id="tl-chipopts">
           <h2 class="bd-h">{T.stackLbl}</h2>
@@ -205,9 +239,21 @@ const T = TXT[lang];
             {[5, 10, 20].map((v) => <button type="button" class={`bd-opt${v === 10 ? ' sel' : ''}`} data-unit={v}>{v}</button>)}
           </div>
         </div>
-        <h2 class="bd-h">{T.players}</h2>
-        <div class="bd-row">
-          {T.playersOpt.map((l, i) => <button type="button" class={`bd-opt${i === 2 ? ' sel' : ''}`} data-players={i + 2}>{l}</button>)}
+        <div id="tl-ptsopts" hidden>
+          <h2 class="bd-h">{T.ptsTarget}</h2>
+          <div class="bd-row">
+            {[50, 100, 200, 300].map((v) => <button type="button" class={`bd-opt${v === 100 ? ' sel' : ''}`} data-target={v}>{v}</button>)}
+            <button type="button" class="bd-opt" data-target="0">{T.ptsEndless}</button>
+          </div>
+          <label class="tl-lbl" for="tl-target-custom">{T.ptsCustom}</label>
+          <input id="tl-target-custom" class="tl-input tl-num" type="number" inputmode="numeric" min="10" max="1000" step="10" placeholder="10 - 1000" />
+          <p class="meta tl-small">{T.ptsFour}</p>
+        </div>
+        <div id="tl-players-wrap">
+          <h2 class="bd-h">{T.players}</h2>
+          <div class="bd-row">
+            {T.playersOpt.map((l, i) => <button type="button" class={`bd-opt${i === 2 ? ' sel' : ''}`} data-players={i + 2}>{l}</button>)}
+          </div>
         </div>
         <h2 class="bd-h">{T.level}</h2>
         <div class="bd-row">
@@ -295,6 +341,7 @@ const T = TXT[lang];
 <script>
   import { detectCombo, canBeat, rankOf, suitOf, RANKS, SUITS, enumerateCombos, type Combo } from '../../data/tienlenEngine';
   import { botDecide } from '../../data/tienlenBot';
+  import { chopValue, chopKind } from '../../data/tienlenScore';
   import { TLGame, TLNetHost, TLNetClient, TURN_MS, type NetState, type ResItem } from '../../data/tienlenNet';
   import { PeerTransport } from '../../data/net/peerTransport';
   import { LoopbackHub } from '../../data/net/loopbackTransport';
@@ -303,6 +350,7 @@ const T = TXT[lang];
   import { sfx, mountMute } from '../../data/sfx';
 
   const root = document.getElementById('tl') as HTMLElement;
+  const MODE_KEYS = ['chips', 'single', 'points'] as const;
   const T = JSON.parse(root.dataset.ui || '{}');
   const $ = (id: string) => document.getElementById(id) as HTMLElement;
   const menu = $('tl-menu'), gameEl = $('tl-game'), tableEl = $('tl-table'), pileEl = $('tl-pile'), byEl = $('tl-by');
@@ -366,13 +414,14 @@ const T = TXT[lang];
   }));
 
   // ---------- Điều khiển ván: một lớp chung cho chơi máy, chủ phòng và khách ----------
-  function sendIntent(p: { type: 'play'; cards: number[] } | { type: 'pass' } | { type: 'ready' } | { type: 'restart' }) {
+  function sendIntent(p: { type: 'play'; cards: number[] } | { type: 'pass' } | { type: 'ready' } | { type: 'restart' } | { type: 'endsession' }) {
     if (!ctl) return;
     if (ctl.kind === 'solo') { ctl.game.intent(0, p); }
     else if (ctl.kind === 'host') { ctl.host.intentHost(p); }
     else if (p.type === 'play') ctl.client.play(p.cards);
     else if (p.type === 'pass') ctl.client.pass();
     else if (p.type === 'ready') ctl.client.ready();
+    // 'restart' và 'endsession' chỉ dành cho chủ phòng / người chơi một mình
   }
 
   function onState(s: NetState) {
@@ -392,7 +441,7 @@ const T = TXT[lang];
     if (ev && ev.n !== lastEv) {
       lastEv = ev.n;
       if (ev.kind === 'deal') { dealing = true; sfx.play('deal'); setTimeout(() => { dealing = false; handEl.querySelectorAll('.deal').forEach((e) => e.classList.remove('deal')); }, 900); }
-      else if (ev.kind === 'chop') { sfx.play('hit'); flashBanner(T.chopBanner); pileEl.dataset.from = fromPos(ev.slot); retrigger(pileEl); }
+      else if (ev.kind === 'chop') { sfx.play('hit'); flashBanner(s.settings.mode === 'points' && ev.vc && ev.vk ? fmt(T.chopPts, { k: T.chopKinds[chopKind(ev.vk, ev.vc)], v: chopValue(ev.vk, ev.vc) }) : T.chopBanner); pileEl.dataset.from = fromPos(ev.slot); retrigger(pileEl); }
       else if (ev.kind === 'play') { sfx.play(ev.slot === s.mySlot ? 'place' : 'tap'); pileEl.dataset.from = fromPos(ev.slot); retrigger(pileEl); }
       else if (ev.kind === 'pass') sfx.play('click');
       else if (ev.kind === 'timeout') { sfx.play('error'); }
@@ -434,8 +483,18 @@ const T = TXT[lang];
 
   // ---------- Vẽ bàn ----------
   const chipsMode = () => !!ns && ns.settings.mode === 'chips' && !!ns.stacks;
+  const pointsMode = () => !!ns && ns.settings.mode === 'points' && !!ns.points;
   let prevStacks: number[] = [];
+  let prevTotals: number[] = [];
+  // Điểm cộng dồn của một người (chế độ tính điểm); đổi điểm thì nháy xanh hoặc đỏ
+  function scorePill(slot: number, big = false) {
+    if (!pointsMode() || !ns!.points) return '';
+    const cur = ns!.points.totals[slot], prev = prevTotals[slot];
+    const chg = prev !== undefined && prev !== cur ? (cur > prev ? ' up' : ' dn') : '';
+    return `<span class="tl-chip pts${cur < 0 ? ' neg' : ''}${big ? ' big' : ''}${chg}">⭐ ${cur}</span>`;
+  }
   function chipPill(slot: number) {
+    if (pointsMode()) return scorePill(slot);
     if (!chipsMode() || !ns!.stacks) return '';
     const cur = ns!.stacks[slot], prev = prevStacks[slot];
     const chg = prev !== undefined && prev !== cur ? (cur > prev ? ' up' : ' dn') : '';
@@ -593,7 +652,7 @@ const T = TXT[lang];
     ($('tl-clear') as HTMLButtonElement).disabled = !sel.size;
     const newBtn = $('tl-new') as HTMLButtonElement;
     newBtn.hidden = ctl?.kind === 'client';
-    const nbLabel = chipsMode() ? T.restart : T.again;
+    const nbLabel = chipsMode() || pointsMode() ? T.restart : T.again;
     newBtn.innerHTML = `↻ <span>${nbLabel}</span>`; newBtn.setAttribute('aria-label', nbLabel); newBtn.title = nbLabel;
     handEl.classList.toggle('mine', my);
   }
@@ -610,11 +669,15 @@ const T = TXT[lang];
     }
     $('tl-handinfo').textContent = fmt(T.handNo, { k: s.hand });
     const un = $('tl-un');
-    un.hidden = !chipsMode();
-    if (chipsMode()) { const full = fmt(T.unitInfo, { u: s.settings.unit }); un.title = full; un.textContent = window.matchMedia('(max-width: 720px)').matches ? full.replace(/\s*chips?\s*$/i, '') : full; }
+    const pm = pointsMode();
+    un.hidden = !(chipsMode() || pm);
+    if (pm) { const t = s.points!.target; const full = t > 0 ? fmt(T.targetInfo, { t }) : T.noTarget; un.title = full; un.textContent = full; }
+    else if (chipsMode()) { const full = fmt(T.unitInfo, { u: s.settings.unit }); un.title = full; un.textContent = window.matchMedia('(max-width: 720px)').matches ? full.replace(/\s*chips?\s*$/i, '') : full; }
     const bar = $('tl-bar');
-    bar.hidden = !chipsMode();
-    if (chipsMode() && s.stacks) {
+    bar.hidden = !(chipsMode() || pm);
+    if (pm) {
+      $('tl-me').innerHTML = `${scorePill(s.mySlot, true)}<span class="tl-meName">${esc(s.slots[s.mySlot]?.name || '')}</span>`;
+    } else if (chipsMode() && s.stacks) {
       const cur = s.stacks[s.mySlot], prev = prevStacks[s.mySlot];
       const chg = prev !== undefined && prev !== cur ? (cur > prev ? ' up' : ' dn') : '';
       $('tl-me').innerHTML = `<span class="tl-chip big${chg}">🪙 ${cur}</span><span class="tl-meName">${esc(s.slots[s.mySlot]?.name || '')}</span>`;
@@ -628,6 +691,7 @@ const T = TXT[lang];
     paintReason();
     renderButtons();
     if (s.stacks) prevStacks = s.stacks.slice();
+    if (s.points) prevTotals = s.points.totals.slice();
     tableEl.classList.toggle('myturn', myTurn());
     renderResult();
     tickTimer();
@@ -682,6 +746,7 @@ const T = TXT[lang];
   function renderResult() {
     const s = ns!;
     if (s.phase !== 'result' || !s.result || !s.view) { if (!overEl.hidden && s.phase === 'playing') { overEl.hidden = true; overEl.innerHTML = ''; shownResultKey = ''; } return; }
+    if (s.settings.mode === 'points' && s.result.pts) { renderResultPts(s); return; }
     const r = s.result, me = s.mySlot, n = s.settings.n;
     const nameOf = (slot: number) => esc(s.slots[slot]?.name || '');
     const chips = chipsMode();
@@ -734,11 +799,74 @@ const T = TXT[lang];
     overEl.innerHTML = `${r.winner === me ? confettiHTML() : ''}<div class="tl-box${chips ? ' tl-settle' : ''}"><h2>${msg}</h2><p>${chips ? T.settle + ' · ' + fmt(T.unitInfo, { u: s.settings.unit }) : T.order}</p><ol>${rows}</ol><div class="tl-nextbar">${btns}<button type="button" class="btn ghost" id="tl-menu2">${ctl?.kind === 'solo' ? T.menu : T.leaveRoom}</button></div></div>`;
     overEl.hidden = false;
   }
+  // ---------- Kết quả ván: chế độ tính điểm ----------
+  let countedHand = '', countedOver = '';
+  function renderResultPts(s: NetState) {
+    const r = s.result!, pts = r.pts!, me = s.mySlot;
+    const nameOf = (slot: number) => esc(s.slots[slot]?.name || '');
+    const over = r.sessionOver;
+    const key = `${s.hand}|${r.winner}|${over}|${pts.over}`;
+    const humansOn = s.slots.filter((x) => x.kind === 'human' && x.online);
+    const readyCount = humansOn.filter((x) => x.ready).length, needCount = humansOn.length;
+    const iReady = !!s.slots[me]?.ready;
+    const hk = `${s.code}|${s.hand}`;
+    if (countedHand !== hk) { countedHand = hk; if (r.winner === me) stats.hw++; saveStats(); }
+    if (over && countedOver !== hk) {
+      countedOver = hk;
+      if (ctl?.kind === 'solo') { if (r.sessionWinner === me) stats.w++; else stats.l++; saveStats(); }
+    }
+    if (shownResultKey !== key) { shownResultKey = key; sfx.play(over ? (r.sessionWinner === me ? 'win' : 'lose') : (r.winner === me ? 'win' : 'lose')); }
+    const totals = pts.totals;
+    // người dẫn đầu: điểm cao nhất, bằng điểm thì ai được nhiều điểm hơn ở ván vừa rồi, rồi số ghế
+    const ranked = [0, 1, 2, 3].sort((a, b) => totals[b] - totals[a] || r.deltas[b] - r.deltas[a] || a - b);
+    const chainSize = new Map<number, number>();
+    for (const it of pts.items) chainSize.set(it.chain, (chainSize.get(it.chain) || 0) + 1);
+    const avatar = (slot: number) => `<span class="tl-av sm" style="--c:${AV_COL[slot % 4]}">${esc([...(s.slots[slot]?.name || '?')][0] || '?')}</span>`;
+    let msg: string, sub: string, rows: string;
+    if (over) {
+      const w = r.sessionWinner;
+      msg = w === me ? fmt(T.ptsWinYou, { p: totals[w] }) : fmt(T.ptsWinOther, { n: nameOf(w), p: totals[w] });
+      sub = pts.over === 'ended' ? T.ptsEndNote : T.standings;
+      const medal = ['🥇', '🥈', '🥉', '4.'];
+      rows = ranked.map((slot, i) => `<li><span class="tl-medal">${medal[i]}</span>${avatar(slot)}<b>${nameOf(slot)}</b>${slot === me ? `<em class="gold">${T.youTag}</em>` : ''}<strong class="${totals[slot] > 0 ? 'up' : totals[slot] < 0 ? 'dn' : ''}">${totals[slot]}</strong></li>`).join('');
+    } else {
+      const handMsg = r.white ? (r.winner === me ? fmt(T.youWhite, { k: T.white[r.white] }) : fmt(T.whiteWin, { n: nameOf(r.winner), k: T.white[r.white] })) : (r.winner === me ? T.youWin : fmt(T.botWin, { n: nameOf(r.winner) }));
+      msg = handMsg;
+      sub = `${T.ptsSettle} · ${pts.target > 0 ? fmt(T.targetInfo, { t: pts.target }) : T.noTarget}`;
+      rows = r.order.map((slot, i) => {
+        const d = r.deltas[slot];
+        const lines: string[] = [`<div>${T.rankLn[i]}: ${sgn(pts.rank[slot])}</div>`];
+        for (const it of pts.items) {
+          if (it.self) continue;
+          const lab = T.chopKinds[chopKind(it.key, it.cards)];
+          const chain = (chainSize.get(it.chain) || 0) > 1 ? ` · ${T.lnChain}` : '';
+          if (it.from === slot) lines.push(`<div>${fmt(T.lnChopped, { k: lab, v: it.val, n: nameOf(it.to) })}${chain}</div>`);
+          else if (it.to === slot) lines.push(`<div>${fmt(T.lnChopOf, { k: lab, v: it.val, n: nameOf(it.from) })}${chain}</div>`);
+        }
+        const tags = (i === 0 ? `<em>${r.white ? T.tagWhite : T.winnerTag}</em>` : '') + (pts.items.some((it) => !it.self && it.to === slot) ? `<em class="gold">${T.tagChopPts}</em>` : '') + (pts.items.some((it) => it.from === slot) ? `<em class="bad">${T.tagChoppedPts}</em>` : '');
+        return `<li>${avatar(slot)}<b>${nameOf(slot)}</b>${tags}<span class="tl-pd"><strong class="${d > 0 ? 'up' : d < 0 ? 'dn' : ''}">${sgn(d)}</strong><small>⭐ ${totals[slot]}</small></span><div class="tl-bd">${lines.join('')}</div></li>`;
+      }).join('');
+    }
+    let btns = '';
+    if (over) btns = ctl?.kind === 'client' ? `<span class="tl-wait">${T.waitHostRestart}</span>` : `<button type="button" class="btn" id="tl-restart">${T.playAgain}</button>`;
+    else {
+      const endBtn = ctl?.kind === 'client' ? '' : `<button type="button" class="btn ghost" id="tl-endsession">${T.endBtn}</button>`;
+      if (ctl?.kind === 'solo') btns = `<button type="button" class="btn" id="tl-next">${T.nextHand}</button>${endBtn}`;
+      else btns = (iReady ? `<span class="tl-wait">${T.readyWait} (${fmt(T.readyCount, { a: readyCount, b: needCount })})</span>` : `<button type="button" class="btn" id="tl-ready">${T.ready}${needCount > 1 ? ` (${fmt(T.readyCount, { a: readyCount, b: needCount })})` : ''}</button>`) + endBtn;
+    }
+    const sig = key + '|' + iReady + '|' + readyCount + '|' + needCount + '|' + totals.join(',');
+    if (overEl.dataset.sig === sig && !overEl.hidden) return;
+    overEl.dataset.sig = sig;
+    overEl.className = 'tl-over chip';
+    overEl.innerHTML = `${(over ? r.sessionWinner === me : r.winner === me) ? confettiHTML() : ''}<div class="tl-box tl-settle tl-pts"><h2>${msg}</h2><p>${sub}</p><ol>${rows}</ol><div class="tl-nextbar">${btns}<button type="button" class="btn ghost" id="tl-menu2">${ctl?.kind === 'solo' ? T.menu : T.leaveRoom}</button></div></div>`;
+    overEl.hidden = false;
+  }
   overEl.addEventListener('click', (e) => {
     const t = e.target as HTMLElement;
-    if (t.closest('#tl-next')) sendIntent({ type: 'ready' });
+    if (t.closest('#tl-endsession')) sendIntent({ type: 'endsession' });
+    else if (t.closest('#tl-next')) sendIntent({ type: 'ready' });
     else if (t.closest('#tl-ready')) sendIntent({ type: 'ready' });
-    else if (t.closest('#tl-restart')) sendIntent({ type: 'restart' });
+    else if (t.closest('#tl-restart')) { countedHand = ''; countedOver = ''; shownResultKey = ''; sendIntent({ type: 'restart' }); }
     else if (t.closest('#tl-menu2')) leaveToMenu();
   });
 
@@ -833,10 +961,11 @@ const T = TXT[lang];
   $('tl-clear').addEventListener('click', () => { sel = new Set(); reasonMsg = ''; refreshSel(); sfx.play('click'); });
   $('tl-new').addEventListener('click', () => {
     if (!ctl || ctl.kind === 'client') return;
-    if (chipsMode()) {
+    if (chipsMode() || pointsMode()) {
       const busy = ns && ns.phase !== 'lobby' && (ns.hand > 1 || (ns.view && ns.view.log.length > 0));
-      if (busy && !window.confirm(T.confirmRestart)) return;
+      if (busy && !window.confirm(pointsMode() ? T.confirmRestartPts : T.confirmRestart)) return;
     }
+    countedHand = ''; countedOver = ''; shownResultKey = '';
     if (ctl.kind === 'solo') ctl.game.restartNow(); else ctl.host.game.restartNow();
   });
   $('tl-menu-btn').addEventListener('click', () => leaveToMenu());
@@ -847,7 +976,7 @@ const T = TXT[lang];
   function teardown() {
     const c = ctl; ctl = null; ns = null;
     try { if (c?.kind === 'host') c.host.close(); else if (c?.kind === 'client') c.client.leave(); } catch {}
-    shownResultKey = ''; lastEv = 0; lastHand = -1; lastHandKey = ''; lastCur = -1; prevStacks = []; sel = new Set();
+    shownResultKey = ''; lastEv = 0; lastHand = -1; lastHandKey = ''; lastCur = -1; prevStacks = []; prevTotals = []; countedHand = ''; countedOver = ''; sel = new Set();
     overEl.hidden = true; overEl.innerHTML = ''; overEl.dataset.sig = ''; closedEl.hidden = true;
     conn = 'online';
   }
@@ -855,7 +984,7 @@ const T = TXT[lang];
   window.addEventListener('pagehide', () => { if (ctl?.kind === 'host') { try { ctl.host.close(); } catch {} } else if (ctl?.kind === 'client') { /* giữ token để nối lại khi tải lại trang */ } });
 
   // ---------- Chơi với máy ----------
-  let nPlayers = 4, level = 2, mode: 'chips' | 'single' = 'chips', stackStart = 1000, unit = 10;
+  let nPlayers = 4, level = 2, mode: 'chips' | 'single' | 'points' = 'chips', stackStart = 1000, unit = 10, targetPts = 100;
   function pick(attr: string, cb: (v: string) => void) {
     document.querySelectorAll<HTMLElement>(`#tl-v-solo [data-${attr}]`).forEach((btn) => btn.addEventListener('click', () => {
       document.querySelectorAll(`#tl-v-solo [data-${attr}]`).forEach((x) => x.classList.remove('sel'));
@@ -863,21 +992,32 @@ const T = TXT[lang];
       cb(btn.dataset[attr] as string);
     }));
   }
-  pick('mode', (v) => { mode = v === 'single' ? 'single' : 'chips'; $('tl-chipopts').hidden = mode !== 'chips'; });
+  pick('mode', (v) => {
+    mode = v === 'single' ? 'single' : v === 'points' ? 'points' : 'chips';
+    $('tl-chipopts').hidden = mode !== 'chips'; $('tl-ptsopts').hidden = mode !== 'points'; $('tl-players-wrap').hidden = mode === 'points';
+  });
+  pick('target', (v) => { targetPts = Number(v); (document.getElementById('tl-target-custom') as HTMLInputElement).value = ''; });
+  // đích tự nhập: chỉ nhận số nguyên từ 10 đến 1000
+  (document.getElementById('tl-target-custom') as HTMLInputElement).addEventListener('input', (e) => {
+    const el = e.target as HTMLInputElement; const x = Number(el.value);
+    const good = el.value !== '' && Number.isInteger(x) && x >= 10 && x <= 1000;
+    el.classList.toggle('bad', el.value !== '' && !good);
+    if (good) { targetPts = x; document.querySelectorAll('#tl-v-solo [data-target]').forEach((b) => b.classList.remove('sel')); }
+  });
   pick('stack', (v) => { stackStart = Number(v); });
   pick('unit', (v) => { unit = Number(v); });
   pick('players', (v) => { nPlayers = Number(v); });
   pick('level', (v) => { level = Number(v); });
 
-  function startSolo(n: number, lv: number, m: 'chips' | 'single', stack: number, u: number) {
+  function startSolo(n: number, lv: number, m: 'chips' | 'single' | 'points', stack: number, u: number, target = 100) {
     teardown();
     const game = new TLGame(realClock, { botNames: T.bots, botMs: fast ? [0, 0] : [600, 1300], onChange: () => { if (ctl && ctl.kind === 'solo') onState(game.stateFor(0)); } });
     ctl = { kind: 'solo', game };
     game.setHuman(0, T.you, true);
-    game.setSettings({ n, mode: m, stack, unit: u, level: lv, timer: false });
+    game.setSettings({ n: m === 'points' ? 4 : n, mode: m, stack, unit: u, level: lv, timer: false, target });
     game.start();
   }
-  $('tl-start').addEventListener('click', () => { sfx.play('click'); startSolo(nPlayers, level, mode, stackStart, unit); });
+  $('tl-start').addEventListener('click', () => { sfx.play('click'); startSolo(nPlayers, level, mode, stackStart, unit, targetPts); });
 
   // ---------- Online ----------
   const peerFactory = (): Transport => new PeerTransport();
@@ -963,13 +1103,16 @@ const T = TXT[lang];
       return `<li class="${human ? 'human' : 'botrow'}"><span class="tl-av sm" style="--c:${AV_COL[i % 4]}">${esc([...x.name][0] || '?')}</span><b>${esc(x.name)}</b>${tags}${dot}</li>`;
     }).join('');
     const opt = (attr: string, vals: (string | number)[], cur: string | number, labels?: string[]) => `<div class="bd-row">${vals.map((v, i) => `<button type="button" class="bd-opt${String(v) === String(cur) ? ' sel' : ''}" data-set-${attr}="${v}"${attr === 'n' && Number(v) <= maxHumanSlot ? ' disabled' : ''}>${labels ? labels[i] : v}</button>`).join('')}</div>`;
+    const isPts = s.settings.mode === 'points';
+    const tg = s.settings.target;
     const settings = isHost ? `
-      <h2 class="bd-h">${T.seatsLbl}</h2>${opt('n', [2, 3, 4], n, T.playersOpt)}<p class="meta tl-small">${T.seatsHint}</p>
-      <h2 class="bd-h">${T.mode}</h2>${opt('mode', ['chips', 'single'], s.settings.mode, T.modes)}
+      ${isPts ? `<p class="meta tl-small">${T.ptsFour}</p>` : `<h2 class="bd-h">${T.seatsLbl}</h2>${opt('n', [2, 3, 4], n, T.playersOpt)}<p class="meta tl-small">${T.seatsHint}</p>`}
+      <h2 class="bd-h">${T.mode}</h2>${opt('mode', MODE_KEYS, s.settings.mode, T.modes)}
+      ${isPts ? `<h2 class="bd-h">${T.ptsTarget}</h2>${opt('target', [50, 100, 200, 300, 0], tg, ['50', '100', '200', '300', T.ptsEndless])}<label class="tl-lbl" for="tl-set-target-in">${T.ptsCustom}</label><input id="tl-set-target-in" class="tl-input tl-num" type="number" inputmode="numeric" min="10" max="1000" step="10" value="${[0, 50, 100, 200, 300].includes(tg) ? '' : tg}" placeholder="10 - 1000" />` : ''}
       ${s.settings.mode === 'chips' ? `<h2 class="bd-h">${T.stackLbl}</h2>${opt('stack', [500, 1000, 2000], s.settings.stack)}<h2 class="bd-h">${T.unitLbl}</h2>${opt('unit', [5, 10, 20], s.settings.unit)}` : ''}
       <h2 class="bd-h">${T.level}</h2>${opt('level', [1, 2, 3], s.settings.level, T.levels)}
       <h2 class="bd-h">${T.timerLbl}</h2>${opt('timer', ['on', 'off'], s.settings.timer ? 'on' : 'off', T.timerOpts)}
-    ` : `<p class="meta">${fmt(T.settingsSummary, { n, m: s.settings.mode === 'chips' ? `${T.modes[0]}, ${s.settings.stack} / ${s.settings.unit}` : T.modes[1], l: T.levels[s.settings.level - 1] })}</p>`;
+    ` : `<p class="meta">${fmt(T.settingsSummary, { n, m: s.settings.mode === 'chips' ? `${T.modes[0]}, ${s.settings.stack} / ${s.settings.unit}` : s.settings.mode === 'points' ? `${T.modes[2]}, ${s.settings.target > 0 ? fmt(T.targetInfo, { t: s.settings.target }) : T.noTarget}` : T.modes[1], l: T.levels[s.settings.level - 1] })}</p>`;
     const link = lobbyLink(s.code);
     const lostTag = conn === 'lost' ? `<p class="tl-err">${T.connLost}</p>` : '';
     el.innerHTML = `
@@ -991,7 +1134,10 @@ const T = TXT[lang];
     if (isHost) {
       const host = (ctl as Extract<Ctl, { kind: 'host' }>).host;
       el.querySelectorAll<HTMLElement>('[data-set-n]').forEach((b) => b.addEventListener('click', () => host.setSettings({ n: Number(b.dataset.setN) })));
-      el.querySelectorAll<HTMLElement>('[data-set-mode]').forEach((b) => b.addEventListener('click', () => host.setSettings({ mode: b.dataset.setMode as 'chips' | 'single' })));
+      el.querySelectorAll<HTMLElement>('[data-set-mode]').forEach((b) => b.addEventListener('click', () => host.setSettings({ mode: b.dataset.setMode as 'chips' | 'single' | 'points' })));
+      el.querySelectorAll<HTMLElement>('[data-set-target]').forEach((b) => b.addEventListener('click', () => host.setSettings({ target: Number(b.dataset.setTarget) })));
+      const tIn = document.getElementById('tl-set-target-in') as HTMLInputElement | null;
+      tIn?.addEventListener('change', () => { const x = Number(tIn.value); if (Number.isInteger(x) && x >= 10 && x <= 1000) host.setSettings({ target: x }); else tIn.classList.add('bad'); });
       el.querySelectorAll<HTMLElement>('[data-set-stack]').forEach((b) => b.addEventListener('click', () => host.setSettings({ stack: Number(b.dataset.setStack) })));
       el.querySelectorAll<HTMLElement>('[data-set-unit]').forEach((b) => b.addEventListener('click', () => host.setSettings({ unit: Number(b.dataset.setUnit) })));
       el.querySelectorAll<HTMLElement>('[data-set-level]').forEach((b) => b.addEventListener('click', () => host.setSettings({ level: Number(b.dataset.setLevel) })));
@@ -1036,17 +1182,17 @@ const T = TXT[lang];
     (window as any).__tl = {
       get ns() { return ns; }, get ctl() { return ctl; }, get sel() { return [...sel]; },
       fast: (f = true) => { fast = f; },
-      solo: (n = 4, lv = 2, m: 'chips' | 'single' = 'chips', stack = 1000, u = 10) => startSolo(n, lv, m, stack, u),
+      solo: (n = 4, lv = 2, m: 'chips' | 'single' | 'points' = 'chips', stack = 1000, u = 10, target = 100) => startSolo(n, lv, m, stack, u, target),
       view: (v: string) => showView(v),
       setSel: (cards: number[]) => { sel = new Set(cards); refreshSel(); },
       play: () => humanPlay(), pass: () => humanPass(), hint: () => humanHint(),
       // phòng giả lập trong bộ nhớ (không cần mạng): chủ phòng là giao diện này, các khách tự chơi
-      demoRoom: async (o: { humans?: number; n?: number; mode?: 'chips' | 'single'; start?: boolean; timer?: boolean; names?: string[] } = {}) => {
+      demoRoom: async (o: { humans?: number; n?: number; mode?: 'chips' | 'single' | 'points'; target?: number; start?: boolean; timer?: boolean; names?: string[] } = {}) => {
         fast = true; hub = new LoopbackHub();
         ($('tl-name-c') as HTMLInputElement).value = 'Khang';
         await createRoom();
         const host = (ctl as Extract<Ctl, { kind: 'host' }>).host;
-        host.setSettings({ n: o.n ?? 4, mode: o.mode ?? 'chips', timer: !!o.timer, stack: 1000, unit: 10, level: 2 });
+        host.setSettings({ n: o.n ?? 4, mode: o.mode ?? 'chips', timer: !!o.timer, stack: 1000, unit: 10, level: 2, target: o.target ?? 100 });
         const names = o.names || ['Linh', 'Bảo', 'Quỳnh'];
         for (let i = 0; i < (o.humans ?? 2) - 1; i++) {
           const a = { client: null as unknown as TLNetClient, st: null as NetState | null };
@@ -1070,7 +1216,7 @@ const T = TXT[lang];
           const seat = st.cur; const slot = g.seats[seat];
           if (g.controller(slot) === 'bot') (g as any).botAct((g as any).turnToken);
           else {
-            const mv = botDecide(g.stateFor(slot).view!, 2);
+            const mv = botDecide(g.stateFor(slot).view!, 2, Math.random, false, g.settings.mode === 'points');
             if ('pass' in mv) g.intent(slot, { type: 'pass' }); else g.intent(slot, { type: 'play', cards: mv.cards });
           }
         }
@@ -1202,6 +1348,17 @@ const T = TXT[lang];
   .tl-chip { display: inline-block; padding: 0 8px; border-radius: 10px; background: rgba(0, 0, 0, .42); color: #ffe27a; font-weight: 800; font-size: 12px; line-height: 1.5; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .tl-chip.up { animation: tl-up 1.2s ease-out; } .tl-chip.dn { animation: tl-dn 1.2s ease-out; }
   .tl-chip.big { font-size: 15px; padding: 2px 12px; background: rgba(0, 0, 0, .5); border-radius: 14px; }
+  .tl-chip.pts { color: #9ee7ff; } .tl-chip.pts.neg { color: #ffb3b3; }
+  .tl-num { max-width: 200px; } .tl-input.bad { border-color: #e03131 !important; }
+  .tl-ptsrules { border-top: 1px dashed var(--line, #ddd); }
+  .tl-medal { width: 26px; text-align: center; font-size: 1.1rem; flex: none; }
+  .tl-pts .tl-nextbar { flex-wrap: wrap; } .tl-pts .tl-nextbar .btn { flex: 1 1 110px; } .tl-pts .tl-nextbar .btn.ghost { flex: 0 1 auto; }
+  .tl-pts li strong { margin-left: 0; font-variant-numeric: tabular-nums; }
+  .tl-box.tl-pts li span.tl-pd { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; line-height: 1.15; color: inherit; font-size: inherit; }
+  .tl-pts li .tl-pd small { min-width: 0; margin-top: 1px; }
+  .tl-box.tl-pts li span.tl-medal { margin-left: 0; color: inherit; font-size: 1.15rem; width: 28px; }
+  .tl-pts li:has(.tl-medal) strong { margin-left: auto; }
+  .tl-banner { white-space: nowrap; }
   .tl-seat.out .tl-chip { color: #ffb3b3; }
   .tl-seat .tl-tag { font-size: 12px; padding: 0 6px; }
 

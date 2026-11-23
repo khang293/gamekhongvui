@@ -1,6 +1,6 @@
 // Tính chip cho Tiến lên miền Nam (/tienlen/). Chỉ có luật tính tiền và phiên chơi nhiều ván, không đụng giao diện.
 // Mọi khoản trả đều là chuyển chip từ người này sang người kia, nên tổng chip của cả bàn luôn không đổi (zero-sum).
-import { newGame, rankOf, suitOf, type TLState, type ChopRec } from './tienlenEngine';
+import { newGame, rankOf, suitOf, type TLState, type ChopRec, type ChopEvt } from './tienlenEngine';
 
 const TWO = 12;
 export const isTwo = (c: number) => rankOf(c) === TWO;
@@ -125,4 +125,131 @@ export function finishHand(s: Session, st: TLState, seats: number[]): Settlement
   if (s.stacks[0] <= 0) s.over = 'lose';
   else if (s.stacks.slice(1).every((c) => c <= 0)) s.over = 'win';
   return set;
+}
+
+// =====================================================================================================
+// Chế độ TÍNH ĐIỂM (4 người). Điểm cộng dồn qua các ván, ai chạm điểm đích trước thì thắng. Không dùng chip.
+//  - Hạng cuối ván: nhất +20, nhì +10, ba -10, bét -20.
+//  - Chặt (cộng dồn, người bị chặt trừ, người chặt cộng): mỗi lá 2 đen 10, mỗi lá 2 đỏ 20 (đôi 2, sám 2 cộng lại);
+//    chặt đôi thông 20; chặt tứ quý 20.
+//  - Chặt chồng: cả chuỗi chặt nối tiếp được tính về người chặt CUỐI CÙNG: mọi người bị chặt trong chuỗi
+//    (kể cả người chặt trung gian đã bị chặt lại) đều trả giá trị bộ của mình cho người chặt cuối.
+//  - Không có thối heo, cháy bài. Tới trắng: người thắng +20, ba người còn lại xếp hạng theo thứ tự ngồi, không có điểm chặt.
+// =====================================================================================================
+export const RANK_POINTS = [20, 10, -10, -20];
+export const CHOP_PTS = { black: 10, red: 20, other: 20 };
+
+/** Giá trị (điểm) của một bộ bài bị chặt: lá 2 tính từng lá theo màu, tứ quý / đôi thông 20. */
+export function chopValue(key: string, cards: number[]): number {
+  if (key === 'single2' || key === 'pair2' || key === 'triple2') {
+    return cards.reduce((a, c) => a + (isRedTwo(c) ? CHOP_PTS.red : isBlackTwo(c) ? CHOP_PTS.black : 0), 0);
+  }
+  return CHOP_PTS.other;
+}
+/** Nhãn loại bộ bị chặt: 'black' | 'red' | 'twos' (heo đen và đỏ lẫn) | 'quad' | 'pairs' */
+export function chopKind(key: string, cards: number[]): 'black' | 'red' | 'twos' | 'quad' | 'pairs' {
+  if (key === 'quad') return 'quad';
+  if (key === 'pairs3' || key === 'pairs4') return 'pairs';
+  const red = cards.filter(isRedTwo).length, black = cards.filter(isBlackTwo).length;
+  return red && black ? 'twos' : red ? 'red' : 'black';
+}
+
+export interface PtsItem {
+  from: number;        // người bị chặt (trả điểm)
+  to: number;          // người chặt cuối chuỗi (nhận điểm)
+  val: number;         // điểm
+  key: string;         // loại bộ bị chặt
+  cards: number[];     // các lá bị chặt
+  chain: number;       // số chuỗi
+  self: boolean;       // from === to (người chặt cuối từng bị chặt trong cùng chuỗi): triệt tiêu, không đổi điểm
+}
+export interface PointsSettlement {
+  n: number;
+  rank: number[];      // điểm hạng của từng ghế
+  chop: number[];      // điểm chặt (ròng) của từng ghế
+  deltas: number[];    // rank + chop, tổng luôn bằng 0
+  items: PtsItem[];
+  order: number[];
+  winner: number;
+  white: boolean;
+}
+export interface PtsInput { n: number; order: number[]; white: boolean; chopEvents: ChopEvt[] }
+
+export function settlePoints(inp: PtsInput): PointsSettlement {
+  const { n } = inp;
+  if (n !== 4) throw new Error('points mode needs 4 players');
+  const rank = new Array(n).fill(0), chop = new Array(n).fill(0);
+  inp.order.forEach((seat, i) => { rank[seat] = RANK_POINTS[i] ?? 0; });
+  const items: PtsItem[] = [];
+  if (!inp.white) {
+    // gom theo chuỗi: người chặt cuối nhận từ mọi người bị chặt trong chuỗi
+    const byChain = new Map<number, ChopEvt[]>();
+    for (const e of inp.chopEvents) { const a = byChain.get(e.chain); if (a) a.push(e); else byChain.set(e.chain, [e]); }
+    for (const [chain, evs] of byChain) {
+      const payee = evs[evs.length - 1].chopper;
+      for (const e of evs) {
+        const val = chopValue(e.key, e.cards);
+        const self = e.victim === payee;
+        if (!self) { chop[e.victim] -= val; chop[payee] += val; }
+        items.push({ from: e.victim, to: payee, val, key: e.key, cards: e.cards.slice(), chain, self });
+      }
+    }
+  }
+  const deltas = rank.map((r, i) => r + chop[i]);
+  return { n, rank, chop, deltas, items, order: inp.order.slice(), winner: inp.order[0], white: inp.white };
+}
+
+// ---------- Phiên chơi tính điểm ----------
+export type PointsOver = '' | 'target' | 'ended';
+export interface PointSession {
+  total: number;        // luôn 4
+  target: number;       // 0 = không đặt đích
+  totals: number[];     // điểm cộng dồn của từng người (theo số ghế, không đổi)
+  hand: number;
+  lastWinner: number;   // người về nhất ván trước, -1 nếu chưa có
+  over: PointsOver;
+  winner: number;       // người thắng cả phiên (khi over != '')
+  lastDeltas: number[]; // điểm của ván vừa xong
+}
+export const TARGET_MIN = 10, TARGET_MAX = 1000;
+export function clampTarget(v: unknown, d = 100): number {
+  const x = Number(v);
+  if (x === 0) return 0;
+  return Number.isInteger(x) && x >= TARGET_MIN && x <= TARGET_MAX ? x : d;
+}
+export function newPointSession(target: number): PointSession {
+  return { total: 4, target: clampTarget(target), totals: [0, 0, 0, 0], hand: 0, lastWinner: -1, over: '', winner: -1, lastDeltas: [0, 0, 0, 0] };
+}
+/** Người dẫn đầu: điểm cao nhất; hòa thì điểm ván vừa rồi cao hơn, rồi số ghế nhỏ hơn. */
+export function leaderOf(s: PointSession): number {
+  let best = 0;
+  for (let i = 1; i < s.total; i++) {
+    if (s.totals[i] > s.totals[best] || (s.totals[i] === s.totals[best] && s.lastDeltas[i] > s.lastDeltas[best])) best = i;
+  }
+  return best;
+}
+export function dealHandPoints(s: PointSession, rng: () => number = Math.random): TLState {
+  return newGame(4, s.lastWinner, rng);
+}
+/** Kết thúc ván: cộng điểm, kiểm tra đích. */
+export function finishHandPoints(s: PointSession, st: TLState): PointsSettlement {
+  if (!st.over) throw new Error('hand not over');
+  const set = settlePoints({ n: st.n, order: st.order, white: !!st.white, chopEvents: st.chopEvents });
+  set.deltas.forEach((d, i) => { s.totals[i] += d; });
+  s.lastDeltas = set.deltas.slice();
+  s.hand++;
+  s.lastWinner = st.winner;
+  if (s.target > 0 && s.totals.some((t) => t >= s.target)) {
+    // trong những người đã chạm đích: điểm cao nhất; hòa thì điểm ván này, rồi số ghế
+    const reached = s.totals.map((t, i) => (t >= s.target ? i : -1)).filter((i) => i >= 0);
+    let best = reached[0];
+    for (const i of reached) if (s.totals[i] > s.totals[best] || (s.totals[i] === s.totals[best] && s.lastDeltas[i] > s.lastDeltas[best])) best = i;
+    s.over = 'target'; s.winner = best;
+  }
+  return set;
+}
+/** Kết thúc phiên theo ý người chơi: người dẫn đầu thắng. */
+export function endPointSession(s: PointSession) {
+  if (s.over) return;
+  s.over = 'ended'; s.winner = leaderOf(s);
 }

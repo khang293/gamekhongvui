@@ -152,6 +152,9 @@ export function checkWhite(hand: number[]): WhiteKind | null {
 export interface LogEntry { seat: number; combo: Combo | null; chop?: boolean }
 // Một lần chặt heo (chặt lá 2 / đôi 2 / sám 2): người chặt thắng, người bị chặt phải trả. Dùng để tính chip khi hết ván.
 export interface ChopRec { chopper: number; victim: number; twos: number[] }
+// Mọi lần chặt (heo, tứ quý, đôi thông) theo thứ tự, dùng cho chế độ tính điểm. chain: các lần chặt nối tiếp nhau (chặt chồng) có cùng số.
+// key: loại bộ bị chặt (single2, pair2, triple2, quad, pairs3, pairs4); cards: các lá của bộ bị chặt.
+export interface ChopEvt { chopper: number; victim: number; key: string; cards: number[]; chain: number }
 export interface TLState {
   n: number;
   hands: number[][];
@@ -168,6 +171,9 @@ export interface TLState {
   order: number[];        // thứ tự về đích khi hết ván (người thắng đứng đầu, còn lại theo số lá còn)
   firstHand: boolean;
   chops: ChopRec[];       // các lần chặt heo trong ván (theo thứ tự)
+  chopEvents: ChopEvt[];  // mọi lần chặt trong ván (chế độ tính điểm); chops ở trên giữ nguyên cho chế độ chip
+  tableChop: boolean;     // bộ đang trên bàn có phải là một lần chặt không (để nối chuỗi chặt chồng)
+  chainSeq: number;       // số chuỗi chặt chồng đã dùng
 }
 
 export function newGame(n: number, leader = -1, rng: () => number = Math.random): TLState {
@@ -183,7 +189,7 @@ export function newGame(n: number, leader = -1, rng: () => number = Math.random)
   }
   const st: TLState = {
     n, hands, cur, table: null, tableBy: cur, passed: new Array(n).fill(false), played: new Array(n).fill(0),
-    log: [], playedCards: [], over: false, winner: -1, white: null, order: [], firstHand, chops: [],
+    log: [], playedCards: [], over: false, winner: -1, white: null, order: [], firstHand, chops: [], chopEvents: [], tableChop: false, chainSeq: 0,
   };
   for (let i = 0; i < n; i++) {
     const k = checkWhite(hands[i]);
@@ -221,7 +227,7 @@ export function legalPlays(st: TLState, seat: number): Combo[] {
 function advance(st: TLState) {
   for (let i = 1; i <= st.n; i++) {
     const s = (st.cur + i) % st.n;
-    if (s === st.tableBy) { st.table = null; st.passed = new Array(st.n).fill(false); st.cur = s; return; }
+    if (s === st.tableBy) { st.table = null; st.tableChop = false; st.passed = new Array(st.n).fill(false); st.cur = s; return; }
     if (!st.passed[s]) { st.cur = s; return; }
   }
 }
@@ -232,8 +238,13 @@ export function play(st: TLState, seat: number, cards: number[]): { ok: true; co
   const combo = r.combo;
   const chop = isChop(st.table, combo);
   if (chop && st.table && victimKey(st.table)?.endsWith('2')) st.chops.push({ chopper: seat, victim: st.tableBy, twos: st.table.cards.slice() });
+  if (chop && st.table) {
+    // chặt chồng: bộ trên bàn cũng là một lần chặt thì cùng một chuỗi
+    const chain = st.tableChop ? st.chainSeq : ++st.chainSeq;
+    st.chopEvents.push({ chopper: seat, victim: st.tableBy, key: victimKey(st.table) as string, cards: st.table.cards.slice(), chain });
+  }
   st.hands[seat] = st.hands[seat].filter((c) => !combo.cards.includes(c));
-  st.table = combo; st.tableBy = seat; st.played[seat]++;
+  st.table = combo; st.tableBy = seat; st.tableChop = chop; st.played[seat]++;
   st.playedCards.push(...combo.cards);
   st.log.push({ seat, combo, chop });
   if (!st.hands[seat].length) { st.over = true; st.winner = seat; st.order = finishOrder(st, seat); return { ok: true, combo, chop }; }
@@ -256,6 +267,7 @@ export interface View {
   n: number; seat: number; hand: number[]; counts: number[];
   table: Combo | null; tableBy: number; passed: boolean[]; cur: number; played: number[];
   playedCards: number[]; log: LogEntry[]; over: boolean; winner: number; white: TLState['white']; order: number[];
+  chopEvents: ChopEvt[]; // công khai: ai chặt ai trong ván
   hands?: number[][]; // chỉ có khi ván đã kết thúc
 }
 export function viewFor(st: TLState, seat: number): View {
@@ -263,6 +275,7 @@ export function viewFor(st: TLState, seat: number): View {
     n: st.n, seat, hand: st.hands[seat].slice(), counts: st.hands.map((h) => h.length),
     table: st.table, tableBy: st.tableBy, passed: st.passed.slice(), cur: st.cur, played: st.played.slice(),
     playedCards: st.playedCards.slice(), log: st.log.slice(), over: st.over, winner: st.winner, white: st.white, order: st.order.slice(),
+    chopEvents: st.chopEvents.map((e) => ({ ...e, cards: e.cards.slice() })),
   };
   if (st.over) v.hands = st.hands.map((h) => h.slice());
   return v;

@@ -2,29 +2,36 @@
 // TLGame chạy luật bằng engine có sẵn (tienlenEngine, tienlenScore, tienlenBot) và là nguồn sự thật duy nhất.
 // Chơi với máy một mình dùng thẳng TLGame; chơi online thì chủ phòng chạy TLGame và gửi cho từng khách
 // bản xem riêng (stateFor) của họ. Khách chỉ gửi ý định: đánh, bỏ lượt, sẵn sàng.
-import { newGame, play, pass, viewFor, type TLState, type View, type WhiteKind } from './tienlenEngine';
+import { newGame, play, pass, viewFor, victimKey, type TLState, type View, type WhiteKind } from './tienlenEngine';
 import { botDecide } from './tienlenBot';
-import { newSession, dealHand, finishHand, activePlayers, type Session } from './tienlenScore';
+import { newSession, dealHand, finishHand, activePlayers, type Session, newPointSession, dealHandPoints, finishHandPoints, endPointSession, clampTarget, type PointSession, type PointsOver } from './tienlenScore';
 import { RoomHost, RoomClient, makeCode, normCode, sanitizeName, realClock, type Clock, type Member, type RejectReason, type JoinInfo } from './net/room';
 import { TransportError, type Transport } from './net/transport';
 
 export const TURN_MS = 30000;    // thời gian mỗi lượt (chơi online, nếu chủ phòng bật đồng hồ)
 export const GRACE_MS = 60000;   // mất mạng quá lâu thì máy chơi thay đến hết ván
 
-export interface NetSettings { n: number; mode: 'chips' | 'single'; stack: number; unit: number; level: number; timer: boolean }
-export const DEFAULTS: NetSettings = { n: 4, mode: 'chips', stack: 1000, unit: 10, level: 2, timer: true };
+export type PlayMode = 'chips' | 'single' | 'points';
+// target: chỉ dùng ở chế độ 'points' (0 = không đặt đích)
+export interface NetSettings { n: number; mode: PlayMode; stack: number; unit: number; level: number; timer: boolean; target: number }
+export const DEFAULTS: NetSettings = { n: 4, mode: 'chips', stack: 1000, unit: 10, level: 2, timer: true, target: 100 };
 
 export interface PubSlot { name: string; kind: 'human' | 'bot'; online: boolean; replaced: boolean; host: boolean; ready: boolean }
 export interface ResItem { kind: 'hand' | 'chop' | 'white'; from: number; to: number; due: number; paid: number; units: number; cards?: number; burned?: boolean; black?: number; red?: number }
+// Kết quả ván ở chế độ tính điểm (chỉ số theo ghế = số chỗ ngồi vì luôn 4 người)
+export interface PtsResultItem { from: number; to: number; val: number; key: string; cards: number[]; chain: number; self: boolean }
+export interface PtsResult { rank: number[]; chop: number[]; items: PtsResultItem[]; totals: number[]; target: number; over: PointsOver }
 export interface NetResult {
   deltas: number[]; items: ResItem[]; winner: number; white: WhiteKind | null; burned: boolean[];
   order: number[]; hands: Record<string, number[]>; chops: { chopper: number; victim: number }[];
-  sessionOver: boolean; sessionWinner: number;
+  sessionOver: boolean; sessionWinner: number; pts?: PtsResult;
 }
-export interface NetEvent { n: number; kind: 'deal' | 'play' | 'chop' | 'pass' | 'timeout'; slot: number; cards?: number[] }
+// vc / vk: với sự kiện chặt, các lá và loại bộ bị chặt (công khai, dùng để hiện điểm chặt)
+export interface NetEvent { n: number; kind: 'deal' | 'play' | 'chop' | 'pass' | 'timeout'; slot: number; cards?: number[]; vc?: number[]; vk?: string }
 export interface NetState {
   seq: number; code: string; phase: 'lobby' | 'playing' | 'result'; settings: NetSettings; slots: PubSlot[]; mySlot: number;
   hand: number; seats: number[]; mySeat: number; view: View | null; stacks: number[] | null;
+  points: { totals: number[]; target: number; lastDeltas: number[] } | null;
   turnMs: number | null; ev: NetEvent | null; result: NetResult | null;
 }
 
@@ -39,6 +46,7 @@ export class TLGame {
   phase: 'lobby' | 'playing' | 'result' = 'lobby';
   slots: GSlot[];
   sess: Session | null = null;
+  psess: PointSession | null = null;
   st: TLState | null = null;
   seats: number[] = [];
   hand = 0;
@@ -106,7 +114,9 @@ export class TLGame {
     const o = this.settings;
     const n = clampInt(p.n ?? o.n, 2, 4, o.n);
     o.n = Math.max(n, this.maxHumanSlot() + 1, 2);
-    if (p.mode === 'chips' || p.mode === 'single') o.mode = p.mode;
+    if (p.mode === 'chips' || p.mode === 'single' || p.mode === 'points') o.mode = p.mode;
+    if (p.target !== undefined) o.target = clampTarget(p.target, o.target);
+    if (o.mode === 'points') o.n = 4; // chế độ tính điểm luôn 4 người (chỗ trống do máy chơi)
     if (p.stack !== undefined) o.stack = [500, 1000, 2000].includes(Number(p.stack)) ? Number(p.stack) : o.stack;
     if (p.unit !== undefined) o.unit = [5, 10, 20].includes(Number(p.unit)) ? Number(p.unit) : o.unit;
     if (p.level !== undefined) o.level = clampInt(p.level, 1, 3, o.level);
@@ -120,6 +130,7 @@ export class TLGame {
     if (this.settings.n < 2) return false;
     this.hand = 0; this.lastWinner = -1;
     this.sess = this.settings.mode === 'chips' ? newSession(this.settings.n, this.settings.stack, this.settings.unit) : null;
+    this.psess = this.settings.mode === 'points' ? newPointSession(this.settings.target) : null;
     this.dealNext();
     return true;
   }
@@ -128,11 +139,12 @@ export class TLGame {
     if (this.phase === 'lobby') return;
     this.hand = 0; this.lastWinner = -1;
     this.sess = this.settings.mode === 'chips' ? newSession(this.settings.n, this.settings.stack, this.settings.unit) : null;
+    this.psess = this.settings.mode === 'points' ? newPointSession(this.settings.target) : null;
     this.dealNext();
   }
   toLobby() {
     this.turnToken++; this.advTimer?.(); this.advTimer = null;
-    this.phase = 'lobby'; this.st = null; this.sess = null; this.seats = []; this.result = null; this.ready.clear(); this.ev = null; this.hand = 0; this.deadline = 0;
+    this.phase = 'lobby'; this.st = null; this.sess = null; this.psess = null; this.seats = []; this.result = null; this.ready.clear(); this.ev = null; this.hand = 0; this.deadline = 0;
     for (const s of this.slots) { s.replaced = false; }
     this.notify();
   }
@@ -144,6 +156,8 @@ export class TLGame {
     if (this.settings.mode === 'chips' && this.sess) {
       const d = dealHand(this.sess, this.rng);
       this.st = d.st; this.seats = d.seats;
+    } else if (this.settings.mode === 'points' && this.psess) {
+      this.st = dealHandPoints(this.psess, this.rng); this.seats = [0, 1, 2, 3];
     } else {
       this.seats = Array.from({ length: n }, (_, i) => i);
       this.st = newGame(n, this.lastWinner, this.rng);
@@ -176,7 +190,7 @@ export class TLGame {
     if (token !== this.turnToken || !st || st.over || this.phase !== 'playing') return;
     const seat = st.cur, slot = this.seats[seat];
     if (this.controller(slot) !== 'bot') return;
-    const mv = botDecide(viewFor(st, seat), this.settings.level, this.rng, this.settings.mode === 'chips');
+    const mv = botDecide(viewFor(st, seat), this.settings.level, this.rng, this.settings.mode === 'chips', this.settings.mode === 'points');
     if ('pass' in mv) {
       if (!pass(st, seat).ok) { const low = Math.min(...st.hands[seat]); this.doPlay(seat, [low]); return; }
       this.ev = { n: ++this.evN, kind: 'pass', slot };
@@ -199,9 +213,11 @@ export class TLGame {
   }
   private doPlay(seat: number, cards: number[], kind: 'play' | 'timeout' = 'play'): boolean {
     const st = this.st!, slot = this.seats[seat];
+    const prevTable = st.table; // bộ bị chặt (nếu là chặt)
     const r = play(st, seat, cards);
     if (!r.ok) return false;
     this.ev = { n: ++this.evN, kind: kind === 'timeout' ? 'timeout' : r.chop ? 'chop' : 'play', slot, cards: r.combo.cards.slice() };
+    if (r.chop && prevTable) { this.ev.vc = prevTable.cards.slice(); const k = victimKey(prevTable); if (k) this.ev.vk = k; }
     this.afterMove();
     return true;
   }
@@ -241,6 +257,17 @@ export class TLGame {
         this.ready.add(slot); this.maybeAdvance(); this.notify();
         return 'ok';
       }
+      case 'endsession': {
+        // Chế độ tính điểm: chủ phòng (hoặc người chơi một mình) kết thúc phiên giữa hai ván, người dẫn đầu thắng
+        if (slot !== 0) return 'forbidden';
+        if (this.phase !== 'result' || !this.result || this.result.sessionOver || this.settings.mode !== 'points' || !this.psess) return 'phase';
+        endPointSession(this.psess);
+        this.result.sessionOver = true; this.result.sessionWinner = this.psess.winner;
+        if (this.result.pts) { this.result.pts.over = this.psess.over; }
+        this.advTimer?.(); this.advTimer = null;
+        this.notify();
+        return 'ok';
+      }
       case 'restart': {
         if (slot !== 0) return 'forbidden';
         if (this.phase === 'lobby') return 'phase';
@@ -260,7 +287,16 @@ export class TLGame {
     const burned = new Array(n).fill(false) as boolean[];
     let items: ResItem[] = [];
     let sessionOver = false, sessionWinner = -1;
-    if (this.settings.mode === 'chips' && this.sess) {
+    let pts: PtsResult | undefined;
+    if (this.settings.mode === 'points' && this.psess) {
+      const set = finishHandPoints(this.psess, st);
+      set.deltas.forEach((d, seat) => { deltas[slotOf(seat)] = d; });
+      pts = {
+        rank: set.rank.slice(), chop: set.chop.slice(), totals: this.psess.totals.slice(), target: this.psess.target, over: this.psess.over,
+        items: set.items.map((it) => ({ ...it, from: slotOf(it.from), to: slotOf(it.to), cards: it.cards.slice() })),
+      };
+      sessionOver = !!this.psess.over; sessionWinner = sessionOver ? slotOf(this.psess.winner) : -1;
+    } else if (this.settings.mode === 'chips' && this.sess) {
       const set = finishHand(this.sess, st, seats);
       this.sess.over = '';
       set.deltas.forEach((d, seat) => { deltas[slotOf(seat)] = d; });
@@ -281,7 +317,7 @@ export class TLGame {
     this.result = {
       deltas, items, winner: slotOf(st.winner), white: st.white ? st.white.kind : null, burned,
       order: st.order.map(slotOf), hands, chops: st.chops.map((c) => ({ chopper: slotOf(c.chopper), victim: slotOf(c.victim) })),
-      sessionOver, sessionWinner,
+      sessionOver, sessionWinner, ...(pts ? { pts } : {}),
     };
     this.phase = 'result'; this.ready.clear();
     this.maybeAdvance();
@@ -322,6 +358,7 @@ export class TLGame {
     return {
       seq: this.seq, code: this.code, phase: this.phase, settings: { ...this.settings }, slots, mySlot: slot,
       hand: this.hand, seats: this.seats.slice(), mySeat, view, stacks: this.sess ? this.sess.stacks.slice(0, n) : null,
+      points: this.psess ? { totals: this.psess.totals.slice(), target: this.psess.target, lastDeltas: this.psess.lastDeltas.slice() } : null,
       turnMs: this.deadline ? Math.max(0, this.deadline - this.clock.now()) : null,
       ev: this.ev, result: this.phase === 'result' ? this.result : null,
     };
@@ -392,6 +429,7 @@ function validState(s: any): s is NetState {
   if (!['lobby', 'playing', 'result'].includes(s.phase)) return false;
   if (!Array.isArray(s.slots) || s.slots.length < 2 || s.slots.length > 4) return false;
   if (!s.settings || typeof s.settings !== 'object' || !Number.isInteger(s.mySlot)) return false;
+  if (s.points != null && (typeof s.points !== 'object' || !Array.isArray(s.points.totals) || s.points.totals.length !== 4 || !s.points.totals.every((x: unknown) => typeof x === 'number'))) return false;
   for (const x of s.slots) if (!x || typeof x.name !== 'string' || x.name.length > 40) return false;
   if (s.phase !== 'lobby') {
     if (!Array.isArray(s.seats) || !s.view || typeof s.view !== 'object' || !Array.isArray(s.view.counts) || !Array.isArray(s.view.hand)) return false;
