@@ -123,7 +123,7 @@ export function botDecide(v: View, level = 2, rng: () => number = Math.random, c
       const red = c.cards.filter((x) => rankOf(x) === TWO && x % 4 >= 2).length;
       s -= red * 12; // đánh được heo đỏ ra thì bớt thối heo đỏ
     }
-    if (points && level >= 2 && v.table && isChop(v.table, c)) {
+    if (points && level >= 2 && v.table && isChop(v.table, c) && !v.finished.includes(v.tableBy)) { // người đã về thì chặt không được điểm
       const k = victimKey(v.table);
       if (k) s -= chopValue(k, v.table.cards) * 2; // chặt heo đen -20, heo đỏ / tứ quý / đôi thông -40 (đổi điểm thật: 10 / 20)
     }

@@ -134,10 +134,14 @@ export function finishHand(s: Session, st: TLState, seats: number[]): Settlement
 //    chặt đôi thông 20; chặt tứ quý 20.
 //  - Chặt chồng: cả chuỗi chặt nối tiếp được tính về người chặt CUỐI CÙNG: mọi người bị chặt trong chuỗi
 //    (kể cả người chặt trung gian đã bị chặt lại) đều trả giá trị bộ của mình cho người chặt cuối.
-//  - Không có thối heo, cháy bài. Tới trắng: người thắng +20, ba người còn lại xếp hạng theo thứ tự ngồi, không có điểm chặt.
+//  - Người đã về (hết bài) mà bộ cuối của họ bị chặt thì không bị trừ, người chặt không được cộng khoản đó.
+//  - Thối bài: ai chưa đánh được lá nào tại lúc có người về nhất trả 10 điểm cho người về nhất.
+//  - Thối heo: lá 2 còn trên tay khi hết ván bị trừ như bị chặt (đen 10, đỏ 20), trả cho người về nhất.
+//  - Tới trắng: người thắng +20, ba người còn lại xếp hạng theo thứ tự ngồi, không có điểm chặt, không thối.
 // =====================================================================================================
 export const RANK_POINTS = [20, 10, -10, -20];
 export const CHOP_PTS = { black: 10, red: 20, other: 20 };
+export const BURN_PTS = 10; // thối bài
 
 /** Giá trị (điểm) của một bộ bài bị chặt: lá 2 tính từng lá theo màu, tứ quý / đôi thông 20. */
 export function chopValue(key: string, cards: number[]): number {
@@ -155,25 +159,27 @@ export function chopKind(key: string, cards: number[]): 'black' | 'red' | 'twos'
 }
 
 export interface PtsItem {
-  from: number;        // người bị chặt (trả điểm)
-  to: number;          // người chặt cuối chuỗi (nhận điểm)
+  kind: 'chop' | 'burn' | 'heo'; // chặt, thối bài, thối heo
+  from: number;        // người trả điểm
+  to: number;          // người nhận điểm (chặt: người chặt cuối chuỗi; thối: người về nhất)
   val: number;         // điểm
-  key: string;         // loại bộ bị chặt
-  cards: number[];     // các lá bị chặt
-  chain: number;       // số chuỗi
+  key: string;         // loại bộ bị chặt ('' với thối bài)
+  cards: number[];     // các lá bị chặt / bị thối
+  chain: number;       // số chuỗi (-1 với khoản thối)
   self: boolean;       // from === to (người chặt cuối từng bị chặt trong cùng chuỗi): triệt tiêu, không đổi điểm
 }
 export interface PointsSettlement {
   n: number;
   rank: number[];      // điểm hạng của từng ghế
   chop: number[];      // điểm chặt (ròng) của từng ghế
-  deltas: number[];    // rank + chop, tổng luôn bằng 0
+  thoi: number[];      // điểm thối bài + thối heo (ròng) của từng ghế
+  deltas: number[];    // rank + chop + thoi, tổng luôn bằng 0
   items: PtsItem[];
   order: number[];
   winner: number;
   white: boolean;
 }
-export interface PtsInput { n: number; order: number[]; white: boolean; chopEvents: ChopEvt[] }
+export interface PtsInput { n: number; order: number[]; white: boolean; chopEvents: ChopEvt[]; thoi?: number[]; hands?: number[][] }
 
 export function settlePoints(inp: PtsInput): PointsSettlement {
   const { n } = inp;
@@ -188,15 +194,29 @@ export function settlePoints(inp: PtsInput): PointsSettlement {
     for (const [chain, evs] of byChain) {
       const payee = evs[evs.length - 1].chopper;
       for (const e of evs) {
+        if (e.free) continue; // người này đã về lúc bị chặt: miễn trừ (người chặt cuối chuỗi vẫn thu của những người còn lại)
         const val = chopValue(e.key, e.cards);
         const self = e.victim === payee;
         if (!self) { chop[e.victim] -= val; chop[payee] += val; }
-        items.push({ from: e.victim, to: payee, val, key: e.key, cards: e.cards.slice(), chain, self });
+        items.push({ kind: 'chop', from: e.victim, to: payee, val, key: e.key, cards: e.cards.slice(), chain, self });
       }
     }
   }
-  const deltas = rank.map((r, i) => r + chop[i]);
-  return { n, rank, chop, deltas, items, order: inp.order.slice(), winner: inp.order[0], white: inp.white };
+  const thoi = new Array(n).fill(0);
+  if (!inp.white) {
+    const first = inp.order[0];
+    const pay = (kind: 'burn' | 'heo', from: number, val: number, key: string, cards: number[]) => {
+      thoi[from] -= val; thoi[first] += val;
+      items.push({ kind, from, to: first, val, key, cards, chain: -1, self: false });
+    };
+    for (const s of inp.thoi || []) if (s !== first) pay('burn', s, BURN_PTS, '', []);
+    (inp.hands || []).forEach((hand, s) => {
+      const twos = hand.filter((c) => isBlackTwo(c) || isRedTwo(c));
+      if (twos.length && s !== first) pay('heo', s, chopValue('single2', twos), 'single2', twos);
+    });
+  }
+  const deltas = rank.map((r, i) => r + chop[i] + thoi[i]);
+  return { n, rank, chop, thoi, deltas, items, order: inp.order.slice(), winner: inp.order[0], white: inp.white };
 }
 
 // ---------- Phiên chơi tính điểm ----------
@@ -234,7 +254,7 @@ export function dealHandPoints(s: PointSession, rng: () => number = Math.random)
 /** Kết thúc ván: cộng điểm, kiểm tra đích. */
 export function finishHandPoints(s: PointSession, st: TLState): PointsSettlement {
   if (!st.over) throw new Error('hand not over');
-  const set = settlePoints({ n: st.n, order: st.order, white: !!st.white, chopEvents: st.chopEvents });
+  const set = settlePoints({ n: st.n, order: st.order, white: !!st.white, chopEvents: st.chopEvents, thoi: st.thoi, hands: st.hands });
   set.deltas.forEach((d, i) => { s.totals[i] += d; });
   s.lastDeltas = set.deltas.slice();
   s.hand++;

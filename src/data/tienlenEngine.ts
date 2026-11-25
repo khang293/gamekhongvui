@@ -83,7 +83,10 @@ export function canBeat(prev: Combo | null, next: Combo): boolean {
   const row = CHOP_TABLE.find((r) => r.victim === k);
   return !!row && row.by.some((m) => matches(m, next));
 }
-export const isChop = (prev: Combo | null, next: Combo) => !!prev && !(next.type === prev.type && next.len === prev.len) && canBeat(prev, next);
+// Tứ quý và 3 / 4 đôi thông: đè được chúng bằng bất cứ cách nào (kể cả cùng loại lớn hơn) đều tính là chặt (chặt chồng có điểm).
+// Các bộ khác (kể cả lá 2 đè lá 2) đè cùng loại thì chỉ là đè bình thường.
+const isBomb = (c: Combo) => { const k = victimKey(c); return k === 'quad' || k === 'pairs3' || k === 'pairs4'; };
+export const isChop = (prev: Combo | null, next: Combo) => !!prev && canBeat(prev, next) && (isBomb(prev) || !(next.type === prev.type && next.len === prev.len));
 
 // ---------- Liệt kê mọi bộ hợp lệ từ một tay bài ----------
 function combos<T>(arr: T[], k: number): T[][] {
@@ -154,7 +157,8 @@ export interface LogEntry { seat: number; combo: Combo | null; chop?: boolean }
 export interface ChopRec { chopper: number; victim: number; twos: number[] }
 // Mọi lần chặt (heo, tứ quý, đôi thông) theo thứ tự, dùng cho chế độ tính điểm. chain: các lần chặt nối tiếp nhau (chặt chồng) có cùng số.
 // key: loại bộ bị chặt (single2, pair2, triple2, quad, pairs3, pairs4); cards: các lá của bộ bị chặt.
-export interface ChopEvt { chopper: number; victim: number; key: string; cards: number[]; chain: number }
+// free: người bị chặt đã hết bài (đã về) lúc bị chặt: vẫn chặt đè được nhưng không ai bị trừ hay được cộng.
+export interface ChopEvt { chopper: number; victim: number; key: string; cards: number[]; chain: number; free: boolean }
 export interface TLState {
   n: number;
   hands: number[][];
@@ -176,6 +180,7 @@ export interface TLState {
   chainSeq: number;       // số chuỗi chặt chồng đã dùng
   multi: boolean;         // chế độ tính điểm: ván tiếp tục sau khi có người về nhất cho tới khi xếp xong hạng nhất, nhì, ba, bét
   finished: number[];     // thứ tự những người đã hết bài (chỉ dùng khi multi); khi ván xong có đủ n người, người cuối là bét
+  thoi: number[];         // chỉ khi multi: những người chưa đánh được lá nào tại thời điểm có người về nhất (thối bài)
 }
 
 export function newGame(n: number, leader = -1, rng: () => number = Math.random, opts: { multi?: boolean } = {}): TLState {
@@ -191,7 +196,7 @@ export function newGame(n: number, leader = -1, rng: () => number = Math.random,
   }
   const st: TLState = {
     n, hands, cur, table: null, tableBy: cur, passed: new Array(n).fill(false), played: new Array(n).fill(0),
-    log: [], playedCards: [], over: false, winner: -1, white: null, order: [], firstHand, chops: [], chopEvents: [], tableChop: false, chainSeq: 0, multi: !!opts.multi, finished: [],
+    log: [], playedCards: [], over: false, winner: -1, white: null, order: [], firstHand, chops: [], chopEvents: [], tableChop: false, chainSeq: 0, multi: !!opts.multi, finished: [], thoi: [],
   };
   for (let i = 0; i < n; i++) {
     const k = checkWhite(hands[i]);
@@ -250,7 +255,7 @@ export function play(st: TLState, seat: number, cards: number[]): { ok: true; co
   if (chop && st.table) {
     // chặt chồng: bộ trên bàn cũng là một lần chặt thì cùng một chuỗi
     const chain = st.tableChop ? st.chainSeq : ++st.chainSeq;
-    st.chopEvents.push({ chopper: seat, victim: st.tableBy, key: victimKey(st.table) as string, cards: st.table.cards.slice(), chain });
+    st.chopEvents.push({ chopper: seat, victim: st.tableBy, key: victimKey(st.table) as string, cards: st.table.cards.slice(), chain, free: st.multi && !st.hands[st.tableBy].length });
   }
   st.hands[seat] = st.hands[seat].filter((c) => !combo.cards.includes(c));
   st.table = combo; st.tableBy = seat; st.tableChop = chop; st.played[seat]++;
@@ -260,6 +265,8 @@ export function play(st: TLState, seat: number, cards: number[]): { ok: true; co
     if (!st.multi) { st.over = true; st.winner = seat; st.order = finishOrder(st, seat); return { ok: true, combo, chop }; }
     // nhiều hạng: người này về hạng kế tiếp; ván xong khi chỉ còn một người còn bài (người đó về bét)
     st.finished.push(seat);
+    // thối bài chốt đúng lúc có người về nhất, dù sau đó họ vẫn đánh tiếp
+    if (st.finished.length === 1) st.thoi = st.played.map((p, k) => (k !== seat && p === 0 ? k : -1)).filter((k) => k >= 0);
     if (st.finished.length >= st.n - 1) {
       for (let k = 0; k < st.n; k++) if (!st.finished.includes(k)) st.finished.push(k);
       st.order = st.finished.slice(); st.winner = st.order[0]; st.over = true;

@@ -19,7 +19,7 @@ export const DEFAULTS: NetSettings = { n: 4, mode: 'chips', stack: 1000, unit: 1
 export interface PubSlot { name: string; kind: 'human' | 'bot'; online: boolean; replaced: boolean; host: boolean; ready: boolean }
 export interface ResItem { kind: 'hand' | 'chop' | 'white'; from: number; to: number; due: number; paid: number; units: number; cards?: number; burned?: boolean; black?: number; red?: number }
 // Kết quả ván ở chế độ tính điểm (chỉ số theo ghế = số chỗ ngồi vì luôn 4 người)
-export interface PtsResultItem { from: number; to: number; val: number; key: string; cards: number[]; chain: number; self: boolean }
+export interface PtsResultItem { kind: 'chop' | 'burn' | 'heo'; from: number; to: number; val: number; key: string; cards: number[]; chain: number; self: boolean }
 export interface PtsResult { rank: number[]; chop: number[]; items: PtsResultItem[]; totals: number[]; target: number; over: PointsOver }
 export interface NetResult {
   deltas: number[]; items: ResItem[]; winner: number; white: WhiteKind | null; burned: boolean[];
@@ -218,7 +218,8 @@ export class TLGame {
     const r = play(st, seat, cards);
     if (!r.ok) return false;
     this.ev = { n: ++this.evN, kind: kind === 'timeout' ? 'timeout' : r.chop ? 'chop' : 'play', slot, cards: r.combo.cards.slice() };
-    if (r.chop && prevTable) { this.ev.vc = prevTable.cards.slice(); const k = victimKey(prevTable); if (k) this.ev.vk = k; }
+    const lastChop = st.chopEvents[st.chopEvents.length - 1];
+    if (r.chop && prevTable && !lastChop?.free) { this.ev.vc = prevTable.cards.slice(); const k = victimKey(prevTable); if (k) this.ev.vk = k; }
     if (st.multi && !st.hands[seat].length) this.ev.place = st.finished.indexOf(seat) + 1;
     this.afterMove();
     return true;

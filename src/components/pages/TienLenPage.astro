@@ -57,8 +57,12 @@ const TXT = {
       'Chế độ tính điểm (luôn 4 người, chỗ trống do máy chơi): chơi nhiều ván, điểm cộng dồn và có thể âm. Ai chạm điểm đích trước thì thắng; nhiều người cùng chạm trong một ván thì người điểm cao nhất thắng (bằng điểm thì ai được nhiều điểm hơn ở ván đó). Có thể chọn "Không đặt đích" rồi bấm "Kết thúc" khi muốn dừng.',
       'Điểm hạng cuối ván: nhất +20, nhì +10, ba −10, bét −20, xếp theo thứ tự về đích. Người đầu tiên hết bài về nhất nhưng ván vẫn tiếp tục: người đã hết bài ngồi xem, những người còn bài đánh tiếp cho tới khi biết người về nhì, về ba và người bét (ván kết thúc khi chỉ còn một người còn bài). Nếu người đánh cuối vừa hết bài và mọi người còn lại đều bỏ lượt thì quyền đánh về người kế tiếp còn bài.',
       'Điểm chặt, cộng dồn: người bị chặt bị trừ, người chặt được cộng. Mỗi lá 2 đen 10 điểm, mỗi lá 2 đỏ 20 điểm (đôi 2, sám 2 tính từng lá). Chặt đôi thông 20 điểm, chặt tứ quý 20 điểm.',
+      'Đè tứ quý hoặc đôi thông bằng bộ lớn hơn cùng loại (tứ quý lớn đè tứ quý nhỏ, đôi thông lớn đè đôi thông nhỏ) cũng tính là chặt, có điểm.',
       'Chặt chồng: nếu một lần chặt lại bị chặt tiếp trong cùng vòng thì cả chuỗi tính về người chặt cuối cùng: mọi người bị chặt trong chuỗi (kể cả người chặt trung gian) đều trả giá trị bộ bài của mình cho người chặt cuối.',
-      'Không có thối heo hay cháy bài. Tới trắng: người thắng +20, ba người còn lại xếp hạng theo thứ tự ngồi từ người thắng (+10, −10, −20), không có điểm chặt.',
+      'Người đã về được miễn trừ: nếu bộ bài cuối cùng của họ bị chặt thì vẫn chặt đè được để giành quyền đánh, nhưng họ không bị trừ và người chặt không được cộng khoản đó. Trong chặt chồng, những người còn đang chơi vẫn trả phần của mình cho người chặt cuối.',
+      'Thối bài: lúc có người về nhất, ai chưa đánh được lá nào bị trừ 10 điểm cho người về nhất (dù sau đó vẫn đánh tiếp).',
+      'Thối heo: còn lá 2 trên tay khi hết ván thì bị trừ như bị chặt (2 đen 10 điểm, 2 đỏ 20 điểm mỗi lá), cộng cho người về nhất.',
+      'Tới trắng: người thắng +20, ba người còn lại xếp hạng theo thứ tự ngồi từ người thắng (+10, −10, −20), không có điểm chặt và không tính thối.',
     ],
     ptsTarget: 'Điểm đích', ptsCustom: 'Tự nhập (10 đến 1000)', ptsEndless: 'Không đặt đích', ptsFour: 'Chế độ này luôn 4 người, chỗ trống do máy chơi.',
     targetInfo: 'Đích {t}', noTarget: 'Không đích', ptsSettle: 'Tính điểm ván này', ptsTotal: 'Tổng',
@@ -68,6 +72,7 @@ const TXT = {
     finPlace: ['nhất', 'nhì', 'ba'], finBadge: ['🥇 Nhất', '🥈 Nhì', '🥉 Ba', 'Bét'],
     finStatus: '{n} về {p}, tiếp tục đánh.', finBanner: '{n} về {p}!', specTitle: 'Bạn về {p}!', specWait: 'Đang chờ các bạn khác đánh xong...',
     lnChopped: '{k} bị chặt: −{v} (trả {n})', lnChopOf: 'chặt {k}: +{v} (từ {n})', lnChain: 'chặt chồng',
+    lnBurnPts: 'Thối bài (chưa đánh lá nào): −{v} (trả {n})', lnBurnOf: 'ăn thối bài: +{v} (từ {n})', lnHeoPts: 'Thối {k}: −{v} (trả {n})', lnHeoOf: 'ăn thối {k}: +{v} (từ {n})', tagThoi: 'Thối',
     ptsWinYou: 'Bạn thắng cả cuộc chơi với {p} điểm!', ptsWinOther: '{n} thắng cả cuộc chơi với {p} điểm.', ptsEndNote: 'Đã kết thúc theo ý bạn, người dẫn đầu thắng.',
     standings: 'Xếp hạng cuối cùng', endBtn: 'Kết thúc', confirmRestartPts: 'Bắt đầu lại và đặt điểm của mọi người về 0?',
     // ----- Online -----
@@ -148,8 +153,12 @@ const TXT = {
       'Points mode (always 4 players, empty seats are played by the computer): play hand after hand; points add up and can go negative. The first player to reach the target wins; if several reach it in the same hand the highest total wins (equal totals: the better score in that hand). Choose "No target" and press "End" whenever you want to stop.',
       'Rank points at the end of a hand: 1st +20, 2nd +10, 3rd −10, 4th −20, by finishing order. The first player to empty their hand finishes 1st but the hand goes on: finished players watch while those still holding cards keep playing until 2nd, 3rd and 4th place are known (the hand ends when only one player still holds cards). If the player who made the last play of a round has just finished and everyone else passes, the lead goes to the next player who still has cards.',
       'Chop points, cumulative: the chopped player loses them and the chopper gains them. Each black 2 is 10 points, each red 2 is 20 points (a pair or triple of 2s counts card by card). Chopping consecutive pairs is 20 points, chopping a four of a kind is 20 points.',
+      'Beating a four of a kind or consecutive pairs with a higher one of the same type (a higher quad over a lower quad, and so on) also counts as a chop and scores.',
       'Chop on chop: if a chop is itself chopped in the same round, the whole chain is paid to the LAST chopper: everyone chopped in the chain (including the middle choppers) pays the value of their own combination to the final chopper.',
-      'No pig penalty and no burned-hand penalty. Instant win: the winner gets +20 and the other three are ranked by seating order after the winner (+10, −10, −20); there are no chop points.',
+      'Finished players are exempt: if their last play is chopped, it can still be beaten to take the lead, but they lose nothing and the chopper gets nothing for it. In a chop-on-chop chain, players still holding cards still pay their share to the last chopper.',
+      'Burned hand: when someone finishes first, anyone who has not played a single card pays 10 points to the winner (even if they play later).',
+      'Pig penalty: 2s still in hand at the end are charged as if chopped (black 2: 10 points, red 2: 20 points each), paid to the winner.',
+      'Instant win: the winner gets +20 and the other three are ranked by seating order after the winner (+10, −10, −20); there are no chop points and no penalties.',
     ],
     ptsTarget: 'Target score', ptsCustom: 'Custom (10 to 1000)', ptsEndless: 'No target', ptsFour: 'This mode is always 4 players; empty seats are played by the computer.',
     targetInfo: 'Target {t}', noTarget: 'No target', ptsSettle: 'Points for this hand', ptsTotal: 'Total',
@@ -159,6 +168,7 @@ const TXT = {
     finPlace: ['1st', '2nd', '3rd'], finBadge: ['🥇 1st', '🥈 2nd', '🥉 3rd', '4th'],
     finStatus: '{n} finished {p}, play continues.', finBanner: '{n} finished {p}!', specTitle: 'You finished {p}!', specWait: 'Waiting for the others to finish...',
     lnChopped: '{k} chopped: −{v} (pays {n})', lnChopOf: 'chopped {k}: +{v} (from {n})', lnChain: 'chop on chop',
+    lnBurnPts: 'Burned hand (no card played): −{v} (pays {n})', lnBurnOf: 'burned-hand bonus: +{v} (from {n})', lnHeoPts: 'Left holding {k}: −{v} (pays {n})', lnHeoOf: 'left-over {k}: +{v} (from {n})', tagThoi: 'Penalty',
     ptsWinYou: 'You won the whole game with {p} points!', ptsWinOther: '{n} won the whole game with {p} points.', ptsEndNote: 'Ended at your request; the leader wins.',
     standings: 'Final standings', endBtn: 'End', confirmRestartPts: "Restart and reset everyone's points to 0?",
     // ----- Online -----
@@ -875,12 +885,18 @@ const MODE_KEYS = ['chips', 'single', 'points'];
         const lines: string[] = [`<div>${T.rankLn[i]}: ${sgn(pts.rank[slot])}</div>`];
         for (const it of pts.items) {
           if (it.self) continue;
+          if (it.kind !== 'chop') {
+            const k = it.kind === 'heo' ? T.chopKinds[chopKind(it.key, it.cards)] : '';
+            if (it.from === slot) lines.push(`<div>${fmt(it.kind === 'burn' ? T.lnBurnPts : T.lnHeoPts, { k, v: it.val, n: nameOf(it.to) })}</div>`);
+            else if (it.to === slot) lines.push(`<div>${fmt(it.kind === 'burn' ? T.lnBurnOf : T.lnHeoOf, { k, v: it.val, n: nameOf(it.from) })}</div>`);
+            continue;
+          }
           const lab = T.chopKinds[chopKind(it.key, it.cards)];
           const chain = (chainSize.get(it.chain) || 0) > 1 ? ` · ${T.lnChain}` : '';
           if (it.from === slot) lines.push(`<div>${fmt(T.lnChopped, { k: lab, v: it.val, n: nameOf(it.to) })}${chain}</div>`);
           else if (it.to === slot) lines.push(`<div>${fmt(T.lnChopOf, { k: lab, v: it.val, n: nameOf(it.from) })}${chain}</div>`);
         }
-        const tags = (i === 0 ? `<em>${r.white ? T.tagWhite : T.winnerTag}</em>` : '') + (pts.items.some((it) => !it.self && it.to === slot) ? `<em class="gold">${T.tagChopPts}</em>` : '') + (pts.items.some((it) => it.from === slot) ? `<em class="bad">${T.tagChoppedPts}</em>` : '');
+        const tags = (i === 0 ? `<em>${r.white ? T.tagWhite : T.winnerTag}</em>` : '') + (pts.items.some((it) => it.kind === 'chop' && !it.self && it.to === slot) ? `<em class="gold">${T.tagChopPts}</em>` : '') + (pts.items.some((it) => it.kind === 'chop' && it.from === slot) ? `<em class="bad">${T.tagChoppedPts}</em>` : '') + (pts.items.some((it) => it.kind !== 'chop' && it.from === slot) ? `<em class="bad">${T.tagThoi}</em>` : '');
         return `<li>${avatar(slot)}<b>${nameOf(slot)}</b>${tags}<span class="tl-pd"><strong class="${d > 0 ? 'up' : d < 0 ? 'dn' : ''}">${sgn(d)}</strong><small>⭐ ${totals[slot]}</small></span><div class="tl-bd">${lines.join('')}</div></li>`;
       }).join('');
     }
