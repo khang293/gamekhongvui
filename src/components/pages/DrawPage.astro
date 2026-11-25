@@ -1,0 +1,591 @@
+---
+import Base from '../../layouts/Base.astro';
+import { lp, type Lang } from '../../i18n';
+import { gamesUi } from '../../data/games';
+import { COLORS, SIZES, ROUND_CHOICES, TIME_CHOICES, W, H } from '../../data/drawGame';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const g = gamesUi[lang];
+const T = {
+  vi: {
+    title: 'Vẽ và Đoán Chữ', sub: 'Một người vẽ, cả phòng gõ đoán. Đoán càng nhanh càng nhiều điểm. Phòng online 2 đến 8 người.',
+    h: 'Chơi với bạn bè', namePh: 'Tên của bạn', create: 'Tạo phòng', codePh: 'Mã phòng', join: 'Vào phòng', connecting: 'Đang kết nối...', defName: 'Người chơi',
+    note: 'Phòng online chạy qua máy chủ Firebase của Google. Máy chủ phòng giữ từ cần đoán nên chỉ chơi với người quen. Tin nhắn chỉ hiện trong phòng, không được lưu lại.',
+    roomCode: 'Mã phòng', copyCode: 'Chép mã', copyLink: 'Chép link mời', copied: 'Đã chép', rounds: 'Số vòng (mỗi vòng ai cũng được vẽ một lần)', time: 'Thời gian vẽ mỗi lượt (giây)', words: 'Bộ từ', wordsVi: 'Tiếng Việt', wordsEn: 'Tiếng Anh',
+    startRoom: 'Bắt đầu', needTwo: 'Cần ít nhất 2 người để bắt đầu.', waitHost: 'Chờ chủ phòng bắt đầu', leave: 'Rời phòng', leaveConfirm: 'Rời phòng? Nếu bạn là chủ phòng, phòng sẽ đóng.', hostTag: 'Chủ phòng', you: 'Bạn',
+    round: 'Vòng {a}/{b}', letters: 'chữ', choosing: '{n} đang chọn từ...', pick: 'Chọn một từ để vẽ', youDraw: 'Bạn vẽ:', drawing: '{n} đang vẽ',
+    guessPh: 'Gõ từ bạn đoán...', chatPh: 'Nhắn gì đó...', knownPh: 'Nhắn riêng...', drawerPh: 'Nhắn người đã đúng...', send: 'Gửi', players: 'Người chơi', logLabel: 'Đoán và trò chuyện',
+    pen: 'Bút', fill: 'Đổ màu', eraser: 'Tẩy', undo: 'Hoàn tác', clear: 'Xóa hết', skip: 'Bỏ lượt', color: 'Màu', size: 'Nét',
+    theWord: 'Từ là', skipped: 'Lượt vẽ bị bỏ qua', nobody: 'Không ai đoán ra.', final: 'Kết quả', winner: '{n} thắng!', youWin: 'Bạn thắng!', again: 'Ván mới', lobby: 'Về phòng chờ', waitNext: 'Chờ chủ phòng',
+    lClose: '“{t}” gần đúng rồi!', lGot: '{n} đã đoán đúng! 🎉', lGotMe: 'Bạn đã đoán đúng! 🎉', lTurn: '{n} đến lượt vẽ', lJoin: '{n} vào phòng', lLeave: '{n} rời phòng', lWord: 'Từ là: {t}', lost: 'Mất kết nối, đang nối lại...',
+    errs: { noroom: 'Không tìm thấy phòng này.', full: 'Phòng đã đủ người.', started: 'Không vào được phòng này.', version: 'Hai máy đang dùng bản khác nhau, hãy tải lại trang.', timeout: 'Kết nối quá lâu, hãy thử lại.', network: 'Không kết nối được, hãy kiểm tra mạng rồi thử lại.', closed: 'Phòng đã đóng.', hostLeft: 'Chủ phòng đã rời, phòng đóng.', lost: 'Mất kết nối với phòng.', kicked: 'Bạn đã bị mời ra khỏi phòng.', badmsg: 'Mã này là phòng của trò khác.', badcode: 'Mã phòng gồm 5 ký tự.' },
+    rulesTitle: 'Luật chơi', rules: [
+      'Lần lượt từng người vẽ: chọn 1 trong 3 từ rồi vẽ trong thời gian quy định. Không viết chữ hay số vào hình.',
+      'Người khác gõ đoán. Gõ không dấu vẫn được tính; nếu gõ có dấu thì phải đúng dấu. Được bỏ loại từ, ví dụ "mèo" thay cho "con mèo".',
+      'Đoán càng sớm càng nhiều điểm, người đúng đầu tiên được thêm 50. Người vẽ được điểm trung bình của những người đoán.',
+      'Khi còn nửa và một phần tư thời gian, trò chơi mở thêm chữ cái gợi ý (không quá nửa số chữ).',
+      'Đoán đúng rồi thì tin nhắn của bạn chỉ người vẽ và người đã đúng nhìn thấy.',
+      'Vào phòng giữa chừng được: bạn thấy ngay bức đang vẽ và được xếp lượt vẽ.',
+    ],
+  },
+  en: {
+    title: 'Draw & Guess', sub: 'One player draws, everyone else types guesses. The faster you guess, the more you score. Online rooms for 2 to 8.',
+    h: 'Play with friends', namePh: 'Your name', create: 'Create room', codePh: 'Room code', join: 'Join', connecting: 'Connecting...', defName: 'Player',
+    note: 'Online rooms run through Google Firebase. The host device holds the secret word, so only play with people you know. Messages stay in the room and are not saved.',
+    roomCode: 'Room code', copyCode: 'Copy code', copyLink: 'Copy invite link', copied: 'Copied', rounds: 'Rounds (everyone draws once per round)', time: 'Drawing time per turn (seconds)', words: 'Word list', wordsVi: 'Vietnamese', wordsEn: 'English',
+    startRoom: 'Start', needTwo: 'At least 2 players are needed to start.', waitHost: 'Waiting for the host to start', leave: 'Leave room', leaveConfirm: 'Leave the room? If you are the host, the room closes.', hostTag: 'Host', you: 'You',
+    round: 'Round {a}/{b}', letters: 'letters', choosing: '{n} is picking a word...', pick: 'Pick a word to draw', youDraw: 'You draw:', drawing: '{n} is drawing',
+    guessPh: 'Type your guess...', chatPh: 'Say something...', knownPh: 'Private chat...', drawerPh: 'Chat with solvers...', send: 'Send', players: 'Players', logLabel: 'Guesses and chat',
+    pen: 'Pen', fill: 'Fill', eraser: 'Eraser', undo: 'Undo', clear: 'Clear', skip: 'Skip turn', color: 'Colour', size: 'Size',
+    theWord: 'The word was', skipped: 'The turn was skipped', nobody: 'Nobody got it.', final: 'Final scores', winner: '{n} wins!', youWin: 'You win!', again: 'New game', lobby: 'Back to lobby', waitNext: 'Waiting for the host',
+    lClose: '“{t}” is close!', lGot: '{n} got it! 🎉', lGotMe: 'You got it! 🎉', lTurn: "{n}'s turn to draw", lJoin: '{n} joined', lLeave: '{n} left', lWord: 'The word was: {t}', lost: 'Connection lost, reconnecting...',
+    errs: { noroom: 'Room not found.', full: 'The room is full.', started: 'This room cannot be joined.', version: 'The two devices run different versions, please reload.', timeout: 'Connecting took too long, try again.', network: 'Could not connect, check your network and try again.', closed: 'The room has closed.', hostLeft: 'The host left, the room is closed.', lost: 'Lost the connection to the room.', kicked: 'You were removed from the room.', badmsg: 'That code belongs to another game.', badcode: 'A room code has 5 characters.' },
+    rulesTitle: 'Rules', rules: [
+      'Players take turns drawing: pick 1 of 3 words and draw it before time runs out. No letters or numbers in the picture.',
+      'Everyone else types guesses. Capitals do not matter.',
+      'Earlier correct guesses score more and the first one gets 50 extra. The drawer scores the average of the guessers.',
+      'At half and a quarter of the time left, a hint letter is revealed (never more than half of the word).',
+      'Once you have guessed it, your messages are only seen by the drawer and others who got it.',
+      'You can join mid-game: you see the current drawing and get a turn.',
+    ],
+  },
+}[lang];
+const EMOJIS = ['😂', '😭', '😱', '👍', '👏', '🔥', '🎨', '🤔'];
+---
+<Base lang={lang} title={T.title} description={T.sub} noindex wide>
+  <p class="meta"><a href={lp(lang, '/')}>{g.back}</a></p>
+  <h1>{T.title}</h1>
+  <p class="meta">{T.sub}</p>
+
+  <div id="dg-root" data-ui={JSON.stringify(T)}>
+    <div id="dg-setup">
+      <h2 class="bd-h">{T.h}</h2>
+      <div class="bd-row"><input id="dg-name" class="dg-input" type="text" maxlength="16" autocomplete="nickname" placeholder={T.namePh} aria-label={T.namePh} /><button type="button" class="btn" id="dg-create">🌐 {T.create}</button></div>
+      <div class="bd-row"><input id="dg-code" class="dg-input dg-codein" type="text" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder={T.codePh} aria-label={T.codePh} /><button type="button" class="btn ghost" id="dg-join">🔑 {T.join}</button></div>
+      <p class="dg-err" id="dg-err" aria-live="polite"></p>
+      <p class="meta">{T.note}</p>
+    </div>
+
+    <div id="dg-lobby" hidden>
+      <div class="dg-codebox"><small>{T.roomCode}</small><b id="dg-bigcode"></b>
+        <div class="bd-row"><button type="button" class="btn sm" id="dg-copycode">{T.copyCode}</button><button type="button" class="btn sm" id="dg-copylink">{T.copyLink}</button></div></div>
+      <div id="dg-settings">
+        <h2 class="bd-h">{T.rounds}</h2>
+        <div class="bd-row">{ROUND_CHOICES.map((n) => <button type="button" class="bd-opt" data-rounds={n}>{n}</button>)}</div>
+        <h2 class="bd-h">{T.time}</h2>
+        <div class="bd-row">{TIME_CHOICES.map((n) => <button type="button" class="bd-opt" data-seconds={n}>{n}</button>)}</div>
+        <h2 class="bd-h">{T.words}</h2>
+        <div class="bd-row"><button type="button" class="bd-opt" data-words="vi">{T.wordsVi}</button><button type="button" class="bd-opt" data-words="en">{T.wordsEn}</button></div>
+      </div>
+      <h2 class="bd-h">{T.players}</h2>
+      <ul class="dg-plist" id="dg-lobbylist"></ul>
+      <p class="meta" id="dg-lobbynote"></p>
+      <p class="bd-row"><button type="button" class="btn" id="dg-startroom">{T.startRoom}</button><button type="button" class="btn ghost" id="dg-leave">{T.leave}</button></p>
+    </div>
+
+    <div id="dg-game" hidden>
+      <div class="dg-bar">
+        <span class="dg-round" id="dg-round"></span>
+        <span class="dg-word"><small id="dg-label"></small><b id="dg-word"></b></span>
+        <span class="dg-time" id="dg-time"></span>
+        <span class="dg-snd" id="dg-snd"></span>
+        <button type="button" class="dg-x" id="dg-quit" aria-label={T.leave} title={T.leave}>✕</button>
+      </div>
+      <div class="dg-board" id="dg-board">
+        <canvas id="dg-canvas" width={W} height={H}></canvas>
+        <div class="dg-over" id="dg-over" hidden></div>
+      </div>
+      <div class="dg-tools" id="dg-tools" hidden>
+        <div class="dg-colors" role="group" aria-label={T.color}>{COLORS.slice(1).map((c, i) => <button type="button" data-color={i + 1} style={`background:${c}`} aria-label={`${T.color} ${i + 1}`}></button>)}</div>
+        <div class="dg-row">
+          <button type="button" data-tool="pen" title={T.pen} aria-label={T.pen}>✏️</button>
+          <button type="button" data-tool="fill" title={T.fill} aria-label={T.fill}>🪣</button>
+          <button type="button" data-tool="eraser" title={T.eraser} aria-label={T.eraser}>🧽</button>
+          <span class="sep"></span>
+          {SIZES.map((s, i) => <button type="button" data-size={i} aria-label={`${T.size} ${i + 1}`}><i style={`width:${6 + i * 5}px;height:${6 + i * 5}px`}></i></button>)}
+          <span class="sep"></span>
+          <button type="button" data-act="undo" title={T.undo} aria-label={T.undo}>↩️</button>
+          <button type="button" data-act="clear" title={T.clear} aria-label={T.clear}>🗑️</button>
+          <button type="button" data-act="skip" title={T.skip} aria-label={T.skip}>⏭️</button>
+        </div>
+      </div>
+      <div class="dg-log" id="dg-log" aria-live="polite" aria-label={T.logLabel}></div>
+      <div class="dg-say">
+        <form id="dg-form"><input id="dg-guess" class="dg-input" type="text" maxlength="60" autocomplete="off" enterkeyhint="send" /><button type="submit" class="btn">{T.send}</button></form>
+        <div class="dg-emo" id="dg-emo">{EMOJIS.map((e) => <button type="button">{e}</button>)}</div>
+      </div>
+      <ul class="dg-players" id="dg-players" aria-label={T.players}></ul>
+    </div>
+    <details class="dg-rules"><summary>{T.rulesTitle}</summary><ul>{T.rules.map((r) => <li>{r}</li>)}</ul></details>
+  </div>
+</Base>
+
+<script>
+  import { sfx, mountMute } from '../../data/sfx';
+  import { COLORS, SIZES, W, H, MAX_PIECE, applyOp, type Op, type DGState, type DGLog } from '../../data/drawGame';
+  import { DGNetHost, DGNetClient, type DGViewHooks } from '../../data/drawNet';
+  import { FirebaseTransport } from '../../data/net/firebaseTransport';
+  import { normCode, validCode, sanitizeName, RoomError } from '../../data/net/room';
+
+  const root = document.getElementById('dg-root') as HTMLElement;
+  const T = JSON.parse(root.dataset.ui || '{}');
+  const LANG = document.documentElement.lang.startsWith('en') ? 'en' : 'vi';
+  const fmt = (s: string, o: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (_, k) => String(o[k] ?? ''));
+  const $ = (id: string) => document.getElementById(id) as HTMLElement;
+  const el = (tag: string, cls = '', text = '') => { const n = document.createElement(tag); if (cls) n.className = cls; if (text) n.textContent = text; return n; };
+
+  let ctl: { kind: 'host'; host: DGNetHost } | { kind: 'client'; client: DGNetClient } | null = null;
+  let cur: DGState | null = null;
+  let session = 0, deadline = 0, lost = false, overKey = '';
+
+  const send = (p: Record<string, unknown>) => { if (ctl?.kind === 'host') ctl.host.send(p); else ctl?.client.send(p); };
+  const nameOf = (slot: number) => (cur && slot === cur.mySlot ? T.you : cur?.players.find((p) => p.slot === slot)?.name || '?');
+  const iDraw = () => !!cur && cur.drawer === cur.mySlot;
+  const canDraw = () => !!cur && !lost && cur.phase === 'draw' && iDraw();
+
+  // ---------- bức vẽ ----------
+  const canvas = $('dg-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+  let ops: Op[] = [];
+  function wipe() { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H); }
+  /** vẽ các điểm của một nét, nối từ điểm (px, py) nếu có */
+  function stroke(c: number, w: number, p: number[], px?: number, py?: number) {
+    ctx.strokeStyle = ctx.fillStyle = COLORS[c];
+    ctx.lineWidth = SIZES[w]; ctx.lineCap = ctx.lineJoin = 'round';
+    if (px === undefined) {
+      ctx.beginPath(); ctx.arc(p[0], p[1], SIZES[w] / 2, 0, 7); ctx.fill();
+      if (p.length < 4) return;
+      ctx.beginPath(); ctx.moveTo(p[0], p[1]);
+    } else { ctx.beginPath(); ctx.moveTo(px, py!); }
+    for (let i = px === undefined ? 2 : 0; i < p.length; i += 2) ctx.lineTo(p[i], p[i + 1]);
+    ctx.stroke();
+  }
+  function flood(x: number, y: number, color: number) {
+    const img = ctx.getImageData(0, 0, W, H), d = img.data;
+    const hex = parseInt(COLORS[color].slice(1), 16), to = [hex >> 16, (hex >> 8) & 255, hex & 255];
+    const s = (y * W + x) * 4, from = [d[s], d[s + 1], d[s + 2]];
+    if (Math.abs(from[0] - to[0]) + Math.abs(from[1] - to[1]) + Math.abs(from[2] - to[2]) < 6) return;
+    const seen = new Uint8Array(W * H), stack = [y * W + x];
+    seen[y * W + x] = 1;
+    while (stack.length) {
+      const i = stack.pop()!, k = i * 4;
+      const same = Math.abs(d[k] - from[0]) <= 60 && Math.abs(d[k + 1] - from[1]) <= 60 && Math.abs(d[k + 2] - from[2]) <= 60;
+      d[k] = to[0]; d[k + 1] = to[1]; d[k + 2] = to[2]; // tô cả viền răng cưa rồi mới dừng
+      if (!same) continue;
+      const cx = i % W;
+      for (const n of [cx > 0 ? i - 1 : -1, cx < W - 1 ? i + 1 : -1, i - W, i + W]) if (n >= 0 && n < W * H && !seen[n]) { seen[n] = 1; stack.push(n); }
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+  function redraw() {
+    wipe();
+    for (const a of ops) { if (a.o === 'p') stroke(a.c, a.w, a.p); else if (a.o === 'f') flood(a.x, a.y, a.c); }
+  }
+  /** thêm một thao tác vào bức vẽ và vẽ phần mới */
+  function paintOp(op: Op) {
+    const last = ops[ops.length - 1];
+    let px: number | undefined, py: number | undefined;
+    if (op.o === 'p' && last?.o === 'p' && last.i === op.i) { px = last.p[last.p.length - 2]; py = last.p[last.p.length - 1]; }
+    if (!applyOp(ops, op)) return false;
+    if (op.o === 'p') stroke(op.c, op.w, op.p, px, py);
+    else if (op.o === 'f') flood(op.x, op.y, op.c);
+    else redraw();
+    return true;
+  }
+
+  // ---------- người vẽ ----------
+  let tool: 'pen' | 'fill' | 'eraser' = 'pen', color = 1, size = 1;
+  let nextId = Math.floor(Math.random() * 1e8);
+  let down: { id: number; pointer: number; x: number; y: number; c: number; w: number } | null = null;
+  let outbox: Op[] = [];
+  function emit(op: Op) {
+    if (!paintOp(op)) return;
+    const tail = outbox[outbox.length - 1];
+    if (op.o === 'p' && tail?.o === 'p' && tail.i === op.i && tail.p.length + op.p.length <= MAX_PIECE) tail.p.push(...op.p);
+    else outbox.push(op.o === 'p' ? { ...op, p: op.p.slice() } : op);
+  }
+  function flush() {
+    if (!outbox.length) return;
+    if (!canDraw()) { outbox = []; return; }
+    send({ type: 'ops', ops: outbox.splice(0, 8) });
+  }
+  setInterval(flush, 130);
+  const point = (e: PointerEvent) => {
+    const r = canvas.getBoundingClientRect();
+    return { x: Math.max(0, Math.min(W - 1, Math.round(((e.clientX - r.left) / r.width) * W))), y: Math.max(0, Math.min(H - 1, Math.round(((e.clientY - r.top) / r.height) * H))) };
+  };
+  canvas.addEventListener('pointerdown', (e) => {
+    if (!canDraw() || down || e.button > 0) return;
+    e.preventDefault();
+    const { x, y } = point(e), id = ++nextId;
+    if (tool === 'fill') { emit({ o: 'f', i: id, c: color, x, y }); return; }
+    down = { id, pointer: e.pointerId, x, y, c: tool === 'eraser' ? 0 : color, w: size };
+    try { canvas.setPointerCapture(e.pointerId); } catch {}
+    emit({ o: 'p', i: id, c: down.c, w: down.w, p: [x, y] });
+  });
+  canvas.addEventListener('pointermove', (e) => {
+    if (!down || e.pointerId !== down.pointer || !canDraw()) return;
+    const { x, y } = point(e);
+    if (Math.hypot(x - down.x, y - down.y) < 3) return;
+    down.x = x; down.y = y;
+    emit({ o: 'p', i: down.id, c: down.c, w: down.w, p: [x, y] });
+  });
+  const lift = (e: PointerEvent) => { if (down && e.pointerId === down.pointer) down = null; };
+  canvas.addEventListener('pointerup', lift);
+  canvas.addEventListener('pointercancel', lift);
+  function paintTools() {
+    document.querySelectorAll<HTMLElement>('#dg-tools [data-color]').forEach((b) => b.classList.toggle('sel', Number(b.dataset.color) === color));
+    document.querySelectorAll<HTMLElement>('#dg-tools [data-tool]').forEach((b) => b.classList.toggle('sel', b.dataset.tool === tool));
+    document.querySelectorAll<HTMLElement>('#dg-tools [data-size]').forEach((b) => b.classList.toggle('sel', Number(b.dataset.size) === size));
+  }
+  $('dg-tools').addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest('button'); if (!b) return;
+    if (b.dataset.color) { color = Number(b.dataset.color); if (tool === 'eraser') tool = 'pen'; }
+    else if (b.dataset.tool) tool = b.dataset.tool as typeof tool;
+    else if (b.dataset.size) size = Number(b.dataset.size);
+    else if (b.dataset.act === 'skip') send({ type: 'skip' });
+    else if (b.dataset.act && canDraw()) { down = null; emit({ o: b.dataset.act === 'undo' ? 'u' : 'c' }); }
+    paintTools();
+  });
+  paintTools();
+  wipe();
+
+  // ---------- dòng đoán và chat ----------
+  const logBox = $('dg-log');
+  function addLog(l: DGLog) {
+    const mine = !!cur && l.slot === cur.mySlot, who = mine ? T.you : l.name;
+    const line = el('p', 'k-' + l.kind);
+    if (l.kind === 'chat' || l.kind === 'secret') line.append(el('b', '', who), document.createTextNode(l.text));
+    else if (l.kind === 'close') line.textContent = fmt(T.lClose, { t: l.text });
+    else if (l.kind === 'got') line.textContent = mine ? T.lGotMe : fmt(T.lGot, { n: who });
+    else if (l.kind === 'word') line.textContent = fmt(T.lWord, { t: l.text });
+    else line.textContent = fmt(l.kind === 'turn' ? T.lTurn : l.kind === 'join' ? T.lJoin : T.lLeave, { n: who });
+    if (l.kind === 'got') sfx.play(mine ? 'correct' : 'pop', mine ? 0.8 : 0.5);
+    else if (l.kind === 'close') sfx.play('select', 0.5);
+    const stick = logBox.scrollHeight - logBox.scrollTop - logBox.clientHeight < 40;
+    logBox.appendChild(line);
+    while (logBox.childElementCount > 80) logBox.firstElementChild!.remove();
+    if (stick) logBox.scrollTop = logBox.scrollHeight;
+  }
+  const guessIn = $('dg-guess') as HTMLInputElement;
+  $('dg-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const t = guessIn.value.trim();
+    if (!t || lost) return;
+    send({ type: 'say', text: t }); guessIn.value = '';
+  });
+  $('dg-emo').addEventListener('click', (e) => { const b = (e.target as HTMLElement).closest('button'); if (b) send({ type: 'say', text: b.textContent }); });
+
+  // ---------- vẽ màn hình ----------
+  const view = (v: 'setup' | 'lobby' | 'game') => { $('dg-setup').hidden = v !== 'setup'; $('dg-lobby').hidden = v !== 'lobby'; $('dg-game').hidden = v !== 'game'; };
+
+  function renderLobby(s: DGState) {
+    view('lobby');
+    const host = ctl?.kind === 'host';
+    $('dg-bigcode').textContent = s.code;
+    $('dg-settings').hidden = !host;
+    document.querySelectorAll<HTMLElement>('#dg-settings [data-rounds]').forEach((b) => b.classList.toggle('sel', Number(b.dataset.rounds) === s.settings.rounds));
+    document.querySelectorAll<HTMLElement>('#dg-settings [data-seconds]').forEach((b) => b.classList.toggle('sel', Number(b.dataset.seconds) === s.settings.seconds));
+    document.querySelectorAll<HTMLElement>('#dg-settings [data-words]').forEach((b) => b.classList.toggle('sel', b.dataset.words === s.settings.words));
+    $('dg-lobbylist').replaceChildren(...s.players.map((p) => {
+      const li = el('li');
+      li.append(el('b', '', p.name));
+      if (p.slot === s.mySlot) li.append(el('em', '', T.you));
+      if (p.slot === 0) li.append(el('em', '', '👑 ' + T.hostTag));
+      return li;
+    }));
+    $('dg-startroom').hidden = !host;
+    ($('dg-startroom') as HTMLButtonElement).disabled = s.players.filter((p) => p.online).length < 2;
+    $('dg-lobbynote').textContent = host ? (s.players.length < 2 ? T.needTwo : '') : `${T.waitHost} · ${s.settings.rounds} × ${s.settings.seconds}s · ${s.settings.words === 'vi' ? T.wordsVi : T.wordsEn}`;
+  }
+
+  function renderWord(s: DGState) {
+    const box = $('dg-word'), label = $('dg-label');
+    box.textContent = '';
+    if (lost) { label.textContent = T.lost; return; }
+    if (s.phase === 'pick') { label.textContent = iDraw() ? T.pick : fmt(T.choosing, { n: nameOf(s.drawer) }); return; }
+    if (s.phase === 'over') { label.textContent = T.final; return; }
+    if (s.word) { label.textContent = s.phase === 'reveal' ? T.theWord : iDraw() ? T.youDraw : '✅'; box.textContent = s.word; box.className = 'full'; return; }
+    if (!s.mask) { label.textContent = ''; return; }
+    label.textContent = `${fmt(T.drawing, { n: nameOf(s.drawer) })} · ${s.mask.split(' ').map((w) => w.length).join(' + ')} ${T.letters}`;
+    box.textContent = s.mask; box.className = 'mask';
+  }
+
+  function renderPlayers(s: DGState) {
+    const rank = s.players.slice().sort((a, b) => b.score - a.score || a.slot - b.slot);
+    $('dg-players').replaceChildren(...rank.map((p) => {
+      const li = el('li', [p.slot === s.drawer ? 'draws' : '', p.got ? 'got' : '', p.online ? '' : 'off'].join(' ').trim());
+      const mark = p.slot === s.drawer ? '✏️ ' : p.got ? '✅ ' : p.online ? '' : '📴 ';
+      li.append(el('span', '', mark + (p.slot === s.mySlot ? `${p.name} (${T.you})` : p.name)), el('b', '', String(p.score)));
+      return li;
+    }));
+  }
+
+  function renderOver(s: DGState) {
+    const box = $('dg-over');
+    const key = `${s.phase}|${s.turn}|${s.choices.join()}|${s.phase === 'over' ? s.players.map((p) => p.score).join() : ''}`;
+    if (s.phase === 'draw') { box.hidden = true; overKey = key; return; }
+    if (key === overKey && !box.hidden) return;
+    overKey = key;
+    const card = el('div', 'dg-box');
+    const row = (cells: [string, string][]) => {
+      const ul = el('ul');
+      for (const [a, b] of cells) { const li = el('li'); li.append(el('span', '', a), el('b', '', b)); ul.append(li); }
+      return ul;
+    };
+    const button = (text: string, act: () => void, cls = 'btn') => { const b = el('button', cls, text) as HTMLButtonElement; b.type = 'button'; b.addEventListener('click', act); return b; };
+    if (s.phase === 'pick') {
+      if (s.choices.length) {
+        card.append(el('h2', '', T.pick));
+        const picks = el('div', 'dg-picks');
+        s.choices.forEach((w, i) => picks.append(button(w, () => { box.hidden = true; send({ type: 'pick', i }); })));
+        card.append(picks);
+      } else card.append(el('h2', '', fmt(T.choosing, { n: nameOf(s.drawer) })));
+    } else if (s.phase === 'reveal') {
+      card.append(el('h2', '', s.word ? `${T.theWord}: ${s.word}` : T.skipped));
+      const got = s.players.filter((p) => p.gain > 0).sort((a, b) => b.gain - a.gain);
+      card.append(got.length ? row(got.map((p) => [nameOf(p.slot), '+' + p.gain])) : el('p', '', s.skipped ? T.skipped : T.nobody));
+    } else {
+      const rank = s.players.slice().sort((a, b) => b.score - a.score || a.slot - b.slot);
+      const top = rank[0];
+      card.append(el('h2', '', top && top.slot === s.mySlot ? T.youWin : fmt(T.winner, { n: top?.name || '?' })));
+      card.append(row(rank.map((p, i) => [`${['🥇', '🥈', '🥉'][i] || i + 1 + '.'} ${nameOf(p.slot)}`, String(p.score)])));
+      const actions = el('div', 'actions');
+      if (ctl?.kind === 'host') actions.append(button(T.again, () => { if (ctl?.kind === 'host') ctl.host.start(); }), button(T.lobby, () => { if (ctl?.kind === 'host') ctl.host.again(); }, 'btn ghost'));
+      else actions.append(el('span', '', T.waitNext));
+      card.append(actions);
+    }
+    box.replaceChildren(card);
+    box.hidden = false;
+    box.classList.toggle('low', s.phase === 'reveal');
+  }
+
+  function render() {
+    const s = cur;
+    if (!s || s.phase === 'lobby') return;
+    const entering = $('dg-game').hidden;
+    view('game');
+    $('dg-round').textContent = fmt(T.round, { a: Math.max(1, s.round), b: s.settings.rounds });
+    renderWord(s);
+    renderPlayers(s);
+    renderOver(s);
+    const drawer = canDraw();
+    $('dg-tools').hidden = !drawer;
+    canvas.classList.toggle('mine', drawer);
+    if (!drawer) down = null;
+    const me = s.players.find((p) => p.slot === s.mySlot);
+    guessIn.placeholder = s.phase !== 'draw' ? T.chatPh : iDraw() ? T.drawerPh : me?.got ? T.knownPh : T.guessPh;
+    guessIn.setAttribute('aria-label', guessIn.placeholder);
+    tickTime();
+    if (entering) $('dg-game').scrollIntoView({ block: 'start', behavior: 'instant' as ScrollBehavior });
+  }
+  let lastTick = 0;
+  function tickTime() {
+    const left = deadline && cur && cur.phase !== 'over' ? Math.max(0, Math.ceil((deadline - Date.now()) / 1000)) : 0;
+    const box = $('dg-time');
+    box.textContent = left ? `⏱ ${left}` : '';
+    const hurry = !!cur && cur.phase === 'draw' && left > 0 && left <= 10;
+    box.classList.toggle('hurry', hurry);
+    if (hurry && left !== lastTick) sfx.play('tick');
+    lastTick = left;
+  }
+  setInterval(tickTime, 250);
+
+  function onState(s: DGState) {
+    const before = cur;
+    cur = s;
+    deadline = s.ms ? Date.now() + s.ms : 0;
+    if (s.phase === 'lobby') { overKey = ''; renderLobby(s); return; }
+    if (before && before.phase !== s.phase) {
+      if (s.phase === 'pick' && s.drawer === s.mySlot) sfx.play('power');
+      else if (s.phase === 'over') sfx.play('win');
+      else if (s.phase === 'draw') sfx.play('go', 0.4);
+    }
+    render();
+  }
+
+  // ---------- phòng ----------
+  const ROOM_KEY = 'dg-room';
+  const store = (k: string, v: string | null) => { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch {} };
+  const read = (k: string) => { try { return localStorage.getItem(k) || ''; } catch { return ''; } };
+  const nameIn = $('dg-name') as HTMLInputElement, codeIn = $('dg-code') as HTMLInputElement;
+  nameIn.value = read('xd-name') || read('tl-name');
+  const myName = () => { const n = sanitizeName(nameIn.value, T.defName); store('xd-name', nameIn.value.trim()); return n; };
+  const setErr = (r: string) => { $('dg-err').textContent = r ? (r === 'connecting' ? T.connecting : T.errs[r] || T.errs.network) : ''; };
+  const peers = () => new FirebaseTransport();
+
+  function teardown() {
+    const c = ctl; ctl = null; session++;
+    try { if (c?.kind === 'host') c.host.close(); else if (c?.kind === 'client') c.client.leave(); } catch {}
+    cur = null; deadline = 0; lost = false; overKey = ''; down = null; outbox = []; ops = []; wipe();
+    logBox.textContent = ''; $('dg-over').hidden = true; guessIn.value = '';
+  }
+  function toMenu(err = '') { teardown(); view('setup'); setErr(err); }
+
+  /** các móc hiển thị của phiên hiện tại; phiên cũ bị bỏ qua */
+  function hooks(onS: (s: DGState) => void): DGViewHooks {
+    const sid = session;
+    return {
+      onState: (s) => { if (sid === session) onS(s); },
+      onLog: (l) => { if (sid === session) addLog(l); },
+      onOps: (list, reset) => {
+        if (sid !== session) return;
+        if (reset) { ops = []; outbox = []; down = null; wipe(); }
+        for (const op of list) paintOp(op);
+      },
+    };
+  }
+
+  let connecting = false;
+  const setBusy = (on: boolean) => { connecting = on; ($('dg-create') as HTMLButtonElement).disabled = on; ($('dg-join') as HTMLButtonElement).disabled = on; };
+  async function createRoom() {
+    if (connecting) return;
+    setBusy(true); teardown(); setErr('connecting');
+    try {
+      let last: DGState | null = null;
+      const host: DGNetHost = await DGNetHost.create(peers, myName(), hooks((s) => { last = s; if (ctl?.kind === 'host') onState(s); }), LANG);
+      ctl = { kind: 'host', host }; setErr('');
+      if (last) onState(last);
+    } catch { setErr('network'); }
+    setBusy(false);
+  }
+  async function joinRoom(codeRaw: string, name: string, token = '') {
+    const code = normCode(codeRaw);
+    if (connecting) return;
+    if (!validCode(code)) { setErr('badcode'); return; }
+    setBusy(true); teardown(); setErr('connecting');
+    const sid = session;
+    const client: DGNetClient = new DGNetClient(peers, {
+      ...hooks((s) => onState(s)),
+      onStatus: (x) => { if (sid !== session) return; lost = x === 'lost'; render(); },
+      onClosed: (r) => { if (sid === session) { store(ROOM_KEY, null); ctl = null; toMenu(r); } },
+    });
+    ctl = { kind: 'client', client };
+    try {
+      const info = await client.join(code, name, token);
+      store(ROOM_KEY, JSON.stringify({ code, token: info.token, name, at: Date.now() }));
+      setErr('');
+    } catch (e) {
+      if (sid === session) { ctl = null; store(ROOM_KEY, null); setErr(e instanceof RoomError ? e.reason : 'network'); }
+    }
+    setBusy(false);
+  }
+  const quit = () => { store(ROOM_KEY, null); toMenu(); };
+  $('dg-create').addEventListener('click', () => { sfx.play('click'); void createRoom(); });
+  $('dg-join').addEventListener('click', () => { sfx.play('click'); void joinRoom(codeIn.value, myName()); });
+  $('dg-leave').addEventListener('click', () => { if (confirm(T.leaveConfirm)) quit(); });
+  $('dg-quit').addEventListener('click', () => { if (confirm(T.leaveConfirm)) quit(); });
+  $('dg-startroom').addEventListener('click', () => { if (ctl?.kind === 'host') { sfx.play('click'); ctl.host.start(); } });
+  $('dg-settings').addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest('button');
+    if (!b || ctl?.kind !== 'host') return;
+    if (b.dataset.rounds) ctl.host.setSettings({ rounds: Number(b.dataset.rounds) });
+    else if (b.dataset.seconds) ctl.host.setSettings({ seconds: Number(b.dataset.seconds) });
+    else if (b.dataset.words) ctl.host.setSettings({ words: b.dataset.words as 'vi' | 'en' });
+  });
+  const copy = (b: HTMLElement, text: string) => navigator.clipboard?.writeText(text).then(() => { const old = b.textContent; b.textContent = T.copied; setTimeout(() => { b.textContent = old; }, 1500); }).catch(() => {});
+  $('dg-copycode').addEventListener('click', (e) => copy(e.currentTarget as HTMLElement, cur?.code || ''));
+  $('dg-copylink').addEventListener('click', (e) => copy(e.currentTarget as HTMLElement, `${location.origin}${location.pathname}?room=${cur?.code || ''}`));
+  codeIn.addEventListener('input', () => { codeIn.value = normCode(codeIn.value); });
+  window.addEventListener('pagehide', () => { if (ctl?.kind === 'host') { try { ctl.host.close(); } catch {} } });
+  const invite = normCode(new URLSearchParams(location.search).get('room') || '');
+  if (invite) codeIn.value = invite;
+  try {
+    const saved = JSON.parse(read(ROOM_KEY) || 'null');
+    if (saved && saved.code && saved.token && Date.now() - saved.at < 30 * 60 * 1000 && (!invite || invite === saved.code)) void joinRoom(saved.code, saved.name, saved.token);
+  } catch {}
+
+  mountMute($('dg-snd'));
+  if (location.hash === '#debug') (window as any).__dg = { get state() { return cur; }, get ctl() { return ctl; }, get ops() { return ops; }, send };
+</script>
+
+<style is:global>
+  #dg-root { max-width: 1060px; }
+  #dg-setup[hidden], #dg-lobby[hidden], #dg-game[hidden], #dg-settings[hidden], #dg-startroom[hidden], .dg-tools[hidden], .dg-over[hidden] { display: none; }
+  .dg-input { min-height: 44px; padding: 6px 12px; border-radius: 10px; border: 1px solid #8886; background: var(--bg); color: inherit; font: inherit; font-size: 16px; max-width: 100%; min-width: 0; }
+  .dg-codein { width: 150px; text-transform: uppercase; letter-spacing: .25em; font-weight: 800; text-align: center; }
+  .dg-err { margin: 4px 0; color: #e8590c; font-weight: 700; } .dg-err:empty { display: none; }
+  .dg-codebox { display: inline-flex; flex-direction: column; gap: 6px; padding: 14px 18px; border-radius: 16px; background: linear-gradient(160deg, #2b3563, #0b0f24); color: #fff; border: 2px solid #ffe066; }
+  .dg-codebox b { font-size: 2.4rem; letter-spacing: .3em; color: #ffe066; } .dg-codebox .btn { color: #fff; }
+  .dg-plist { list-style: none; padding: 0; display: grid; gap: 6px; max-width: 420px; }
+  .dg-plist li { display: flex; align-items: center; gap: 10px; margin: 0; padding: 8px 12px; border-radius: 12px; border: 1px solid #8884; }
+  .dg-plist em { font-style: normal; font-size: .78rem; opacity: .75; }
+
+  #dg-game { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; scroll-margin-top: 66px; }
+  #dg-game > * { min-width: 0; margin: 0; }
+  .dg-bar { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 14px; background: linear-gradient(135deg, #3b46c4, #6d3bc4); color: #fff; min-height: 54px; }
+  .dg-round { font-size: .78rem; font-weight: 700; white-space: nowrap; opacity: .9; }
+  .dg-word { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; line-height: 1.25; min-width: 0; }
+  .dg-word small { font-size: .74rem; opacity: .9; }
+  .dg-word b { font-size: 1.3rem; overflow-wrap: anywhere; }
+  .dg-word b.mask { font-family: ui-monospace, Consolas, monospace; letter-spacing: .18em; white-space: pre-wrap; }
+  .dg-word b.full { color: #ffe066; }
+  .dg-time { font-weight: 800; min-width: 3.6em; text-align: right; font-variant-numeric: tabular-nums; }
+  .dg-time.hurry { color: #ffe066; animation: dgBeat .5s ease-in-out infinite; }
+  @keyframes dgBeat { 50% { transform: scale(1.18); } }
+  .dg-x { border: 0; border-radius: 8px; width: 32px; height: 32px; background: #ffffff2a; color: #fff; cursor: pointer; flex: none; }
+
+  .dg-board { position: relative; align-self: start; border-radius: 14px; overflow: hidden; border: 3px solid #6d3bc4; background: #fff; }
+  #dg-canvas { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; background: #fff; }
+  #dg-canvas.mine { touch-action: none; cursor: crosshair; }
+  .dg-snd { flex: none; width: 32px; height: 32px; }
+  .dg-snd .sfx-btn { position: static !important; width: 32px !important; height: 32px !important; min-width: 0 !important; min-height: 0 !important; padding: 0 !important; font-size: 15px !important; background: #ffffff2a !important; }
+  .dg-over { position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; background: rgba(20, 16, 48, .62); }
+  .dg-over.low { background: rgba(20, 16, 48, .28); }
+  .dg-box { width: min(92%, 380px); max-height: 94%; overflow: auto; padding: 12px 14px; border-radius: 16px; background: #1c1b45f2; color: #fff; text-align: center; border: 2px solid #ffe066; }
+  .dg-box h2 { margin: 0 0 8px; font-size: 1.1rem; color: #ffe066; }
+  .dg-box ul { list-style: none; padding: 0; margin: 0; }
+  .dg-box li { display: flex; justify-content: space-between; gap: 10px; margin: 0; padding: 2px 6px; border-bottom: 1px solid #ffffff1f; font-size: .92rem; }
+  .dg-box p { margin: 4px 0; }
+  .dg-box .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px; } .dg-box .btn.ghost { color: #fff; }
+  .dg-picks { display: grid; gap: 8px; }
+  .dg-picks .btn { width: 100%; min-height: 42px; font-size: 1.05rem; }
+
+  .dg-tools { display: grid; gap: 6px; }
+  .dg-colors { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px; }
+  .dg-colors button { height: 32px; border-radius: 8px; border: 2px solid #8886; cursor: pointer; padding: 0; }
+  .dg-colors button.sel { border: 3px solid var(--fg); box-shadow: 0 0 0 2px var(--accent); }
+  .dg-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+  .dg-row button { width: 38px; height: 38px; display: grid; place-items: center; padding: 0; border-radius: 9px; border: 2px solid var(--line); background: var(--card); color: var(--fg); cursor: pointer; font-size: 18px; }
+  .dg-row button.sel { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 22%, var(--card)); }
+  .dg-row button i { display: block; border-radius: 50%; background: currentColor; }
+  .dg-row .sep { width: 6px; }
+
+  .dg-log { height: 130px; overflow-y: auto; padding: 6px 10px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); font-size: .9rem; line-height: 1.4; overflow-wrap: anywhere; }
+  .dg-log p { margin: 0 0 3px; }
+  .dg-log p b { margin-right: 6px; color: var(--accent); }
+  .dg-log .k-got { color: #2b8a3e; font-weight: 800; }
+  .dg-log .k-secret { color: #2b8a3e; } .dg-log .k-secret b { color: inherit; }
+  .dg-log .k-close { color: #e8590c; font-weight: 700; }
+  .dg-log .k-turn, .dg-log .k-word { font-weight: 700; }
+  .dg-log .k-join, .dg-log .k-leave { opacity: .65; }
+  .dg-say form { display: flex; gap: 6px; }
+  .dg-say input { flex: 1; }
+  .dg-emo { display: flex; gap: 3px; margin-top: 4px; }
+  .dg-emo button { flex: 1; min-height: 34px; padding: 0; border: 0; border-radius: 8px; background: var(--card); font-size: 18px; cursor: pointer; }
+
+  .dg-players { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; align-content: start; }
+  .dg-players li { display: flex; justify-content: space-between; gap: 6px; margin: 0; padding: 5px 8px; border-radius: 10px; border: 2px solid var(--line); font-size: .86rem; }
+  .dg-players li span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .dg-players li.draws { border-color: #6d3bc4; }
+  .dg-players li.got { border-color: #2b8a3e; background: #2b8a3e22; }
+  .dg-players li.off { opacity: .55; }
+  .dg-rules { margin-top: 14px; } .dg-rules li { margin: 6px 0; line-height: 1.5; }
+
+  @media (min-width: 900px) {
+    #dg-game { grid-template-columns: 180px minmax(0, 1fr) 260px; grid-template-rows: auto auto auto 1fr; column-gap: 12px; }
+    .dg-bar { grid-column: 1 / -1; }
+    .dg-players { grid-column: 1; grid-row: 2 / 5; grid-template-columns: minmax(0, 1fr); }
+    .dg-board { grid-column: 2; grid-row: 2; }
+    .dg-tools { grid-column: 2; grid-row: 3; }
+    .dg-log { grid-column: 3; grid-row: 2; height: auto; min-height: 0; contain: size; }
+    .dg-say { grid-column: 3; grid-row: 3; }
+  }
+  @media (max-width: 480px) {
+    .dg-colors { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .dg-row button { width: 29px; height: 34px; font-size: 15px; }
+    .dg-row .sep { width: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) { .dg-time.hurry { animation: none; } }
+</style>
