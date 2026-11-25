@@ -155,9 +155,10 @@ export function finishHand(s: Session, st: TLState, seats: number[]): Settlement
 //  - Người đã về (hết bài) mà bộ cuối của họ bị chặt thì không bị trừ, người chặt không được cộng khoản đó.
 //  - Thối bài: ai chưa đánh được lá nào tại lúc có người về nhất trả 10 điểm cho người về nhất.
 //  - Thối heo: lá 2 còn trên tay khi hết ván bị trừ như bị chặt (đen 10, đỏ 20), trả cho người về nhất.
-//  - Tới trắng: người thắng +20, ba người còn lại xếp hạng theo thứ tự ngồi, không có điểm chặt, không thối.
+//  - Tới trắng: người thắng +30, ba người còn lại mỗi người -10, không có điểm chặt, không thối.
 // =====================================================================================================
 export const RANK_POINTS = [20, 10, -10, -20];
+export const WHITE_POINTS = [30, -10, -10, -10]; // tới trắng: không phân nhì, ba, bét
 export const CHOP_PTS = { black: 10, red: 20, other: 20 };
 export const BURN_PTS = 10; // thối bài
 
@@ -208,7 +209,8 @@ export function settlePoints(inp: PtsInput): PointsSettlement {
   const { n } = inp;
   if (n !== 4) throw new Error('points mode needs 4 players');
   const rank = new Array(n).fill(0), chop = new Array(n).fill(0);
-  inp.order.forEach((seat, i) => { rank[seat] = RANK_POINTS[i] ?? 0; });
+  const table = inp.white ? WHITE_POINTS : RANK_POINTS;
+  inp.order.forEach((seat, i) => { rank[seat] = table[i] ?? 0; });
   const items: PtsItem[] = [];
   if (!inp.white) {
     // gom theo chuỗi: "con cuối chịu hết" - người bị chặt sau cùng đền cả chuỗi cho người chặt cuối, những người trước không mất gì

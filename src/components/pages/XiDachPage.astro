@@ -12,19 +12,22 @@ const T = {
     role: 'Bạn làm', player: 'Nhà con', dealer: 'Nhà cái', opp: 'Số người chơi cùng', bet: 'Tiền cược', deal: 'Chia bài', again: 'Ván mới', reset: 'Chơi lại từ 1000',
     you: 'Bạn', cai: 'Cái', draw: 'Rút', stand: 'Dằn', standAll: 'Dằn (xét hết)', check: 'Xét',
     yourTurn: 'Lượt của bạn', needMin: 'Chưa đủ {m} điểm, phải rút thêm', turnOf: 'Đến lượt {n}', dealerTurn: 'Nhà cái đang đánh',
+    dealing: 'Đang chia bài...', betOther: 'Số khác', nextBet: 'Cược ván tới', betBad: 'Nhập số nguyên từ 1 trở lên', betMax: 'Bạn chỉ còn {m} chip nên cược {m}',
+    squeezeHint: 'Nặn bài: kéo góc dưới bên phải lên từ từ', squeezing: 'Đang nặn...', left: 'Còn {c} lá',
     youDealer: 'Bạn làm cái: rút thêm, "Xét" từng người hoặc "Dằn" để xét hết', waiting: 'Chờ nhà cái xét',
     kinds: { xibang: 'Xì bàng', xidach: 'Xì dách', ngulinh: 'Ngũ linh', points: '{p} điểm', quac: 'Quắc {p}' },
     win: 'Thắng', lose: 'Thua', draw0: 'Hòa', done: 'Hết ván: bạn {d}', flat: 'Hết ván: bạn hòa vốn', broke: 'Bạn đã hết chip.',
     cards: '{c} lá', stats: 'Đã chơi {r} ván, thắng {w}', botBet: 'cược {b}',
     checkTitle: '{d} xét bài {p}', youCheck: 'Bạn xét bài {p}', checkYou: '{d} xét bài bạn', dealerHas: 'Bài cái: {v}', running: 'Đang có {t}',
-    tapHint: 'Chạm vào lá bài để lật', nextCard: 'Lật lá tiếp', flipAll: 'Lật hết', skip: 'Bỏ qua', cont: 'Tiếp tục',
+    tapHint: 'Chạm vào lá bài để lật', nextCard: 'Lật lá tiếp', flipAll: 'Lật hết', skip: 'Xem ngay', cont: 'Tiếp tục',
     pWin: '{p} thắng {d}', pLose: '{p} thua {d}', pPush: '{p} hòa với cái', youWin: 'Bạn thắng {d}', youLose: 'Bạn thua {d}', youPush: 'Bạn hòa với cái',
     rulesTitle: 'Luật chơi', rules: [
-      'Từ 2 đến 8 người, một người làm cái. Mỗi người 2 lá, rút thêm tối đa 5 lá. Lá 2 đến 10 tính theo số, J Q K tính 10. Lá A: cầm 2 lá tính 1, 10 hoặc 11; cầm 3 lá tính 1 hoặc 10; từ 4 lá chỉ tính 1.',
+      'Từ 2 đến 8 người, một người làm cái. Mỗi người 2 lá, rút thêm tối đa 5 lá. Lá 2 đến 10 tính theo số, J Q K tính 10. Lá A tính 1 hoặc 11, máy tự chọn cách có lợi nhất mà không quá 21.',
       'Thứ tự mạnh: Xì bàng (2 lá A) > Xì dách (A kèm 10, J, Q, K) > Ngũ linh (5 lá không quá 21) > so điểm. Hai ngũ linh thì điểm nhỏ hơn thắng.',
       'Nhà con phải đủ 16 điểm mới được dằn, nhà cái đủ 15. Trên 21 là quắc; cùng quắc thì hòa.',
       'Nhà cái đủ 15 được xét bài từng người trước khi rút tiếp: bài người bị xét được lật từng lá. Nhà cái có xì bàng hoặc xì dách thì xét cả bàn ngay.',
       'Ăn: xì bàng gấp 3, xì dách và ngũ linh gấp 2, còn lại gấp 1.',
+      'Tiền cược tự chọn, tối đa bằng số chip đang có. Không đủ chip để trả thì trả hết số đang có.',
     ],
   },
   en: {
@@ -32,19 +35,22 @@ const T = {
     role: 'You are', player: 'A player', dealer: 'The dealer', opp: 'Other people at the table', bet: 'Your bet', deal: 'Deal', again: 'New round', reset: 'Restart with 1000',
     you: 'You', cai: 'Dealer', draw: 'Draw', stand: 'Stand', standAll: 'Stand (check all)', check: 'Check',
     yourTurn: 'Your turn', needMin: 'Below {m} points, you must draw', turnOf: '{n} is playing', dealerTurn: 'The dealer is playing',
+    dealing: 'Dealing...', betOther: 'Other', nextBet: 'Next bet', betBad: 'Enter a whole number, 1 or more', betMax: 'You only have {m} chips, so you bet {m}',
+    squeezeHint: 'Squeeze it: drag the bottom right corner up slowly', squeezing: 'Squeezing...', left: '{c} cards left',
     youDealer: 'You are the dealer: draw, "Check" a player, or "Stand" to check everyone', waiting: 'Waiting for the dealer',
     kinds: { xibang: 'Two aces', xidach: 'Blackjack', ngulinh: 'Five cards', points: '{p} points', quac: 'Bust {p}' },
     win: 'Win', lose: 'Lose', draw0: 'Push', done: 'Round over: you {d}', flat: 'Round over: you break even', broke: 'You are out of chips.',
     cards: '{c} cards', stats: '{r} rounds played, {w} won', botBet: 'bets {b}',
     checkTitle: '{d} checks {p}', youCheck: 'You check {p}', checkYou: '{d} checks your hand', dealerHas: 'Dealer: {v}', running: 'So far {t}',
-    tapHint: 'Tap a card to flip it', nextCard: 'Flip next card', flipAll: 'Flip all', skip: 'Skip', cont: 'Continue',
+    tapHint: 'Tap a card to flip it', nextCard: 'Flip next card', flipAll: 'Flip all', skip: 'Show now', cont: 'Continue',
     pWin: '{p} wins {d}', pLose: '{p} loses {d}', pPush: '{p} pushes with the dealer', youWin: 'You win {d}', youLose: 'You lose {d}', youPush: 'You push with the dealer',
     rulesTitle: 'Rules', rules: [
-      '2 to 8 people, one of them the dealer. Everyone gets 2 cards and may draw up to 5. 2 to 10 count their number, J Q K count 10. Ace: with 2 cards 1, 10 or 11; with 3 cards 1 or 10; from 4 cards only 1.',
+      '2 to 8 people, one of them the dealer. Everyone gets 2 cards and may draw up to 5. 2 to 10 count their number, J Q K count 10. An ace counts 1 or 11, whichever is best without going over 21.',
       'Strength: two aces > blackjack (ace plus 10, J, Q, K) > five cards (5 cards, 21 or less) > points. Between two five-card hands the lower total wins.',
       'A player needs 16 to stand, the dealer 15. Over 21 is a bust; if both bust it is a push.',
       'Once at 15 the dealer may check players one by one before drawing again: the checked hand is flipped card by card. A dealer with two aces or blackjack checks everyone at once.',
       'Pays: two aces x3, blackjack and five cards x2, anything else x1.',
+      'Choose any bet up to the chips you have. Anyone short of chips pays what they have.',
     ],
   },
 }[lang];
@@ -62,7 +68,7 @@ const T = {
       <div class="bd-row" data-pick="opp">{[1, 2, 3, 4, 5, 6, 7].map((n) => <button type="button" class={`bd-opt${n === 5 ? ' sel' : ''}`} data-v={n}>{n}</button>)}</div>
       <div id="xd-betwrap">
         <h2 class="bd-h">{T.bet}</h2>
-        <div class="bd-row" data-pick="bet">{[10, 50, 100].map((n) => <button type="button" class={`bd-opt${n === 10 ? ' sel' : ''}`} data-v={n}>{n}</button>)}</div>
+        <div class="bd-row" data-pick="bet">{[10, 50, 100].map((n) => <button type="button" class={`bd-opt${n === 10 ? ' sel' : ''}`} data-v={n}>{n}</button>)}<input class="xd-betin" type="number" inputmode="numeric" min="1" step="1" placeholder={T.betOther} aria-label={T.betOther} /></div>
       </div>
       <p><button type="button" class="btn" id="xd-deal">🂠 {T.deal}</button></p>
     </div>
@@ -71,12 +77,20 @@ const T = {
       <div class="xd-table" id="xd-table">
         <div class="xd-felt" aria-hidden="true"></div>
         <div class="xd-center">
-          <div class="xd-deck" aria-hidden="true"><i></i><i></i><i></i></div>
+          <div class="xd-stack" aria-hidden="true">
+            <div class="xd-deck" id="xd-deckpile"><i></i><i></i><i></i><i></i><i></i></div>
+            <small class="xd-left" id="xd-left"></small>
+          </div>
           <p class="xd-status" id="xd-status" aria-live="polite"></p>
         </div>
         <div class="xd-seats" id="xd-seats"></div>
         <div class="xd-reveal" id="xd-reveal" hidden></div>
       </div>
+      <div class="xd-nextbet" id="xd-nextbet" hidden>
+        <span>{T.nextBet}</span>
+        <div class="bd-row" data-pick="bet">{[10, 50, 100].map((n) => <button type="button" class={`bd-opt${n === 10 ? ' sel' : ''}`} data-v={n}>{n}</button>)}<input class="xd-betin" type="number" inputmode="numeric" min="1" step="1" placeholder={T.betOther} aria-label={T.betOther} /></div>
+      </div>
+      <p class="xd-betnote" id="xd-betnote" aria-live="polite"></p>
       <div class="xd-actions" id="xd-actions">
         <button type="button" class="btn" id="xd-draw">{T.draw}</button>
         <button type="button" class="btn" id="xd-stand">{T.stand}</button>
@@ -106,6 +120,7 @@ const T = {
   let role: 'player' | 'dealer' = 'player', opp = 5, bet = 10;
   let chips: number[] = [], st: XDState | null = null, timer = 0, counted = false;
   let revealed = new Set<number>(), dealerShown = false, revealing = false, gen = 0, fast = false;
+  let dealing = false, shuffling = false; // đang xáo / chia: khóa nút và chưa lộ kết quả
   let seen: number[] = []; // số lá đã vẽ của từng ghế, để chỉ lá mới mới có hiệu ứng bay vào
   const me = 0;
   let stats = { r: 0, w: 0 };
@@ -118,9 +133,32 @@ const T = {
     const v = b.dataset.v!;
     if (row.dataset.pick === 'role') { role = v as any; $('xd-betwrap').hidden = role === 'dealer'; }
     else if (row.dataset.pick === 'opp') opp = Number(v);
-    else bet = Number(v);
+    else setBet(Number(v));
     sfx.play('click');
   }));
+
+  // tiền cược: chọn sẵn hoặc tự nhập; hai hàng (màn đầu và giữa các ván) luôn khớp nhau
+  const betInputs = () => Array.from(document.querySelectorAll<HTMLInputElement>('.xd-betin'));
+  function setBet(v: number, typed?: HTMLInputElement) {
+    bet = v;
+    document.querySelectorAll<HTMLElement>('[data-pick="bet"] button').forEach((b) => b.classList.toggle('sel', !typed && Number(b.dataset.v) === v));
+    betInputs().forEach((i) => { i.classList.remove('bad'); if (i !== typed) i.value = typed ? String(v) : ''; });
+    $('xd-betnote').textContent = '';
+  }
+  betInputs().forEach((el) => el.addEventListener('input', () => {
+    const v = Number(el.value);
+    if (el.value !== '' && Number.isInteger(v) && v >= 1) setBet(v, el);
+    else { el.classList.add('bad'); $('xd-betnote').textContent = T.betBad; document.querySelectorAll('[data-pick="bet"] button').forEach((b) => b.classList.remove('sel')); }
+  }));
+  // không đủ chip để trả: trả hết số đang có (cái thu của người thua trước, rồi trả người thắng theo thứ tự ghế)
+  function capDeltas(d: number[], have: number[], dealer: number) {
+    const out = d.map(() => 0);
+    let pot = have[dealer];
+    d.forEach((v, i) => { if (i !== dealer && v < 0) { out[i] = -Math.min(-v, have[i]); pot -= out[i]; } });
+    d.forEach((v, i) => { if (i !== dealer && v > 0) { out[i] = Math.min(v, pot); pot -= out[i]; } });
+    out[dealer] = pot - have[dealer];
+    return out;
+  }
 
   // ---------- lá bài ----------
   const face = (c: number, extra = '') => {
@@ -135,26 +173,27 @@ const T = {
   // ---------- bàn ----------
   function seatHtml(s: number) {
     const x = st!, isDealer = s === x.dealer, res = x.settled[s], shownRes = !!res && revealed.has(s);
-    const show = s === me || (isDealer ? dealerShown || (x.phase === 'done' && !revealing) : shownRes);
-    const hand = x.hands[s], v = handValue(hand), had = seen[s] || 0;
+    const show = s === me || (isDealer ? dealerShown || (x.phase === 'done' && !revealing && !dealing) : shownRes);
+    const hand = shuffling ? [] : x.hands[s], v = handValue(x.hands[s]), had = seen[s] || 0;
     const cardsHtml = hand.map((c, i) => { const extra = i >= had ? ' new' : ''; return show ? face(c, extra) : back(extra); }).join('');
     let badge = '';
-    if (!isDealer && shownRes) badge = `<em class="xd-badge ${res!.result > 0 ? 'w' : res!.result < 0 ? 'l' : 'd'}">${res!.result > 0 ? T.win : res!.result < 0 ? T.lose : T.draw0}${res!.delta ? ' ' + sgn(res!.delta) : ''}</em>`;
-    if (isDealer && x.phase === 'done' && !revealing) badge = `<em class="xd-badge ${x.deltas[s] > 0 ? 'w' : x.deltas[s] < 0 ? 'l' : 'd'}">${sgn(x.deltas[s])}</em>`;
-    const canCheck = !revealing && me === x.dealer && !isDealer && legal(x, me).check.includes(s);
-    const turn = x.phase !== 'done' && x.turn === s;
+    if (!isDealer && shownRes) badge = `<em class="xd-badge ${res!.result > 0 ? 'w' : res!.result < 0 ? 'l' : 'd'}">${res!.result > 0 ? T.win : res!.result < 0 ? T.lose : T.draw0}${(counted ? x.deltas[s] : res!.delta) ? ' ' + sgn(counted ? x.deltas[s] : res!.delta) : ''}</em>`;
+    if (isDealer && x.phase === 'done' && !revealing && !dealing) badge = `<em class="xd-badge ${x.deltas[s] > 0 ? 'w' : x.deltas[s] < 0 ? 'l' : 'd'}">${sgn(x.deltas[s])}</em>`;
+    const canCheck = !revealing && !dealing && me === x.dealer && !isDealer && legal(x, me).check.includes(s);
+    const turn = !dealing && x.phase !== 'done' && x.turn === s;
     // vị trí quanh bàn (máy tính): bạn ở dưới, những người khác theo chiều kim đồng hồ
     const a = Math.PI / 2 + (s * 2 * Math.PI) / x.n;
     const px = 50 + 39 * Math.cos(a), py = 49 + 36 * Math.sin(a);
-    return `<div class="xd-seat${turn ? ' turn' : ''}${s === me ? ' me' : ''}${isDealer ? ' is-dealer' : ''}" style="--px:${px.toFixed(1)}%;--py:${py.toFixed(1)}%">
+    return `<div data-s="${s}" class="xd-seat${turn ? ' turn' : ''}${s === me ? ' me' : ''}${isDealer ? ' is-dealer' : ''}" style="--px:${px.toFixed(1)}%;--py:${py.toFixed(1)}%">
       <div class="xd-head"><span class="xd-av" style="--c:${COLORS[s % COLORS.length]}">${[...nameOf(s)][0]}</span><span class="xd-who"><b>${nameOf(s)}</b><small>🪙 ${chips[s]}</small></span>${isDealer ? `<span class="xd-tag">👑 ${T.cai}</span>` : `<span class="xd-bet">${fmt(T.botBet, { b: x.bets[s] })}</span>`}</div>
       <div class="xd-hand">${cardsHtml}</div>
-      <div class="xd-foot">${show ? `<span class="xd-val ${v.kind}">${kindText(v)}</span>` : `<span class="xd-val">${fmt(T.cards, { c: hand.length })}</span>`}${badge}${canCheck ? `<button type="button" class="xd-check" data-check="${s}">🔍 ${T.check}</button>` : ''}</div>
+      <div class="xd-foot">${dealing ? '' : show ? `<span class="xd-val ${v.kind}">${kindText(v)}</span>` : `<span class="xd-val">${fmt(T.cards, { c: hand.length })}</span>`}${badge}${canCheck ? `<button type="button" class="xd-check" data-check="${s}">🔍 ${T.check}</button>` : ''}</div>
     </div>`;
   }
 
   function statusText(): string {
     const x = st!;
+    if (dealing) return T.dealing;
     if (revealing) return T.dealerTurn;
     if (x.phase === 'done') {
       const d = x.deltas[me];
@@ -173,17 +212,70 @@ const T = {
     const x = st!;
     $('xd-seats').innerHTML = Array.from({ length: x.n }, (_, s) => seatHtml(s)).join('');
     $('xd-table').dataset.n = String(x.n);
-    seen = x.hands.map((h) => h.length);
+    seen = x.hands.map((h) => (shuffling ? 0 : h.length));
+    $('xd-left').textContent = fmt(T.left, { c: shuffling ? 52 : x.deck.length });
+    flyNewCards();
     $('xd-status').textContent = statusText();
     const lg = legal(x, me);
-    const done = x.phase === 'done' && !revealing;
-    ($('xd-draw') as HTMLButtonElement).disabled = revealing || !lg.draw;
-    ($('xd-stand') as HTMLButtonElement).disabled = revealing || !lg.stand;
+    const done = x.phase === 'done' && !revealing && !dealing;
+    ($('xd-draw') as HTMLButtonElement).disabled = revealing || dealing || !lg.draw;
+    ($('xd-stand') as HTMLButtonElement).disabled = revealing || dealing || !lg.stand;
     $('xd-stand').textContent = me === x.dealer ? T.standAll : T.stand;
     $('xd-draw').hidden = done; $('xd-stand').hidden = done;
     $('xd-next').hidden = !done;
+    $('xd-nextbet').hidden = !(done && me !== x.dealer && chips[me] > 0);
     $('xd-next').textContent = chips[me] <= 0 ? T.reset : T.again;
     $('xd-stats').textContent = fmt(T.stats, { r: stats.r, w: stats.w });
+  }
+
+  // ---------- hiệu ứng: lá bài bay từ bộ bài ở giữa tới chỗ ngồi ----------
+  const still = () => fast || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const STEP = 110, FLIGHT = 420; // ms giữa hai lá khi chia, và thời gian bay
+  function flyNewCards() {
+    const x = st!;
+    if (still()) return;
+    const from = $('xd-deckpile').getBoundingClientRect();
+    $('xd-seats').querySelectorAll<HTMLElement>('.xd-seat').forEach((seat) => {
+      const s = Number(seat.dataset.s);
+      seat.querySelectorAll<HTMLElement>('.xd-hand .xd-c').forEach((el, i) => {
+        if (!el.classList.contains('new')) return;
+        // chia đầu ván: mỗi người một lá, bắt đầu từ người ngồi sau cái, cái nhận sau cùng
+        const delay = dealing ? (i * x.n + ((s - x.dealer - 1 + x.n) % x.n)) * STEP : 0;
+        const to = el.getBoundingClientRect();
+        const ghost = document.createElement('span');
+        ghost.className = 'xd-c back xd-fly';
+        Object.assign(ghost.style, { left: to.left + 'px', top: to.top + 'px', width: to.width + 'px', height: to.height + 'px' });
+        document.body.appendChild(ghost);
+        el.style.visibility = 'hidden';
+        const dx = from.left + from.width / 2 - (to.left + to.width / 2), dy = from.top + from.height / 2 - (to.top + to.height / 2);
+        const anim = ghost.animate([
+          { visibility: 'visible', transform: `translate(${dx}px, ${dy}px) scale(${from.width / to.width}) rotate(-200deg)` },
+          { visibility: 'visible', transform: 'none' },
+        ], { duration: FLIGHT, delay, easing: 'cubic-bezier(.2, .7, .3, 1)', fill: 'forwards' });
+        if (dealing) setTimeout(() => { if (ghost.isConnected) sfx.play('flip', 0.35); }, delay);
+        anim.onfinish = () => { ghost.remove(); el.style.visibility = ''; el.classList.add('landed'); };
+      });
+    });
+  }
+  const clearFlying = () => document.querySelectorAll('.xd-fly').forEach((g) => g.remove());
+
+  // xáo bài, chia lần lượt, xong mới cho đánh
+  async function dealAnimated() {
+    const g = gen, x = st!;
+    dealing = true; shuffling = true;
+    render();
+    $('xd-deckpile').classList.add('shuffle');
+    sfx.play('flip');
+    await sleep(750);
+    if (g !== gen) return;
+    $('xd-deckpile').classList.remove('shuffle');
+    shuffling = false;
+    render(); // các lá bay ra từ đây
+    await sleep(x.n * 2 * STEP + FLIGHT);
+    if (g !== gen) return;
+    dealing = false;
+    seen = x.hands.map((h) => h.length);
+    step();
   }
 
   function confetti() {
@@ -198,6 +290,7 @@ const T = {
   function finishRound() {
     if (!st || st.phase !== 'done' || counted) return;
     counted = true;
+    st.deltas = capDeltas(st.deltas, chips, st.dealer);
     st.deltas.forEach((d, i) => { chips[i] += d; });
     stats.r++; if (st.deltas[me] > 0) stats.w++;
     try { localStorage.setItem('xidach-stats', JSON.stringify(stats)); } catch {}
@@ -214,39 +307,81 @@ const T = {
     box.innerHTML = `<div class="xd-rbox">
       <h3>${title}</h3>
       <div class="xd-rdealer"><span>${fmt(T.dealerHas, { v: kindText(res.dealer) })}</span><div class="xd-hand">${dHand.slice(0, 5).map((c) => face(c)).join('')}</div></div>
-      <div class="xd-rhand">${hand.map((_, i) => back(` rc" data-i="${i}`)).join('')}</div>
+      <div class="xd-rhand">${hand.map((c, i) => `<span class="xd-slot" data-i="${i}"><span class="xd-in">${back()}${face(c)}</span>${i === hand.length - 1 ? `<span class="xd-peek">${face(c)}${back(' lid')}<span class="xd-foldw"><i class="xd-fold"></i></span></span>` : ''}</span>`).join('')}</div>
       <p class="xd-rtotal">${manual ? T.tapHint : '…'}</p>
       <p class="xd-rresult"></p>
       <div class="xd-rbtns">${manual ? `<button type="button" class="btn sm" data-r="next">${T.nextCard}</button><button type="button" class="btn sm" data-r="all">${T.flipAll}</button>` : ''}<button type="button" class="btn sm ghost" data-r="skip">${T.skip}</button></div>
     </div>`;
     box.hidden = false;
     let flipped = 0, all = false, skip = false, wake: (() => void) | null = null;
-    const slots = () => Array.from(box.querySelectorAll<HTMLElement>('.xd-rhand .xd-c'));
+    const slots = () => Array.from(box.querySelectorAll<HTMLElement>('.xd-rhand .xd-slot'));
     box.onclick = (e) => {
       const t = e.target as HTMLElement;
       const r = t.closest<HTMLElement>('[data-r]')?.dataset.r;
       if (r === 'skip') skip = true;
       else if (r === 'all') all = true;
-      else if (r !== 'next' && !(manual && t.closest('.xd-rhand .back'))) return;
+      else if (r !== 'next' && !(manual && t.closest('.xd-slot:not(.open):not(.squeeze)'))) return;
       wake?.();
     };
     const waitTap = () => new Promise<void>((res2) => { wake = () => { wake = null; res2(); }; });
     const flip = async (i: number) => {
-      const el = slots()[i];
-      el.classList.add('flipping');
+      slots()[i].classList.add('open');
       sfx.play('flip');
-      await sleep(170);
-      el.outerHTML = face(hand[i], ' shown');
+      await sleep(360);
       flipped++;
       const total = box.querySelector('.xd-rtotal') as HTMLElement;
       total.textContent = flipped === hand.length ? kindText(res.player) : fmt(T.running, { t: handValue(hand.slice(0, flipped)).total });
       total.className = 'xd-rtotal' + (flipped === hand.length ? ' final ' + res.player.kind : '');
-      await sleep(190);
+      await sleep(240);
+    };
+    // nặn lá cuối: hé góc dưới bên phải; p = độ hé (0..1 theo bề ngang lá)
+    const peel = (el: HTMLElement, p: number) => {
+      const w = el.offsetWidth, h = el.offsetHeight, d = Math.max(0, Math.min(1, p)) * w;
+      (el.querySelector('.lid') as HTMLElement).style.clipPath = `polygon(0 0, 100% 0, 100% ${h - d}px, ${w - d}px 100%, 0 100%)`;
+      (el.querySelector('.xd-fold') as HTMLElement).style.clipPath = `polygon(${w - d}px ${h}px, ${w}px ${h - d}px, ${w - d}px ${h - d}px)`;
+    };
+    const squeeze = async (i: number) => {
+      const el = slots()[i], total = box.querySelector('.xd-rtotal') as HTMLElement;
+      el.classList.add('squeeze');
+      peel(el, 0.12);
+      const stop = () => skip || g !== gen;
+      if (manual) {
+        total.textContent = T.squeezeHint;
+        total.className = 'xd-rtotal hint';
+        let from: { x: number; y: number } | null = null, p = 0.12;
+        el.onpointerdown = (e) => { from = { x: e.clientX, y: e.clientY }; el.setPointerCapture(e.pointerId); };
+        el.onpointermove = (e) => {
+          if (!from) return;
+          p = 0.12 + Math.max(0, from.x - e.clientX + (from.y - e.clientY)) / (el.offsetWidth * 1.3);
+          peel(el, p);
+          if (p >= 1) { from = null; wake?.(); }
+        };
+        el.onpointerup = el.onpointercancel = () => {
+          if (!from) return;
+          from = null;
+          if (p >= 0.65) wake?.(); else { p = 0.12; peel(el, p); }
+        };
+        await waitTap(); // kéo đủ xa, hoặc bấm "Lật lá tiếp" / "Lật hết" / "Xem ngay"
+        el.onpointerdown = el.onpointermove = el.onpointerup = el.onpointercancel = null;
+        return;
+      }
+      total.textContent = T.squeezing;
+      total.className = 'xd-rtotal hint';
+      const tween = async (a: number, b: number, ms: number) => {
+        const t0 = performance.now();
+        for (let k = 0; k < 1 && !stop(); ) { await sleep(16); k = Math.min(1, (performance.now() - t0) / ms); peel(el, a + (b - a) * k); }
+      };
+      await tween(0.12, 0.42, 550);
+      if (!stop()) await sleep(350);
+      await tween(0.42, 0.72, 600);
+      if (!stop()) await sleep(250);
     };
     if (!manual) await sleep(450);
     while (flipped < hand.length && !skip && g === gen) {
-      if (manual && !all) { await waitTap(); if (skip || g !== gen) break; }
-      else await sleep(flipped === hand.length - 1 ? 950 : 520); // lá cuối chậm hơn cho hồi hộp
+      const last = flipped === hand.length - 1;
+      if (last && !all && !still()) await squeeze(flipped); // lá cuối thì nặn
+      else if (manual && !all) await waitTap();
+      else await sleep(520);
       if (skip || g !== gen) break;
       await flip(flipped);
     }
@@ -304,29 +439,32 @@ const T = {
   }
 
   function newRound() {
+    const badBet = betInputs().find((i) => i.classList.contains('bad') && i.offsetParent);
+    if (role === 'player' && badBet) { badBet.focus(); return; }
+    $('xd-betnote').textContent = '';
     const n = opp + 1;
     if (chips.length !== n || chips[me] <= 0) chips = new Array(n).fill(1000);
     for (let i = 1; i < n; i++) if (chips[i] <= 0) chips[i] = 1000;
     const dealer = role === 'dealer' ? me : 1;
     const bets = Array.from({ length: n }, (_, i) => (i === dealer ? 0 : i === me ? Math.min(bet, Math.max(1, chips[me])) : [10, 20, 50][Math.floor(Math.random() * 3)]));
-    gen++; revealed = new Set(); dealerShown = false; revealing = false; counted = false; seen = [];
+    if (dealer !== me && bet > chips[me]) $('xd-betnote').textContent = fmt(T.betMax, { m: chips[me] });
+    gen++; revealed = new Set(); dealerShown = false; revealing = false; counted = false; seen = []; dealing = false; shuffling = false; clearTimeout(timer); clearFlying(); $('xd-deckpile').classList.remove('shuffle');
     $('xd-reveal').hidden = true;
     st = deal(n, dealer, bets);
     $('xd-setup').hidden = true; $('xd-game').hidden = false;
-    sfx.play('flip');
-    step();
-    // điện thoại: đưa cả bàn vào màn hình
+    // điện thoại: đưa cả bàn vào màn hình (làm trước khi chia để lá bay đúng chỗ)
     if (window.matchMedia('(max-width: 900px)').matches) $('xd-game').scrollIntoView({ block: 'start', behavior: 'instant' as ScrollBehavior });
+    if (still()) { sfx.play('flip'); step(); } else void dealAnimated();
   }
 
   $('xd-deal').addEventListener('click', newRound);
   $('xd-next').addEventListener('click', newRound);
-  $('xd-draw').addEventListener('click', () => { if (st && !revealing && draw(st, me)) { sfx.play('flip'); step(); } });
-  $('xd-stand').addEventListener('click', () => { if (st && !revealing && stand(st, me)) { sfx.play('click'); step(); } });
-  $('xd-menu').addEventListener('click', () => { clearTimeout(timer); gen++; revealing = false; st = null; $('xd-reveal').hidden = true; $('xd-game').hidden = true; $('xd-setup').hidden = false; });
+  $('xd-draw').addEventListener('click', () => { if (st && !revealing && !dealing && draw(st, me)) { sfx.play('flip'); step(); } });
+  $('xd-stand').addEventListener('click', () => { if (st && !revealing && !dealing && stand(st, me)) { sfx.play('click'); step(); } });
+  $('xd-menu').addEventListener('click', () => { clearTimeout(timer); gen++; revealing = false; dealing = false; shuffling = false; clearFlying(); st = null; $('xd-nextbet').hidden = true; $('xd-betnote').textContent = ''; $('xd-reveal').hidden = true; $('xd-game').hidden = true; $('xd-setup').hidden = false; });
   $('xd-seats').addEventListener('click', (e) => {
     const b = (e.target as HTMLElement).closest<HTMLElement>('[data-check]');
-    if (b && st && !revealing && check(st, Number(b.dataset.check))) { sfx.play('click'); step(); }
+    if (b && st && !revealing && !dealing && check(st, Number(b.dataset.check))) { sfx.play('click'); step(); }
   });
   mountMute($('xd-actions'));
   $('xd-stats').textContent = fmt(T.stats, { r: stats.r, w: stats.w });
@@ -341,9 +479,20 @@ const T = {
   .xd-table { position: relative; height: 660px; color: #fff; width: min(980px, calc(100vw - 24px)); left: 50%; transform: translateX(-50%); }
   .xd-felt { position: absolute; inset: 4% 3%; border-radius: 50% / 46%; background: radial-gradient(ellipse at 50% 38%, #2aa268, #12683f 55%, #0b4529 100%); border: 14px solid #6b4423; box-shadow: inset 0 0 0 3px #d9a441, inset 0 0 50px rgba(0, 0, 0, .45), 0 0 0 3px #3f2712, 0 18px 40px rgba(0, 0, 0, .35); }
   .xd-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: grid; justify-items: center; gap: 10px; width: 36%; text-align: center; }
-  .xd-deck { position: relative; width: 46px; height: 66px; }
-  .xd-deck i { position: absolute; inset: 0; border-radius: 7px; border: 3px solid #fff; background: repeating-linear-gradient(45deg, #b3261e 0 5px, #8e1b15 5px 10px); box-shadow: 0 3px 7px rgba(0, 0, 0, .4); }
-  .xd-deck i:nth-child(1) { transform: translate(-4px, 3px) rotate(-5deg); } .xd-deck i:nth-child(2) { transform: translate(0, 1px) rotate(1deg); } .xd-deck i:nth-child(3) { transform: translate(3px, -2px) rotate(4deg); }
+  .xd-stack { display: grid; justify-items: center; gap: 8px; }
+  .xd-left { font-size: .74rem; font-weight: 700; color: rgba(255, 255, 255, .8); }
+  .xd-deck { position: relative; width: 68px; height: 98px; filter: drop-shadow(0 10px 10px rgba(0, 0, 0, .45)); }
+  .xd-deck::before { content: ''; position: absolute; inset: -18px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 222, 120, .32), transparent 68%); animation: xdGlow 2.6s ease-in-out infinite; }
+  @keyframes xdGlow { 50% { opacity: .35; transform: scale(.9); } }
+  .xd-deck i { position: absolute; inset: 0; border-radius: 9px; border: 3px solid #fff; background: radial-gradient(circle, #ffd77a 0 13%, #7c140f 14% 21%, rgba(255, 215, 120, .6) 22% 25%, transparent 26%), repeating-linear-gradient(45deg, #b3261e 0 5px, #8e1b15 5px 10px); box-shadow: 0 1px 2px rgba(0, 0, 0, .5); }
+  .xd-deck i:nth-child(1) { transform: translate(6px, -6px); } .xd-deck i:nth-child(2) { transform: translate(4.5px, -4.5px); } .xd-deck i:nth-child(3) { transform: translate(3px, -3px); } .xd-deck i:nth-child(4) { transform: translate(1.5px, -1.5px); }
+  .xd-deck.shuffle i:nth-child(odd) { animation: xdShufL .25s ease-in-out 3; }
+  .xd-deck.shuffle i:nth-child(even) { animation: xdShufR .25s ease-in-out 3; }
+  @keyframes xdShufL { 50% { transform: translateX(-52%) rotate(-11deg); } }
+  @keyframes xdShufR { 50% { transform: translateX(52%) rotate(11deg); } }
+  .xd-c.xd-fly { position: fixed; margin: 0; z-index: 80; visibility: hidden; pointer-events: none; box-sizing: border-box; box-shadow: 0 8px 18px rgba(0, 0, 0, .45); }
+  .xd-c.landed { animation: xdLand .22s ease-out; }
+  @keyframes xdLand { from { transform: scaleX(.15); } }
   .xd-status { margin: 0; font-weight: 800; color: #ffe066; text-shadow: 0 2px 4px rgba(0, 0, 0, .55); min-height: 1.4em; line-height: 1.35; }
   .xd-seat { position: absolute; left: var(--px); top: var(--py); transform: translate(-50%, -50%); width: 176px; padding: 7px 8px; border-radius: 14px; background: linear-gradient(180deg, rgba(14, 22, 18, .88), rgba(8, 14, 11, .82)); border: 2px solid rgba(217, 164, 65, .35); box-shadow: 0 6px 14px rgba(0, 0, 0, .35); z-index: 2; }
   .xd-seat.is-dealer { border-color: #d9a441; }
@@ -363,8 +512,6 @@ const T = {
   .xd-c em.court { right: 4px; bottom: 4px; display: grid; justify-items: center; padding: 1px 3px; border: 1.5px solid #d9a441; border-radius: 4px; background: #fff7dc; font-size: .74rem; font-weight: 700; } .xd-c em.court small { font-size: .62rem; }
   .xd-hand .xd-c:not(:last-child) em { display: none; } /* bài xếp chồng: chỉ lá trên cùng hiện hình giữa, khỏi bị che dở */
   .xd-c.back { background: radial-gradient(circle, rgba(255, 215, 120, .55) 0 22%, transparent 23%), repeating-linear-gradient(45deg, #b3261e 0 5px, #8e1b15 5px 10px); border: 3px solid #fff; box-sizing: border-box; }
-  .xd-c.new { animation: xdDeal .38s cubic-bezier(.2, .8, .3, 1.2) both; }
-  @keyframes xdDeal { from { opacity: 0; transform: translateY(-34px) rotate(-18deg) scale(.7); } }
   .xd-seat.me .xd-hand { min-height: 88px; }
   .xd-seat.me .xd-c { width: 60px; height: 88px; margin-right: -12px; border-radius: 8px; }
   .xd-seat.me .xd-c b { font-size: 1.35rem; left: 5px; top: 5px; } .xd-seat.me .xd-c b small { font-size: 1rem; } .xd-seat.me .xd-c em { font-size: 1.9rem; }
@@ -380,15 +527,37 @@ const T = {
   .xd-rbox { width: min(94%, 440px); padding: 14px 14px 12px; text-align: center; border-radius: 18px; background: linear-gradient(180deg, #16342a, #0b1f18); border: 2px solid #d9a441; box-shadow: 0 18px 44px rgba(0, 0, 0, .55); animation: xdPop .25s ease-out both; }
   .xd-rbox h3 { margin: 0 0 8px; font-size: 1.1rem; color: #ffe066; }
   .xd-rdealer { font-size: .85rem; opacity: .95; } .xd-rdealer .xd-c { width: 34px; height: 49px; } .xd-rdealer .xd-c b { font-size: .76rem; } .xd-rdealer .xd-c em { font-size: .95rem; } .xd-rdealer .xd-c em.court { font-size: .62rem; } .xd-rdealer .xd-hand { min-height: 49px; }
-  .xd-rhand { display: flex; justify-content: center; gap: 7px; margin: 10px 0; min-height: 100px; flex-wrap: wrap; }
-  .xd-rhand .xd-c { width: 66px; height: 98px; margin: 0; border-radius: 9px; }
-  .xd-rhand .xd-c.back { cursor: pointer; }
-  .xd-rhand .xd-c b { font-size: 1.45rem; left: 6px; top: 6px; } .xd-rhand .xd-c b small { font-size: 1.05rem; } .xd-rhand .xd-c em { font-size: 2rem; }
-  .xd-rhand .xd-c em.court { font-size: 1.2rem; } .xd-rhand .xd-c em.court small { font-size: 1rem; }
-  .xd-rhand .xd-c.flipping { animation: xdFlipOut .17s ease-in forwards; }
-  .xd-rhand .xd-c.shown { animation: xdFlipIn .2s ease-out both; }
-  @keyframes xdFlipOut { to { transform: scaleX(0) translateY(-8px); } }
-  @keyframes xdFlipIn { from { transform: scaleX(0) translateY(-8px); } }
+  .xd-rhand { display: flex; justify-content: center; align-items: center; gap: 7px; margin: 10px 0; min-height: 140px; }
+  .xd-slot { position: relative; flex: 0 0 auto; width: 66px; height: 98px; perspective: 520px; }
+  .xd-in { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform .6s cubic-bezier(.35, .6, .25, 1); }
+  .xd-slot.open .xd-in { transform: rotateY(180deg); }
+  .xd-slot.open { animation: xdLift .6s ease-in-out; }
+  @keyframes xdLift { 45% { transform: translateY(-16px) scale(1.14); filter: drop-shadow(0 16px 12px rgba(0, 0, 0, .55)); } }
+  .xd-slot .xd-c { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; border-radius: 9px; box-sizing: border-box; }
+  .xd-in > .xd-c { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+  .xd-in > .xd-c:not(.back) { transform: rotateY(180deg); }
+  .xd-slot .xd-c.back { cursor: pointer; }
+  .xd-slot .xd-c b { font-size: 1.45rem; left: 6px; top: 6px; } .xd-slot .xd-c b small { font-size: 1.05rem; } .xd-slot .xd-c em { font-size: 2rem; }
+  .xd-slot .xd-c em.court { font-size: 1.2rem; } .xd-slot .xd-c em.court small { font-size: 1rem; }
+  .xd-peek { display: none; position: absolute; inset: 0; }
+  .xd-slot.squeeze { width: 92px; height: 136px; touch-action: none; user-select: none; }
+  .xd-slot.squeeze .xd-peek { display: block; }
+  .xd-slot.squeeze .xd-in { visibility: hidden; }
+  .xd-slot.squeeze.open .xd-peek { display: none; }
+  .xd-slot.squeeze.open .xd-in { visibility: visible; }
+  .xd-peek .xd-c.back { cursor: grab; }
+  .xd-foldw { position: absolute; inset: 0; pointer-events: none; filter: drop-shadow(4px 4px 4px rgba(0, 0, 0, .55)); }
+  .xd-fold { position: absolute; inset: 0; background: linear-gradient(135deg, #f4f5f7 40%, #c3c9d3 75%, #9aa2af); }
+  .xd-slot.squeeze .xd-c b { font-size: 1.9rem; } .xd-slot.squeeze .xd-c b small { font-size: 1.4rem; } .xd-slot.squeeze .xd-c em { font-size: 2.7rem; right: 7px; bottom: 7px; }
+  .xd-slot.squeeze .xd-c em.court { font-size: 1.6rem; padding: 2px 6px; } .xd-slot.squeeze .xd-c em.court small { font-size: 1.3rem; }
+  .xd-rtotal.hint { font-size: .9rem; color: #ffe8a3; }
+  .xd-nextbet { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; margin-top: 12px; font-weight: 700; }
+  .xd-nextbet[hidden] { display: none; }
+  .xd-nextbet .bd-row { margin: 0; justify-content: center; }
+  .xd-betin { width: 110px; min-height: 42px; padding: 6px 10px; border-radius: 10px; border: 1px solid #8886; background: var(--bg); color: inherit; font: inherit; }
+  .xd-betin.bad { border-color: #e03131; }
+  .xd-betnote { margin: 6px 0 0; font-size: .85rem; color: #e8590c; text-align: center; }
+  .xd-betnote:empty { display: none; }
   .xd-rtotal { margin: 4px 0; font-weight: 800; font-size: 1.05rem; min-height: 1.5em; }
   .xd-rtotal.final { font-size: 1.4rem; } .xd-rtotal.xibang, .xd-rtotal.xidach, .xd-rtotal.ngulinh { color: #ffd43b; } .xd-rtotal.quac { color: #ff8787; }
   .xd-rresult { margin: 4px 0 8px; min-height: 1.7em; font-weight: 900; font-size: 1.3rem; }
@@ -410,8 +579,11 @@ const T = {
   @media (max-width: 900px) {
     .xd-table { display: flex; flex-direction: column; height: auto; width: auto; left: 0; transform: none; padding: 8px; border-radius: 18px; background: radial-gradient(ellipse at 50% 30%, #2aa268, #12683f 55%, #0b4529); box-shadow: inset 0 0 0 4px #6b4423, inset 0 0 0 6px #d9a441; }
     .xd-felt { display: none; }
-    .xd-center { position: static; transform: none; width: auto; padding: 2px 0 6px; display: block; }
-    .xd-deck { display: none; }
+    .xd-center { position: static; transform: none; width: auto; padding: 4px 0 8px; display: flex; align-items: center; justify-content: center; gap: 14px; }
+    .xd-stack { gap: 2px; }
+    .xd-deck { width: 34px; height: 49px; }
+    .xd-deck i { border-width: 2px; border-radius: 6px; }
+    .xd-left { font-size: .62rem; }
     .xd-seat { position: static; transform: none; width: auto; padding: 5px; border-radius: 11px; }
     .xd-seats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
     .xd-seat.me { grid-column: 1 / -1; order: 99; width: auto; }
@@ -433,7 +605,7 @@ const T = {
     .xd-seat.me .xd-c { width: 48px; height: 70px; margin-right: -9px; }
     .xd-seat.me .xd-c b { font-size: 1.05rem; } .xd-seat.me .xd-c b small { font-size: .8rem; } .xd-seat.me .xd-c em { font-size: 1.45rem; }
     .xd-reveal { position: fixed; border-radius: 0; z-index: 90; }
-    .xd-rhand { gap: 5px; } .xd-rhand .xd-c { width: 56px; height: 84px; }
+    .xd-rhand { gap: 5px; min-height: 120px; } .xd-slot { width: 56px; height: 84px; } .xd-slot.squeeze { width: 80px; height: 118px; }
     .xd-actions { position: sticky; bottom: 0; background: var(--bg); padding: 8px 0; z-index: 5; gap: 8px; }
     .xd-actions #xd-menu { flex: 0 0 48px; }
   }

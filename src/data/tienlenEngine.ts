@@ -58,8 +58,8 @@ export const CHOP_TABLE: { victim: string; by: Matcher[] }[] = [
   { victim: 'triple2', by: [{ type: 'pairs', atLeast: 5 }] },
   // (d) tứ quý: 4 đôi thông (tứ quý lớn hơn đã có luật thường)
   { victim: 'quad', by: [{ type: 'pairs', len: 4 }] },
-  // (e) 3 đôi thông: tứ quý (3 đôi thông lớn hơn đã có luật thường); 4 đôi thông: 5+ đôi thông (4 đôi thông lớn hơn có luật thường)
-  { victim: 'pairs3', by: [{ type: 'quad' }] },
+  // (e) 3 đôi thông: tứ quý, 4+ đôi thông (3 đôi thông lớn hơn đã có luật thường); 4 đôi thông: 5+ đôi thông (4 đôi thông lớn hơn có luật thường)
+  { victim: 'pairs3', by: [{ type: 'quad' }, { type: 'pairs', atLeast: 4 }] },
   { victim: 'pairs4', by: [{ type: 'pairs', atLeast: 5 }] },
 ];
 

@@ -19,7 +19,7 @@ const TXT = {
       'Mỗi người 13 lá. Thứ tự lá: 3 nhỏ nhất, 2 lớn nhất. Chất: bích < chuồn < rô < cơ.',
       'Các bộ: lá lẻ, đôi, sám cô, tứ quý, sảnh (từ 3 lá liên tiếp, không có 2), đôi thông (từ 3 đôi liên tiếp, không có 2).',
       'Phải đánh cùng loại bộ, cùng số lá và lớn hơn bộ trên bàn. Không đánh được thì bỏ lượt, bỏ rồi là hết vòng đó.',
-      'Chặt: tứ quý, 3 / 4 / 5 đôi thông chặt lá 2. Đôi 2 bị tứ quý hoặc 4+ đôi thông chặt. Sám 2 chỉ bị 5+ đôi thông chặt. Tứ quý bị 4 đôi thông chặt. 3 đôi thông bị tứ quý chặt. 4 đôi thông bị 5+ đôi thông chặt.',
+      'Chặt: tứ quý, 3 / 4 / 5 đôi thông chặt lá 2. Đôi 2 bị tứ quý hoặc 4+ đôi thông chặt. Sám 2 chỉ bị 5+ đôi thông chặt. Tứ quý bị 4 đôi thông chặt. 3 đôi thông bị tứ quý hoặc 4+ đôi thông chặt. 4 đôi thông bị 5+ đôi thông chặt.',
       'Tới trắng (thắng ngay khi chia bài): tứ quý 2, sảnh rồng 3 đến A, 5 đôi thông, 6 đôi.',
       'Ai hết bài trước thắng ván. Chọn lá bằng cách bấm hoặc quét ngón tay qua các lá, rồi bấm Đánh.',
     ],
@@ -64,7 +64,7 @@ const TXT = {
       'Người đã về được miễn trừ: nếu bộ bài cuối cùng của họ bị chặt thì vẫn chặt đè được để giành quyền đánh, nhưng họ không bị trừ và người chặt không được cộng khoản đó. Trong chặt chồng, nếu người bị chặt sau cùng đã về thì không ai mất điểm.',
       'Thối bài: lúc có người về nhất, ai chưa đánh được lá nào bị trừ 10 điểm cho người về nhất (dù sau đó vẫn đánh tiếp).',
       'Thối heo: còn lá 2 trên tay khi hết ván thì bị trừ như bị chặt (2 đen 10 điểm, 2 đỏ 20 điểm mỗi lá), cộng cho người về nhất.',
-      'Tới trắng: người thắng +20, ba người còn lại xếp hạng theo thứ tự ngồi từ người thắng (+10, −10, −20), không có điểm chặt và không tính thối.',
+      'Tới trắng: người thắng +30, ba người còn lại mỗi người −10, không có điểm chặt và không tính thối.',
     ],
     ptsTarget: 'Điểm đích', ptsCustom: 'Tự nhập (10 đến 1000)', ptsEndless: 'Không đặt đích', ptsFour: 'Chế độ này luôn 4 người, chỗ trống do máy chơi.',
     targetInfo: 'Đích {t}', noTarget: 'Không đích', ptsSettle: 'Tính điểm ván này', ptsTotal: 'Tổng',
@@ -117,7 +117,7 @@ const TXT = {
       'Everyone gets 13 cards. Rank: 3 is lowest, 2 is highest. Suits: spades < clubs < diamonds < hearts.',
       'Combinations: single, pair, triple, four of a kind, run (3+ consecutive cards, no 2s), consecutive pairs (3+ pairs in a row, no 2s).',
       'You must play the same kind and the same size and beat the cards on the table. If you cannot (or do not want to) play, pass; after you pass you are out until the next round.',
-      'Chopping: four of a kind and 3 / 4 / 5 consecutive pairs chop a single 2. A pair of 2s is chopped by four of a kind or 4+ consecutive pairs. A triple of 2s is chopped only by 5+ consecutive pairs. Four of a kind is chopped by 4 consecutive pairs. 3 consecutive pairs are chopped by four of a kind. 4 consecutive pairs are chopped by 5+ consecutive pairs.',
+      'Chopping: four of a kind and 3 / 4 / 5 consecutive pairs chop a single 2. A pair of 2s is chopped by four of a kind or 4+ consecutive pairs. A triple of 2s is chopped only by 5+ consecutive pairs. Four of a kind is chopped by 4 consecutive pairs. 3 consecutive pairs are chopped by four of a kind or 4+ consecutive pairs. 4 consecutive pairs are chopped by 5+ consecutive pairs.',
       'Instant win at the deal: four 2s, dragon run 3 to A, five consecutive pairs, or six pairs.',
       'First to empty their hand wins. Tap, or swipe a finger across cards, to select them, then press Play.',
     ],
@@ -162,7 +162,7 @@ const TXT = {
       'Finished players are exempt: if their last play is chopped, it can still be beaten to take the lead, but they lose nothing and the chopper gets nothing for it. In a chop-on-chop chain, if the player chopped last has already finished, no points move.',
       'Burned hand: when someone finishes first, anyone who has not played a single card pays 10 points to the winner (even if they play later).',
       'Pig penalty: 2s still in hand at the end are charged as if chopped (black 2: 10 points, red 2: 20 points each), paid to the winner.',
-      'Instant win: the winner gets +20 and the other three are ranked by seating order after the winner (+10, −10, −20); there are no chop points and no penalties.',
+      'Instant win: the winner gets +30 and each of the other three loses 10; there are no chop points and no penalties.',
     ],
     ptsTarget: 'Target score', ptsCustom: 'Custom (10 to 1000)', ptsEndless: 'No target', ptsFour: 'This mode is always 4 players; empty seats are played by the computer.',
     targetInfo: 'Target {t}', noTarget: 'No target', ptsSettle: 'Points for this hand', ptsTotal: 'Total',
@@ -885,7 +885,8 @@ const MODE_KEYS = ['chips', 'single', 'points'];
       sub = `${T.ptsSettle} · ${pts.target > 0 ? fmt(T.targetInfo, { t: pts.target }) : T.noTarget}`;
       rows = r.order.map((slot, i) => {
         const d = r.deltas[slot];
-        const lines: string[] = [`<div>${T.rankLn[i]}: ${sgn(pts.rank[slot])}</div>`];
+        // tới trắng không phân nhì, ba, bét nên không ghi hạng
+        const lines: string[] = [`<div>${r.white ? T.tagWhite : T.rankLn[i]}: ${sgn(pts.rank[slot])}</div>`];
         for (const it of pts.items) {
           if (it.self) continue;
           if (it.kind !== 'chop') {

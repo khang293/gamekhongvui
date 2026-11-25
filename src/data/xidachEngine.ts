@@ -14,15 +14,14 @@ export const MIN_DEALER = 15; // nhà cái đủ 15 mới được dằn / xét 
 export const MULT: Record<Kind, number> = { xibang: 3, xidach: 2, ngulinh: 2, points: 1, quac: 1 };
 const ORDER: Record<Kind, number> = { xibang: 4, xidach: 3, ngulinh: 2, points: 1, quac: 0 };
 
-// Lá A: cầm 2 lá tính 1 / 10 / 11; cầm 3 lá tính 1 / 10; từ 4 lá chỉ tính 1. Chọn tổng lớn nhất mà không quá 21.
+// Lá A tính 1 hoặc 11, dù đang cầm mấy lá. Chọn tổng lớn nhất mà không quá 21.
 export function handValue(cards: number[]): HandValue {
   const n = cards.length;
   if (n === 2 && cards.every(isAce)) return { total: 21, kind: 'xibang' };
   if (n === 2 && cards.some(isAce) && cards.some(isTen)) return { total: 21, kind: 'xidach' };
-  const choices = n <= 2 ? [1, 10, 11] : n === 3 ? [1, 10] : [1];
   let totals = [0];
   for (const c of cards) {
-    const add = isAce(c) ? choices : [isTen(c) ? 10 : rankOf(c) + 1];
+    const add = isAce(c) ? [1, 11] : [isTen(c) ? 10 : rankOf(c) + 1];
     totals = [...new Set(totals.flatMap((t) => add.map((a) => t + a)))];
   }
   const ok = totals.filter((t) => t <= 21);
