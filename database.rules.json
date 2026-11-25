@@ -1,0 +1,31 @@
+{
+  "rules": {
+    "peers": {
+      "$peer": {
+        ".read": "auth != null",
+        ".write": "auth != null && ((!data.exists() && newData.child('uid').val() === auth.uid) || (data.child('uid').val() === auth.uid) || (data.child('ts').val() < now - 86400000 && newData.child('uid').val() === auth.uid))",
+        ".validate": "newData.hasChildren(['uid', 'ts'])"
+      }
+    },
+    "links": {
+      "$host": {
+        ".read": "auth != null && root.child('peers').child($host).child('uid').val() === auth.uid",
+        ".write": "auth != null && root.child('peers').child($host).child('uid').val() === auth.uid",
+        "$client": {
+          ".read": "auth != null && (data.child('u').val() === auth.uid || root.child('peers').child($client).child('uid').val() === auth.uid)",
+          ".write": "auth != null && ((!data.exists() && newData.child('u').val() === auth.uid && root.child('peers').child($client).child('uid').val() === auth.uid) || data.child('u').val() === auth.uid)"
+        }
+      }
+    },
+    "inbox": {
+      "$peer": {
+        ".read": "auth != null && root.child('peers').child($peer).child('uid').val() === auth.uid",
+        ".write": "auth != null && root.child('peers').child($peer).child('uid').val() === auth.uid",
+        "$msg": {
+          ".write": "auth != null && !data.exists() && root.child('peers').child(newData.child('f').val()).child('uid').val() === auth.uid",
+          ".validate": "newData.hasChildren(['f', 'd']) && newData.child('f').isString() && newData.child('d').isString() && newData.child('d').val().length <= 20000"
+        }
+      }
+    }
+  }
+}

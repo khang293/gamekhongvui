@@ -1,5 +1,5 @@
 // Lớp truyền tin trừu tượng cho phòng chơi online. Có hai bản cài đặt:
-//  - peerTransport.ts: kết nối trực tiếp giữa các trình duyệt (WebRTC) qua thư viện PeerJS
+//  - firebaseTransport.ts: qua Firebase Realtime Database của Google (chơi được trên mọi mạng mở được web)
 //  - loopbackTransport.ts: trong bộ nhớ, dùng cho bài thử và #debug (không cần mạng)
 // Phòng (room.ts) và game (tienlenNet.ts) chỉ biết giao diện Transport này nên poker cũng dùng lại được.
 

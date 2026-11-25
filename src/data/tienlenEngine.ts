@@ -153,8 +153,6 @@ export function checkWhite(hand: number[]): WhiteKind | null {
 
 // ---------- Trạng thái ván ----------
 export interface LogEntry { seat: number; combo: Combo | null; chop?: boolean }
-// Một lần chặt heo (chặt lá 2 / đôi 2 / sám 2): người chặt thắng, người bị chặt phải trả. Dùng để tính chip khi hết ván.
-export interface ChopRec { chopper: number; victim: number; twos: number[] }
 // Mọi lần chặt (heo, tứ quý, đôi thông) theo thứ tự, dùng cho chế độ tính điểm. chain: các lần chặt nối tiếp nhau (chặt chồng) có cùng số.
 // key: loại bộ bị chặt (single2, pair2, triple2, quad, pairs3, pairs4); cards: các lá của bộ bị chặt.
 // free: người bị chặt đã hết bài (đã về) lúc bị chặt: vẫn chặt đè được nhưng không ai bị trừ hay được cộng.
@@ -174,13 +172,13 @@ export interface TLState {
   white: { seat: number; kind: WhiteKind } | null;
   order: number[];        // thứ tự về đích khi hết ván (người thắng đứng đầu, còn lại theo số lá còn)
   firstHand: boolean;
-  chops: ChopRec[];       // các lần chặt heo trong ván (theo thứ tự)
-  chopEvents: ChopEvt[];  // mọi lần chặt trong ván (chế độ tính điểm); chops ở trên giữ nguyên cho chế độ chip
+  chopEvents: ChopEvt[];  // mọi lần chặt trong ván (heo, tứ quý, đôi thông), dùng để tính chip và điểm
   tableChop: boolean;     // bộ đang trên bàn có phải là một lần chặt không (để nối chuỗi chặt chồng)
   chainSeq: number;       // số chuỗi chặt chồng đã dùng
   multi: boolean;         // chế độ tính điểm: ván tiếp tục sau khi có người về nhất cho tới khi xếp xong hạng nhất, nhì, ba, bét
   finished: number[];     // thứ tự những người đã hết bài (chỉ dùng khi multi); khi ván xong có đủ n người, người cuối là bét
   thoi: number[];         // chỉ khi multi: những người chưa đánh được lá nào tại thời điểm có người về nhất (thối bài)
+  heo: number[];          // các lá 2 đang chồng trên bàn (heo đè heo cùng kiểu); bị chặt thì người đánh bộ cuối đền hết
 }
 
 export function newGame(n: number, leader = -1, rng: () => number = Math.random, opts: { multi?: boolean } = {}): TLState {
@@ -196,7 +194,7 @@ export function newGame(n: number, leader = -1, rng: () => number = Math.random,
   }
   const st: TLState = {
     n, hands, cur, table: null, tableBy: cur, passed: new Array(n).fill(false), played: new Array(n).fill(0),
-    log: [], playedCards: [], over: false, winner: -1, white: null, order: [], firstHand, chops: [], chopEvents: [], tableChop: false, chainSeq: 0, multi: !!opts.multi, finished: [], thoi: [],
+    log: [], playedCards: [], over: false, winner: -1, white: null, order: [], firstHand, chopEvents: [], tableChop: false, chainSeq: 0, multi: !!opts.multi, finished: [], thoi: [], heo: [],
   };
   for (let i = 0; i < n; i++) {
     const k = checkWhite(hands[i]);
@@ -251,12 +249,14 @@ export function play(st: TLState, seat: number, cards: number[]): { ok: true; co
   if (!r.ok) return r;
   const combo = r.combo;
   const chop = isChop(st.table, combo);
-  if (chop && st.table && victimKey(st.table)?.endsWith('2')) st.chops.push({ chopper: seat, victim: st.tableBy, twos: st.table.cards.slice() });
   if (chop && st.table) {
     // chặt chồng: bộ trên bàn cũng là một lần chặt thì cùng một chuỗi
     const chain = st.tableChop ? st.chainSeq : ++st.chainSeq;
-    st.chopEvents.push({ chopper: seat, victim: st.tableBy, key: victimKey(st.table) as string, cards: st.table.cards.slice(), chain, free: st.multi && !st.hands[st.tableBy].length });
+    st.chopEvents.push({ chopper: seat, victim: st.tableBy, key: victimKey(st.table) as string, cards: (st.heo.length ? st.heo : st.table.cards).slice(), chain, free: st.multi && !st.hands[st.tableBy].length });
   }
+  // chồng heo: đè heo bằng heo cùng kiểu thì cộng thêm; bộ không phải heo thì xóa chồng
+  if (/2$/.test(victimKey(combo) || '')) st.heo = !chop && st.table && st.heo.length ? [...st.heo, ...combo.cards] : combo.cards.slice();
+  else st.heo = [];
   st.hands[seat] = st.hands[seat].filter((c) => !combo.cards.includes(c));
   st.table = combo; st.tableBy = seat; st.tableChop = chop; st.played[seat]++;
   st.playedCards.push(...combo.cards);

@@ -1,6 +1,6 @@
 // Tính chip cho Tiến lên miền Nam (/tienlen/). Chỉ có luật tính tiền và phiên chơi nhiều ván, không đụng giao diện.
 // Mọi khoản trả đều là chuyển chip từ người này sang người kia, nên tổng chip của cả bàn luôn không đổi (zero-sum).
-import { newGame, rankOf, suitOf, type TLState, type ChopRec, type ChopEvt } from './tienlenEngine';
+import { newGame, rankOf, suitOf, type TLState, type ChopEvt } from './tienlenEngine';
 
 const TWO = 12;
 export const isTwo = (c: number) => rankOf(c) === TWO;
@@ -15,6 +15,7 @@ export const RATES = {
   heoRed: 2,           // thối heo đỏ: mỗi lá 2 rô/cơ còn trên tay thêm 2 đơn vị
   chopBlack: 3,        // chặt heo đen: mỗi lá 2 bích/chuồn bị chặt trả 3 đơn vị
   chopRed: 4,          // chặt heo đỏ: mỗi lá 2 rô/cơ bị chặt trả 4 đơn vị
+  chopBomb: 4,         // chặt tứ quý hoặc đôi thông: bằng một heo đỏ
   white: 13,           // tới trắng: mỗi người còn lại trả 13 đơn vị
 };
 
@@ -30,6 +31,14 @@ export interface Item {
   burned?: boolean;    // kind 'hand': cháy bài
   black?: number;      // số lá 2 đen (còn trên tay hoặc bị chặt)
   red?: number;        // số lá 2 đỏ
+  bombs?: number;      // kind 'chop': số tứ quý / đôi thông bị chặt
+  stack?: number;      // kind 'chop': số lần chặt nối tiếp (> 1 là chặt chồng)
+}
+/** Gom các lần chặt theo chuỗi (đúng thứ tự xảy ra). */
+export function chains<T extends { chain: number }>(evs: T[]): T[][] {
+  const m = new Map<number, T[]>();
+  for (const e of evs) { const a = m.get(e.chain); if (a) a.push(e); else m.set(e.chain, [e]); }
+  return [...m.values()];
 }
 export interface Settlement {
   deltas: number[];    // thay đổi chip của từng ghế, tổng luôn bằng 0
@@ -46,7 +55,7 @@ export interface SettleInput {
   winner: number;
   order: number[];     // thứ tự về đích (người thắng đứng đầu)
   white: boolean;      // ván kết thúc do tới trắng
-  chops: ChopRec[];
+  chopEvents: ChopEvt[];
   unit: number;
   stacks: number[];    // chip hiện có của từng ghế
 }
@@ -68,10 +77,19 @@ export function settleHand(inp: SettleInput): Settlement {
     for (const s of inp.order.slice(1)) pay('white', s, inp.winner, RATES.white * unit, {});
     return { deltas, items, winner: inp.winner, white: true, burned };
   }
-  // 1) chặt heo theo thứ tự xảy ra
-  for (const ch of inp.chops) {
-    const black = ch.twos.filter(isBlackTwo).length, red = ch.twos.filter(isRedTwo).length;
-    pay('chop', ch.victim, ch.chopper, (black * RATES.chopBlack + red * RATES.chopRed) * unit, { black, red });
+  // 1) chặt theo thứ tự xảy ra; chặt chồng "con cuối chịu hết": người bị chặt sau cùng trả cả chuỗi cho người chặt cuối
+  for (const evs of chains(inp.chopEvents)) {
+    const last = evs[evs.length - 1];
+    if (last.free) continue;
+    const payer = last.victim, payee = last.chopper;
+    let black = 0, red = 0, bombs = 0;
+    for (const e of evs) {
+      if (e.victim === payee) continue; // bộ của chính người chặt cuối thì triệt tiêu
+      if (e.key === 'single2' || e.key === 'pair2' || e.key === 'triple2') { black += e.cards.filter(isBlackTwo).length; red += e.cards.filter(isRedTwo).length; }
+      else bombs++;
+    }
+    const due = (black * RATES.chopBlack + red * RATES.chopRed + bombs * RATES.chopBomb) * unit;
+    if (due > 0) pay('chop', payer, payee, due, { black, red, bombs, stack: evs.length });
   }
   // 2) người thua trả người thắng, theo thứ tự về đích
   for (const s of inp.order.slice(1)) {
@@ -116,7 +134,7 @@ export function finishHand(s: Session, st: TLState, seats: number[]): Settlement
   if (!st.over) throw new Error('hand not over');
   const set = settleHand({
     n: st.n, hands: st.hands, played: st.played, winner: st.winner, order: st.order,
-    white: !!st.white, chops: st.chops, unit: s.unit, stacks: seats.map((g) => s.stacks[g]),
+    white: !!st.white, chopEvents: st.chopEvents, unit: s.unit, stacks: seats.map((g) => s.stacks[g]),
   });
   seats.forEach((g, i) => { s.stacks[g] += set.deltas[i]; });
   s.hand++;
@@ -150,6 +168,10 @@ export function chopValue(key: string, cards: number[]): number {
   }
   return CHOP_PTS.other;
 }
+/** Giá trị cả chuỗi chặt chồng. Bộ do chính người chặt cuối đánh ra trước đó thì triệt tiêu (không ai trả cho chính bộ của mình). */
+export function chainValue(evs: { victim: number; key: string; cards: number[] }[], payee: number): number {
+  return evs.reduce((a, e) => a + (e.victim === payee ? 0 : chopValue(e.key, e.cards)), 0);
+}
 /** Nhãn loại bộ bị chặt: 'black' | 'red' | 'twos' (heo đen và đỏ lẫn) | 'quad' | 'pairs' */
 export function chopKind(key: string, cards: number[]): 'black' | 'red' | 'twos' | 'quad' | 'pairs' {
   if (key === 'quad') return 'quad';
@@ -166,7 +188,8 @@ export interface PtsItem {
   key: string;         // loại bộ bị chặt ('' với thối bài)
   cards: number[];     // các lá bị chặt / bị thối
   chain: number;       // số chuỗi (-1 với khoản thối)
-  self: boolean;       // from === to (người chặt cuối từng bị chặt trong cùng chuỗi): triệt tiêu, không đổi điểm
+  self: boolean;       // giữ cho tương thích; hiện luôn false
+  stack?: number;      // số lần chặt nối tiếp trong chuỗi (> 1 là chặt chồng)
 }
 export interface PointsSettlement {
   n: number;
@@ -188,18 +211,16 @@ export function settlePoints(inp: PtsInput): PointsSettlement {
   inp.order.forEach((seat, i) => { rank[seat] = RANK_POINTS[i] ?? 0; });
   const items: PtsItem[] = [];
   if (!inp.white) {
-    // gom theo chuỗi: người chặt cuối nhận từ mọi người bị chặt trong chuỗi
+    // gom theo chuỗi: "con cuối chịu hết" - người bị chặt sau cùng đền cả chuỗi cho người chặt cuối, những người trước không mất gì
     const byChain = new Map<number, ChopEvt[]>();
     for (const e of inp.chopEvents) { const a = byChain.get(e.chain); if (a) a.push(e); else byChain.set(e.chain, [e]); }
     for (const [chain, evs] of byChain) {
-      const payee = evs[evs.length - 1].chopper;
-      for (const e of evs) {
-        if (e.free) continue; // người này đã về lúc bị chặt: miễn trừ (người chặt cuối chuỗi vẫn thu của những người còn lại)
-        const val = chopValue(e.key, e.cards);
-        const self = e.victim === payee;
-        if (!self) { chop[e.victim] -= val; chop[payee] += val; }
-        items.push({ kind: 'chop', from: e.victim, to: payee, val, key: e.key, cards: e.cards.slice(), chain, self });
-      }
+      const last = evs[evs.length - 1];
+      if (last.free) continue; // người bị chặt sau cùng đã về: được miễn trừ, nên cả chuỗi không ai mất điểm
+      const payer = last.victim, payee = last.chopper;
+      const val = chainValue(evs, payee);
+      chop[payer] -= val; chop[payee] += val;
+      items.push({ kind: 'chop', from: payer, to: payee, val, key: last.key, cards: last.cards.slice(), chain, self: false, stack: evs.length });
     }
   }
   const thoi = new Array(n).fill(0);

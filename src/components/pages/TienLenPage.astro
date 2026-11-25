@@ -28,7 +28,7 @@ const TXT = {
     yourLead: 'Bạn đánh trước, chọn bài rồi bấm Đánh.', yourTurn: 'Đến lượt bạn.', beat: 'Đánh bộ lớn hơn hoặc bỏ lượt.',
     thinking: '{n} đang nghĩ...', waiting: 'Đang chờ {n}...', lead: '{n} dẫn bài.', passedTag: 'Bỏ',
     playedBy: '{n} đánh', free: 'Bàn trống, ai thắng vòng sẽ dẫn',
-    chop: 'Chặt!', chopped: '{n} chặt!', chopBanner: 'Chặt heo!',
+    chop: 'Chặt!', chopped: '{n} chặt!', chopBanner: 'Chặt!',
     rEmpty: 'Hãy chọn bài trước.', rInvalid: 'Các lá này không tạo thành bộ hợp lệ.', rType: 'Phải đánh cùng loại: {t}.', rLower: 'Bộ này chưa lớn hơn bộ trên bàn.',
     rTurn: 'Chưa đến lượt bạn.', rMustLead: 'Bạn đang dẫn, phải đánh bài, không bỏ lượt được.', rNoHand: 'Lá bài không có trên tay.',
     hintPass: 'Gợi ý: nên bỏ lượt.', hintPlay: 'Gợi ý đã chọn sẵn các lá.',
@@ -43,23 +43,25 @@ const TXT = {
       'Chế độ tính chip: mỗi người bắt đầu với số chip đã chọn, chơi nhiều ván liên tiếp. Chip chỉ là điểm ảo để chơi cho vui.',
       'Hết ván, người thua trả người thắng: số lá còn trên tay × chip mỗi lá. Chưa đánh lá nào (cháy bài) thì số lá nhân đôi.',
       'Thối heo: mỗi lá 2 còn trên tay thêm chip: 2 đen (bích, chuồn) +1 lá, 2 đỏ (rô, cơ) +2 lá.',
-      'Chặt heo: người bị chặt trả ngay cho người chặt: 3 lá cho mỗi lá 2 đen, 4 lá cho mỗi lá 2 đỏ (đôi 2, sám 2 tính cộng dồn). Chưa có luật chặt chồng.',
+      'Chặt: mỗi lá 2 đen trả 3 lá, mỗi lá 2 đỏ trả 4 lá (đôi 2, sám 2 tính cộng dồn), chặt tứ quý hoặc đôi thông trả 4 lá; đè tứ quý, đôi thông bằng bộ cùng loại lớn hơn cũng là chặt.',
+      'Heo chồng và chặt chồng, con cuối chịu hết: người bị chặt sau cùng trả cho người chặt cuối giá trị của cả chồng heo và cả chuỗi chặt; những người trước đó không mất gì.',
       'Tới trắng: mỗi người còn lại trả người thắng 13 lá. Không đủ chip thì trả hết số chip đang có. Hết chip là bị loại; bạn hết chip thì thua cả bàn.',
     ],
     youOut: 'Hết chip! Bạn đã thua cả bàn.', youWinAll: 'Bạn thắng cả bàn!', otherWinAll: '{n} thắng cả bàn!', handNo: 'Ván {k}', unitInfo: '1 lá = {u} chip',
     nextHand: 'Ván tiếp', restart: 'Bắt đầu lại', confirmRestart: 'Bắt đầu lại và đặt lại chip cho mọi người?', chipsOut: 'Hết chip', settle: 'Thanh toán chip',
     bestStack: 'Chip cao nhất', handsWon: 'Ván thắng',
     lnCards: '{c} lá × {u}', lnBurn: '({c} lá × {u}) × 2 cháy bài', lnBlack: 'heo đen {k} × {u}', lnRed: 'heo đỏ {k} × {u}',
-    lnChop: 'chặt heo: {p}', lnWhite: 'tới trắng 13 × {u}', lnShort: 'chỉ trả được {p}',
-    toName: 'trả {n}', fromName: '{n} trả', tagChop: 'Chặt heo', tagChopped: 'Bị chặt heo', tagWhite: 'Tới trắng',
+    lnChop: 'chặt: {p}', lnBomb: 'tứ quý / đôi thông {k} × {u}', lnStack: 'chặt chồng', lnWhite: 'tới trắng 13 × {u}', lnShort: 'chỉ trả được {p}',
+    toName: 'trả {n}', fromName: '{n} trả', tagChop: 'Chặt', tagChopped: 'Bị chặt', tagWhite: 'Tới trắng',
     // ----- Chế độ tính điểm -----
     pointRules: [
       'Chế độ tính điểm (luôn 4 người, chỗ trống do máy chơi): chơi nhiều ván, điểm cộng dồn và có thể âm. Ai chạm điểm đích trước thì thắng; nhiều người cùng chạm trong một ván thì người điểm cao nhất thắng (bằng điểm thì ai được nhiều điểm hơn ở ván đó). Có thể chọn "Không đặt đích" rồi bấm "Kết thúc" khi muốn dừng.',
       'Điểm hạng cuối ván: nhất +20, nhì +10, ba −10, bét −20, xếp theo thứ tự về đích. Người đầu tiên hết bài về nhất nhưng ván vẫn tiếp tục: người đã hết bài ngồi xem, những người còn bài đánh tiếp cho tới khi biết người về nhì, về ba và người bét (ván kết thúc khi chỉ còn một người còn bài). Nếu người đánh cuối vừa hết bài và mọi người còn lại đều bỏ lượt thì quyền đánh về người kế tiếp còn bài.',
       'Điểm chặt, cộng dồn: người bị chặt bị trừ, người chặt được cộng. Mỗi lá 2 đen 10 điểm, mỗi lá 2 đỏ 20 điểm (đôi 2, sám 2 tính từng lá). Chặt đôi thông 20 điểm, chặt tứ quý 20 điểm.',
+      'Heo chồng: nhiều con heo đè lên nhau rồi bị chặt thì người đánh bộ heo cuối đền hết giá trị tất cả heo trong chồng (đôi heo đè đôi heo cũng vậy); những người đánh heo trước đó không mất gì.',
       'Đè tứ quý hoặc đôi thông bằng bộ lớn hơn cùng loại (tứ quý lớn đè tứ quý nhỏ, đôi thông lớn đè đôi thông nhỏ) cũng tính là chặt, có điểm.',
-      'Chặt chồng: nếu một lần chặt lại bị chặt tiếp trong cùng vòng thì cả chuỗi tính về người chặt cuối cùng: mọi người bị chặt trong chuỗi (kể cả người chặt trung gian) đều trả giá trị bộ bài của mình cho người chặt cuối.',
-      'Người đã về được miễn trừ: nếu bộ bài cuối cùng của họ bị chặt thì vẫn chặt đè được để giành quyền đánh, nhưng họ không bị trừ và người chặt không được cộng khoản đó. Trong chặt chồng, những người còn đang chơi vẫn trả phần của mình cho người chặt cuối.',
+      'Chặt chồng, con cuối chịu hết: nếu một lần chặt lại bị chặt tiếp trong cùng vòng (heo, tứ quý, đôi thông) thì người bị chặt sau cùng đền giá trị của cả chuỗi cho người chặt cuối; những người bị chặt trước đó không mất gì.',
+      'Người đã về được miễn trừ: nếu bộ bài cuối cùng của họ bị chặt thì vẫn chặt đè được để giành quyền đánh, nhưng họ không bị trừ và người chặt không được cộng khoản đó. Trong chặt chồng, nếu người bị chặt sau cùng đã về thì không ai mất điểm.',
       'Thối bài: lúc có người về nhất, ai chưa đánh được lá nào bị trừ 10 điểm cho người về nhất (dù sau đó vẫn đánh tiếp).',
       'Thối heo: còn lá 2 trên tay khi hết ván thì bị trừ như bị chặt (2 đen 10 điểm, 2 đỏ 20 điểm mỗi lá), cộng cho người về nhất.',
       'Tới trắng: người thắng +20, ba người còn lại xếp hạng theo thứ tự ngồi từ người thắng (+10, −10, −20), không có điểm chặt và không tính thối.',
@@ -91,14 +93,14 @@ const TXT = {
     hostTag: 'Chủ phòng', youTag: 'Bạn', botTag: 'Máy', onlineTag: 'Online', offlineTag: 'Mất kết nối', replacedTag: 'Máy chơi thay',
     timerLbl: 'Đồng hồ mỗi lượt', timerOpts: ['30 giây', 'Tắt'],
     startOnline: 'Bắt đầu ván', waitHost: 'Đang chờ chủ phòng bắt đầu...', leaveRoom: 'Rời phòng',
-    lobbyNote: 'Chơi online dùng kết nối trực tiếp giữa các máy; chủ phòng chạy luật của ván. Chủ phòng về lý thuyết có thể thấy bài của mọi người, nên hãy chơi với bạn bè.',
+    lobbyNote: 'Phòng online chạy qua máy chủ Firebase của Google; chủ phòng chạy luật của ván. Chủ phòng về lý thuyết có thể thấy bài của mọi người, nên hãy chơi với bạn bè.',
     settingsSummary: 'Thiết lập: {n} chỗ, {m}, độ khó máy {l}.',
     errs: {
       noroom: 'Không tìm thấy phòng. Kiểm tra lại mã phòng.', full: 'Phòng đã đủ người.', started: 'Ván đã bắt đầu, không vào thêm được.',
-      version: 'Phiên bản game không khớp, hãy tải lại trang.', timeout: 'Không kết nối được. Mạng của bạn có thể chặn kết nối trực tiếp (thử mạng khác).',
-      network: 'Không kết nối được. Mạng của bạn có thể chặn kết nối trực tiếp (thử mạng khác).', closed: 'Phòng đã đóng.', hostLeft: 'Chủ phòng đã thoát, phòng đã đóng.',
+      version: 'Phiên bản game không khớp, hãy tải lại trang.', timeout: 'Không kết nối được tới máy chủ phòng chơi. Kiểm tra mạng rồi thử lại.',
+      network: 'Không kết nối được tới máy chủ phòng chơi. Kiểm tra mạng rồi thử lại.', closed: 'Phòng đã đóng.', hostLeft: 'Chủ phòng đã thoát, phòng đã đóng.',
       kicked: 'Bạn đã bị mời ra khỏi phòng.', lost: 'Mất kết nối quá lâu nên bạn đã rời phòng.', badmsg: 'Phòng không trả lời đúng. Thử lại sau.',
-      badcode: 'Mã phòng gồm 5 ký tự (chữ và số).', create: 'Không tạo được phòng. Mạng có thể chặn kết nối trực tiếp hoặc máy chủ báo hiệu không phản hồi.',
+      badcode: 'Mã phòng gồm 5 ký tự (chữ và số).', create: 'Không tạo được phòng. Kiểm tra mạng rồi thử lại.',
     },
     connOk: 'Online', connLost: 'Mất kết nối, đang nối lại...', connHost: 'Chủ phòng', roomClosed: 'Phòng đã đóng', toMenu: 'Về menu',
     ready: 'Sẵn sàng', readyWait: 'Đã sẵn sàng, chờ mọi người...', readyCount: '{a}/{b} sẵn sàng', waitHostRestart: 'Chờ chủ phòng chơi lại...', playAgain: 'Chơi lại',
@@ -139,23 +141,25 @@ const TXT = {
       'Chip mode: everyone starts with the chosen stack and you play hand after hand. Chips are just virtual points for fun.',
       'At the end of a hand each loser pays the winner: cards left in hand × chips per card. If a loser never played a card (burned), the card count is doubled.',
       'Pig penalty: every 2 still in hand adds to the payment: a black 2 (spades, clubs) +1 card, a red 2 (diamonds, hearts) +2 cards.',
-      'Chopping a 2: the chopped player pays the chopper at once: 3 cards for each black 2, 4 cards for each red 2 (a pair or triple of 2s adds up). Chopping a chop is not implemented.',
+      'Chops: 3 cards for each black 2, 4 for each red 2 (a pair or triple of 2s adds up), 4 for chopping a four of a kind or consecutive pairs; beating those with a higher one of the same type is also a chop.',
+      'Stacked 2s and chop on chop, the last one pays it all: the player chopped last pays the whole stack and chain to the final chopper; earlier players lose nothing.',
       'Instant win: every other player pays the winner 13 cards. A player short of chips pays what they have. At 0 chips a player is out; if you hit 0 you lose the table.',
     ],
     youOut: 'Out of chips! You lost the table.', youWinAll: 'You won the whole table!', otherWinAll: '{n} won the whole table!', handNo: 'Hand {k}', unitInfo: '1 card = {u} chips',
     nextHand: 'Next hand', restart: 'Restart', confirmRestart: "Restart and reset everyone's chips?", chipsOut: 'Out', settle: 'Chip settlement',
     bestStack: 'Best stack', handsWon: 'Hands won',
     lnCards: '{c} cards × {u}', lnBurn: '({c} cards × {u}) × 2 burned', lnBlack: 'black 2s {k} × {u}', lnRed: 'red 2s {k} × {u}',
-    lnChop: 'chopped 2s: {p}', lnWhite: 'instant win 13 × {u}', lnShort: 'could only pay {p}',
-    toName: 'pays {n}', fromName: '{n} pays', tagChop: 'Chopped a 2', tagChopped: 'Got chopped', tagWhite: 'Instant win',
+    lnChop: 'chop: {p}', lnBomb: 'quads / consecutive pairs {k} × {u}', lnStack: 'chop on chop', lnWhite: 'instant win 13 × {u}', lnShort: 'could only pay {p}',
+    toName: 'pays {n}', fromName: '{n} pays', tagChop: 'Chopper', tagChopped: 'Got chopped', tagWhite: 'Instant win',
     // ----- Points mode -----
     pointRules: [
       'Points mode (always 4 players, empty seats are played by the computer): play hand after hand; points add up and can go negative. The first player to reach the target wins; if several reach it in the same hand the highest total wins (equal totals: the better score in that hand). Choose "No target" and press "End" whenever you want to stop.',
       'Rank points at the end of a hand: 1st +20, 2nd +10, 3rd −10, 4th −20, by finishing order. The first player to empty their hand finishes 1st but the hand goes on: finished players watch while those still holding cards keep playing until 2nd, 3rd and 4th place are known (the hand ends when only one player still holds cards). If the player who made the last play of a round has just finished and everyone else passes, the lead goes to the next player who still has cards.',
       'Chop points, cumulative: the chopped player loses them and the chopper gains them. Each black 2 is 10 points, each red 2 is 20 points (a pair or triple of 2s counts card by card). Chopping consecutive pairs is 20 points, chopping a four of a kind is 20 points.',
+      'Stacked 2s: when several 2s are played over each other and then chopped, whoever played the last one pays the value of every 2 in the stack (pairs of 2s over pairs too); the earlier players lose nothing.',
       'Beating a four of a kind or consecutive pairs with a higher one of the same type (a higher quad over a lower quad, and so on) also counts as a chop and scores.',
-      'Chop on chop: if a chop is itself chopped in the same round, the whole chain is paid to the LAST chopper: everyone chopped in the chain (including the middle choppers) pays the value of their own combination to the final chopper.',
-      'Finished players are exempt: if their last play is chopped, it can still be beaten to take the lead, but they lose nothing and the chopper gets nothing for it. In a chop-on-chop chain, players still holding cards still pay their share to the last chopper.',
+      'Chop on chop, the last one pays it all: if a chop is itself chopped in the same round (2s, four of a kind, consecutive pairs), the player chopped last pays the value of the whole chain to the final chopper; those chopped earlier lose nothing.',
+      'Finished players are exempt: if their last play is chopped, it can still be beaten to take the lead, but they lose nothing and the chopper gets nothing for it. In a chop-on-chop chain, if the player chopped last has already finished, no points move.',
       'Burned hand: when someone finishes first, anyone who has not played a single card pays 10 points to the winner (even if they play later).',
       'Pig penalty: 2s still in hand at the end are charged as if chopped (black 2: 10 points, red 2: 20 points each), paid to the winner.',
       'Instant win: the winner gets +20 and the other three are ranked by seating order after the winner (+10, −10, −20); there are no chop points and no penalties.',
@@ -187,14 +191,14 @@ const TXT = {
     hostTag: 'Host', youTag: 'You', botTag: 'Bot', onlineTag: 'Online', offlineTag: 'Disconnected', replacedTag: 'Bot playing',
     timerLbl: 'Turn timer', timerOpts: ['30 seconds', 'Off'],
     startOnline: 'Start the hand', waitHost: 'Waiting for the host to start...', leaveRoom: 'Leave room',
-    lobbyNote: 'Online play uses direct connections between devices; the host runs the rules. In theory the host can see everyone\'s cards, so play with friends.',
+    lobbyNote: 'Online rooms run through Google\'s Firebase servers; the host runs the rules. In theory the host can see everyone\'s cards, so play with friends.',
     settingsSummary: 'Settings: {n} seats, {m}, bot level {l}.',
     errs: {
       noroom: 'Room not found. Check the code.', full: 'The room is full.', started: 'The hand has already started, nobody can join now.',
-      version: 'Game version mismatch, please reload the page.', timeout: 'Could not connect. Your network may block direct connections (try another network).',
-      network: 'Could not connect. Your network may block direct connections (try another network).', closed: 'The room has closed.', hostLeft: 'The host left, the room is closed.',
+      version: 'Game version mismatch, please reload the page.', timeout: 'Could not reach the room server. Check your connection and try again.',
+      network: 'Could not reach the room server. Check your connection and try again.', closed: 'The room has closed.', hostLeft: 'The host left, the room is closed.',
       kicked: 'You were removed from the room.', lost: 'Disconnected for too long, so you left the room.', badmsg: 'The room did not answer correctly. Try again later.',
-      badcode: 'A room code has 5 characters (letters and digits).', create: 'Could not create the room. Your network may block direct connections or the signaling server did not answer.',
+      badcode: 'A room code has 5 characters (letters and digits).', create: 'Could not create the room. Check your connection and try again.',
     },
     connOk: 'Online', connLost: 'Connection lost, reconnecting...', connHost: 'Host', roomClosed: 'Room closed', toMenu: 'Back to menu',
     ready: 'Ready', readyWait: 'Ready, waiting for the others...', readyCount: '{a}/{b} ready', waitHostRestart: 'Waiting for the host to restart...', playAgain: 'Play again',
@@ -357,7 +361,7 @@ const MODE_KEYS = ['chips', 'single', 'points'];
   import { botDecide } from '../../data/tienlenBot';
   import { chopValue, chopKind } from '../../data/tienlenScore';
   import { TLGame, TLNetHost, TLNetClient, TURN_MS, type NetState, type ResItem } from '../../data/tienlenNet';
-  import { PeerTransport } from '../../data/net/peerTransport';
+  import { FirebaseTransport } from '../../data/net/firebaseTransport';
   import { LoopbackHub } from '../../data/net/loopbackTransport';
   import { normCode, validCode, sanitizeName, escapeHtml as esc, realClock, RoomError, type RejectReason } from '../../data/net/room';
   import type { Transport } from '../../data/net/transport';
@@ -457,7 +461,7 @@ const MODE_KEYS = ['chips', 'single', 'points'];
     if (ev && ev.n !== lastEv) {
       lastEv = ev.n;
       if (ev.kind === 'deal') { dealing = true; sfx.play('deal'); setTimeout(() => { dealing = false; handEl.querySelectorAll('.deal').forEach((e) => e.classList.remove('deal')); }, 900); }
-      else if (ev.kind === 'chop') { sfx.play('hit'); flashBanner(s.settings.mode === 'points' && ev.vc && ev.vk ? fmt(T.chopPts, { k: T.chopKinds[chopKind(ev.vk, ev.vc)], v: chopValue(ev.vk, ev.vc) }) : T.chopBanner); pileEl.dataset.from = fromPos(ev.slot); retrigger(pileEl); }
+      else if (ev.kind === 'chop') { sfx.play('hit'); flashBanner(s.settings.mode === 'points' && ev.vc && ev.vk ? fmt(T.chopPts, { k: T.chopKinds[chopKind(ev.vk, ev.vc)], v: ev.vv ?? chopValue(ev.vk, ev.vc) }) : T.chopBanner); pileEl.dataset.from = fromPos(ev.slot); retrigger(pileEl); }
       else if (ev.kind === 'play') { sfx.play(ev.slot === s.mySlot ? 'place' : 'tap'); pileEl.dataset.from = fromPos(ev.slot); retrigger(pileEl); }
       else if (ev.kind === 'pass') sfx.play('click');
       else if (ev.kind === 'timeout') { sfx.play('error'); }
@@ -772,7 +776,8 @@ const MODE_KEYS = ['chips', 'single', 'points'];
       const p: string[] = [];
       if (it.black) p.push(fmt(T.lnBlack, { k: it.black, u: 3 * u }));
       if (it.red) p.push(fmt(T.lnRed, { k: it.red, u: 4 * u }));
-      parts = fmt(T.lnChop, { p: p.join(' + ') });
+      if (it.bombs) p.push(fmt(T.lnBomb, { k: it.bombs, u: 4 * u }));
+      parts = fmt(T.lnChop, { p: p.join(' + ') }) + ((it.stack || 1) > 1 ? ' · ' + T.lnStack : '');
     } else {
       const p = [it.burned ? fmt(T.lnBurn, { c: it.cards ?? 0, u }) : fmt(T.lnCards, { c: it.cards ?? 0, u })];
       if (it.black) p.push(fmt(T.lnBlack, { k: it.black, u }));
@@ -866,8 +871,6 @@ const MODE_KEYS = ['chips', 'single', 'points'];
     const totals = pts.totals;
     // người dẫn đầu: điểm cao nhất, bằng điểm thì ai được nhiều điểm hơn ở ván vừa rồi, rồi số ghế
     const ranked = [0, 1, 2, 3].sort((a, b) => totals[b] - totals[a] || r.deltas[b] - r.deltas[a] || a - b);
-    const chainSize = new Map<number, number>();
-    for (const it of pts.items) chainSize.set(it.chain, (chainSize.get(it.chain) || 0) + 1);
     const avatar = (slot: number) => `<span class="tl-av sm" style="--c:${AV_COL[slot % 4]}">${esc([...(s.slots[slot]?.name || '?')][0] || '?')}</span>`;
     let msg: string, sub: string, rows: string;
     if (over) {
@@ -892,7 +895,7 @@ const MODE_KEYS = ['chips', 'single', 'points'];
             continue;
           }
           const lab = T.chopKinds[chopKind(it.key, it.cards)];
-          const chain = (chainSize.get(it.chain) || 0) > 1 ? ` · ${T.lnChain}` : '';
+          const chain = (it.stack || 1) > 1 ? ` · ${T.lnChain}` : '';
           if (it.from === slot) lines.push(`<div>${fmt(T.lnChopped, { k: lab, v: it.val, n: nameOf(it.to) })}${chain}</div>`);
           else if (it.to === slot) lines.push(`<div>${fmt(T.lnChopOf, { k: lab, v: it.val, n: nameOf(it.from) })}${chain}</div>`);
         }
@@ -1073,7 +1076,7 @@ const MODE_KEYS = ['chips', 'single', 'points'];
   $('tl-start').addEventListener('click', () => { sfx.play('click'); startSolo(nPlayers, level, mode, stackStart, unit, targetPts); });
 
   // ---------- Online ----------
-  const peerFactory = (): Transport => new PeerTransport();
+  const peerFactory = (): Transport => new FirebaseTransport();
   const errText = (r: string) => (T.errs[r] || T.errs.network);
   const setErr = (id: string, msg: string) => { const e = $(id); e.textContent = msg; e.hidden = !msg; };
 

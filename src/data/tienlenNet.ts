@@ -4,7 +4,7 @@
 // bản xem riêng (stateFor) của họ. Khách chỉ gửi ý định: đánh, bỏ lượt, sẵn sàng.
 import { newGame, play, pass, viewFor, victimKey, type TLState, type View, type WhiteKind } from './tienlenEngine';
 import { botDecide } from './tienlenBot';
-import { newSession, dealHand, finishHand, activePlayers, type Session, newPointSession, dealHandPoints, finishHandPoints, endPointSession, clampTarget, type PointSession, type PointsOver } from './tienlenScore';
+import { newSession, dealHand, finishHand, activePlayers, type Session, newPointSession, dealHandPoints, finishHandPoints, endPointSession, clampTarget, chainValue, chains, type PointSession, type PointsOver } from './tienlenScore';
 import { RoomHost, RoomClient, makeCode, normCode, sanitizeName, realClock, type Clock, type Member, type RejectReason, type JoinInfo } from './net/room';
 import { TransportError, type Transport } from './net/transport';
 
@@ -17,9 +17,9 @@ export interface NetSettings { n: number; mode: PlayMode; stack: number; unit: n
 export const DEFAULTS: NetSettings = { n: 4, mode: 'chips', stack: 1000, unit: 10, level: 2, timer: true, target: 100 };
 
 export interface PubSlot { name: string; kind: 'human' | 'bot'; online: boolean; replaced: boolean; host: boolean; ready: boolean }
-export interface ResItem { kind: 'hand' | 'chop' | 'white'; from: number; to: number; due: number; paid: number; units: number; cards?: number; burned?: boolean; black?: number; red?: number }
+export interface ResItem { kind: 'hand' | 'chop' | 'white'; from: number; to: number; due: number; paid: number; units: number; cards?: number; burned?: boolean; black?: number; red?: number; bombs?: number; stack?: number }
 // Kết quả ván ở chế độ tính điểm (chỉ số theo ghế = số chỗ ngồi vì luôn 4 người)
-export interface PtsResultItem { kind: 'chop' | 'burn' | 'heo'; from: number; to: number; val: number; key: string; cards: number[]; chain: number; self: boolean }
+export interface PtsResultItem { kind: 'chop' | 'burn' | 'heo'; from: number; to: number; val: number; key: string; cards: number[]; chain: number; self: boolean; stack?: number }
 export interface PtsResult { rank: number[]; chop: number[]; items: PtsResultItem[]; totals: number[]; target: number; over: PointsOver }
 export interface NetResult {
   deltas: number[]; items: ResItem[]; winner: number; white: WhiteKind | null; burned: boolean[];
@@ -28,7 +28,7 @@ export interface NetResult {
 }
 // vc / vk: với sự kiện chặt, các lá và loại bộ bị chặt (công khai, dùng để hiện điểm chặt)
 // place: chế độ tính điểm, nước đánh này làm người chơi hết bài và về hạng place (1 = nhất, 2 = nhì, 3 = ba)
-export interface NetEvent { n: number; kind: 'deal' | 'play' | 'chop' | 'pass' | 'timeout'; slot: number; cards?: number[]; vc?: number[]; vk?: string; place?: number }
+export interface NetEvent { n: number; kind: 'deal' | 'play' | 'chop' | 'pass' | 'timeout'; slot: number; cards?: number[]; vc?: number[]; vk?: string; vv?: number; place?: number }
 export interface NetState {
   seq: number; code: string; phase: 'lobby' | 'playing' | 'result'; settings: NetSettings; slots: PubSlot[]; mySlot: number;
   hand: number; seats: number[]; mySeat: number; view: View | null; stacks: number[] | null;
@@ -219,7 +219,8 @@ export class TLGame {
     if (!r.ok) return false;
     this.ev = { n: ++this.evN, kind: kind === 'timeout' ? 'timeout' : r.chop ? 'chop' : 'play', slot, cards: r.combo.cards.slice() };
     const lastChop = st.chopEvents[st.chopEvents.length - 1];
-    if (r.chop && prevTable && !lastChop?.free) { this.ev.vc = prevTable.cards.slice(); const k = victimKey(prevTable); if (k) this.ev.vk = k; }
+    if (r.chop && prevTable && !lastChop?.free) { this.ev.vc = (st.multi && lastChop ? lastChop.cards : prevTable.cards).slice(); /* tính điểm: cả chồng heo */ const k = victimKey(prevTable); if (k) this.ev.vk = k;
+      if (st.multi && lastChop) this.ev.vv = chainValue(st.chopEvents.filter((e) => e.chain === lastChop.chain), seat); /* điểm cả chuỗi */ }
     if (st.multi && !st.hands[seat].length) this.ev.place = st.finished.indexOf(seat) + 1;
     this.afterMove();
     return true;
@@ -319,7 +320,7 @@ export class TLGame {
     this.lastWinner = slotOf(st.winner);
     this.result = {
       deltas, items, winner: slotOf(st.winner), white: st.white ? st.white.kind : null, burned,
-      order: st.order.map(slotOf), hands, chops: st.chops.map((c) => ({ chopper: slotOf(c.chopper), victim: slotOf(c.victim) })),
+      order: st.order.map(slotOf), hands, chops: chains(st.chopEvents).map((evs) => evs[evs.length - 1]).filter((e) => !e.free).map((e) => ({ chopper: slotOf(e.chopper), victim: slotOf(e.victim) })),
       sessionOver, sessionWinner, ...(pts ? { pts } : {}),
     };
     this.phase = 'result'; this.ready.clear();

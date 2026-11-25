@@ -1,0 +1,440 @@
+---
+import Base from '../../layouts/Base.astro';
+import { lp, type Lang } from '../../i18n';
+import { gamesUi } from '../../data/games';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const g = gamesUi[lang];
+const T = {
+  vi: {
+    title: 'Xì Dách', sub: 'Chơi xì dách với máy, tối đa 8 người một bàn: bạn làm nhà con hoặc làm cái. Chip ảo để vui, không dùng tiền thật.',
+    role: 'Bạn làm', player: 'Nhà con', dealer: 'Nhà cái', opp: 'Số người chơi cùng', bet: 'Tiền cược', deal: 'Chia bài', again: 'Ván mới', reset: 'Chơi lại từ 1000',
+    you: 'Bạn', cai: 'Cái', draw: 'Rút', stand: 'Dằn', standAll: 'Dằn (xét hết)', check: 'Xét',
+    yourTurn: 'Lượt của bạn', needMin: 'Chưa đủ {m} điểm, phải rút thêm', turnOf: 'Đến lượt {n}', dealerTurn: 'Nhà cái đang đánh',
+    youDealer: 'Bạn làm cái: rút thêm, "Xét" từng người hoặc "Dằn" để xét hết', waiting: 'Chờ nhà cái xét',
+    kinds: { xibang: 'Xì bàng', xidach: 'Xì dách', ngulinh: 'Ngũ linh', points: '{p} điểm', quac: 'Quắc {p}' },
+    win: 'Thắng', lose: 'Thua', draw0: 'Hòa', done: 'Hết ván: bạn {d}', flat: 'Hết ván: bạn hòa vốn', broke: 'Bạn đã hết chip.',
+    cards: '{c} lá', stats: 'Đã chơi {r} ván, thắng {w}', botBet: 'cược {b}',
+    checkTitle: '{d} xét bài {p}', youCheck: 'Bạn xét bài {p}', checkYou: '{d} xét bài bạn', dealerHas: 'Bài cái: {v}', running: 'Đang có {t}',
+    tapHint: 'Chạm vào lá bài để lật', nextCard: 'Lật lá tiếp', flipAll: 'Lật hết', skip: 'Bỏ qua', cont: 'Tiếp tục',
+    pWin: '{p} thắng {d}', pLose: '{p} thua {d}', pPush: '{p} hòa với cái', youWin: 'Bạn thắng {d}', youLose: 'Bạn thua {d}', youPush: 'Bạn hòa với cái',
+    rulesTitle: 'Luật chơi', rules: [
+      'Từ 2 đến 8 người, một người làm cái. Mỗi người 2 lá, rút thêm tối đa 5 lá. Lá 2 đến 10 tính theo số, J Q K tính 10. Lá A: cầm 2 lá tính 1, 10 hoặc 11; cầm 3 lá tính 1 hoặc 10; từ 4 lá chỉ tính 1.',
+      'Thứ tự mạnh: Xì bàng (2 lá A) > Xì dách (A kèm 10, J, Q, K) > Ngũ linh (5 lá không quá 21) > so điểm. Hai ngũ linh thì điểm nhỏ hơn thắng.',
+      'Nhà con phải đủ 16 điểm mới được dằn, nhà cái đủ 15. Trên 21 là quắc; cùng quắc thì hòa.',
+      'Nhà cái đủ 15 được xét bài từng người trước khi rút tiếp: bài người bị xét được lật từng lá. Nhà cái có xì bàng hoặc xì dách thì xét cả bàn ngay.',
+      'Ăn: xì bàng gấp 3, xì dách và ngũ linh gấp 2, còn lại gấp 1.',
+    ],
+  },
+  en: {
+    title: 'Xi Dach (Vietnamese Blackjack)', sub: 'Play xi dach against the computer, up to 8 at a table: be a player or the dealer. Virtual chips for fun, no real money.',
+    role: 'You are', player: 'A player', dealer: 'The dealer', opp: 'Other people at the table', bet: 'Your bet', deal: 'Deal', again: 'New round', reset: 'Restart with 1000',
+    you: 'You', cai: 'Dealer', draw: 'Draw', stand: 'Stand', standAll: 'Stand (check all)', check: 'Check',
+    yourTurn: 'Your turn', needMin: 'Below {m} points, you must draw', turnOf: '{n} is playing', dealerTurn: 'The dealer is playing',
+    youDealer: 'You are the dealer: draw, "Check" a player, or "Stand" to check everyone', waiting: 'Waiting for the dealer',
+    kinds: { xibang: 'Two aces', xidach: 'Blackjack', ngulinh: 'Five cards', points: '{p} points', quac: 'Bust {p}' },
+    win: 'Win', lose: 'Lose', draw0: 'Push', done: 'Round over: you {d}', flat: 'Round over: you break even', broke: 'You are out of chips.',
+    cards: '{c} cards', stats: '{r} rounds played, {w} won', botBet: 'bets {b}',
+    checkTitle: '{d} checks {p}', youCheck: 'You check {p}', checkYou: '{d} checks your hand', dealerHas: 'Dealer: {v}', running: 'So far {t}',
+    tapHint: 'Tap a card to flip it', nextCard: 'Flip next card', flipAll: 'Flip all', skip: 'Skip', cont: 'Continue',
+    pWin: '{p} wins {d}', pLose: '{p} loses {d}', pPush: '{p} pushes with the dealer', youWin: 'You win {d}', youLose: 'You lose {d}', youPush: 'You push with the dealer',
+    rulesTitle: 'Rules', rules: [
+      '2 to 8 people, one of them the dealer. Everyone gets 2 cards and may draw up to 5. 2 to 10 count their number, J Q K count 10. Ace: with 2 cards 1, 10 or 11; with 3 cards 1 or 10; from 4 cards only 1.',
+      'Strength: two aces > blackjack (ace plus 10, J, Q, K) > five cards (5 cards, 21 or less) > points. Between two five-card hands the lower total wins.',
+      'A player needs 16 to stand, the dealer 15. Over 21 is a bust; if both bust it is a push.',
+      'Once at 15 the dealer may check players one by one before drawing again: the checked hand is flipped card by card. A dealer with two aces or blackjack checks everyone at once.',
+      'Pays: two aces x3, blackjack and five cards x2, anything else x1.',
+    ],
+  },
+}[lang];
+---
+<Base lang={lang} title={T.title} description={T.sub} noindex>
+  <p class="meta"><a href={lp(lang, '/')}>{g.back}</a></p>
+  <h1>{T.title}</h1>
+  <p class="meta">{T.sub}</p>
+
+  <div id="xd" data-ui={JSON.stringify(T)}>
+    <div class="xd-setup" id="xd-setup">
+      <h2 class="bd-h">{T.role}</h2>
+      <div class="bd-row" data-pick="role"><button type="button" class="bd-opt sel" data-v="player">{T.player}</button><button type="button" class="bd-opt" data-v="dealer">{T.dealer}</button></div>
+      <h2 class="bd-h">{T.opp}</h2>
+      <div class="bd-row" data-pick="opp">{[1, 2, 3, 4, 5, 6, 7].map((n) => <button type="button" class={`bd-opt${n === 5 ? ' sel' : ''}`} data-v={n}>{n}</button>)}</div>
+      <div id="xd-betwrap">
+        <h2 class="bd-h">{T.bet}</h2>
+        <div class="bd-row" data-pick="bet">{[10, 50, 100].map((n) => <button type="button" class={`bd-opt${n === 10 ? ' sel' : ''}`} data-v={n}>{n}</button>)}</div>
+      </div>
+      <p><button type="button" class="btn" id="xd-deal">🂠 {T.deal}</button></p>
+    </div>
+
+    <div class="xd-game" id="xd-game" hidden>
+      <div class="xd-table" id="xd-table">
+        <div class="xd-felt" aria-hidden="true"></div>
+        <div class="xd-center">
+          <div class="xd-deck" aria-hidden="true"><i></i><i></i><i></i></div>
+          <p class="xd-status" id="xd-status" aria-live="polite"></p>
+        </div>
+        <div class="xd-seats" id="xd-seats"></div>
+        <div class="xd-reveal" id="xd-reveal" hidden></div>
+      </div>
+      <div class="xd-actions" id="xd-actions">
+        <button type="button" class="btn" id="xd-draw">{T.draw}</button>
+        <button type="button" class="btn" id="xd-stand">{T.stand}</button>
+        <button type="button" class="btn" id="xd-next" hidden>{T.again}</button>
+        <button type="button" class="btn ghost" id="xd-menu">☰</button>
+      </div>
+    </div>
+    <p class="meta" id="xd-stats"></p>
+    <details class="xd-rules"><summary>{T.rulesTitle}</summary><ul>{T.rules.map((r) => <li>{r}</li>)}</ul></details>
+  </div>
+</Base>
+
+<script>
+  import { sfx, mountMute } from '../../data/sfx';
+  import { deal, draw, stand, check, legal, botAction, apply, handValue, others, rankOf, suitOf, MIN_PLAYER, MIN_DEALER, type XDState, type HandValue } from '../../data/xidachEngine';
+
+  const root = document.getElementById('xd') as HTMLElement;
+  const T = JSON.parse(root.dataset.ui || '{}');
+  const $ = (id: string) => document.getElementById(id) as HTMLElement;
+  const fmt = (s: string, o: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (_, k) => String(o[k] ?? ''));
+  const NAMES = ['An', 'Bình', 'Chi', 'Dũng', 'Hà', 'Khoa', 'Linh'];
+  const COLORS = ['#4c6ef5', '#e8590c', '#2f9e44', '#ae3ec9', '#1098ad', '#e03131', '#f08c00', '#5c7cfa'];
+  const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+  const SUITS = ['♠', '♣', '♦', '♥'];
+  const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
+  let role: 'player' | 'dealer' = 'player', opp = 5, bet = 10;
+  let chips: number[] = [], st: XDState | null = null, timer = 0, counted = false;
+  let revealed = new Set<number>(), dealerShown = false, revealing = false, gen = 0, fast = false;
+  let seen: number[] = []; // số lá đã vẽ của từng ghế, để chỉ lá mới mới có hiệu ứng bay vào
+  const me = 0;
+  let stats = { r: 0, w: 0 };
+  try { stats = { ...stats, ...JSON.parse(localStorage.getItem('xidach-stats') || '{}') }; } catch {}
+  const nameOf = (s: number) => (s === me ? T.you : NAMES[(s - 1) % NAMES.length]);
+
+  document.querySelectorAll<HTMLElement>('[data-pick]').forEach((row) => row.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest('button'); if (!b) return;
+    row.querySelectorAll('button').forEach((x) => x.classList.toggle('sel', x === b));
+    const v = b.dataset.v!;
+    if (row.dataset.pick === 'role') { role = v as any; $('xd-betwrap').hidden = role === 'dealer'; }
+    else if (row.dataset.pick === 'opp') opp = Number(v);
+    else bet = Number(v);
+    sfx.play('click');
+  }));
+
+  // ---------- lá bài ----------
+  const face = (c: number, extra = '') => {
+    const r = RANKS[rankOf(c)], s = SUITS[suitOf(c)];
+    const mid = rankOf(c) >= 10 ? `<em class="court">${r}<small>${s}</small></em>` : `<em>${s}</em>`;
+    return `<span class="xd-c${suitOf(c) >= 2 ? ' red' : ''}${extra}"><b>${r}<small>${s}</small></b>${mid}</span>`;
+  };
+  const back = (extra = '') => `<span class="xd-c back${extra}"></span>`;
+  const kindText = (v: HandValue) => fmt(T.kinds[v.kind], { p: v.total });
+  const sgn = (n: number) => (n > 0 ? '+' + n : String(n));
+
+  // ---------- bàn ----------
+  function seatHtml(s: number) {
+    const x = st!, isDealer = s === x.dealer, res = x.settled[s], shownRes = !!res && revealed.has(s);
+    const show = s === me || (isDealer ? dealerShown || (x.phase === 'done' && !revealing) : shownRes);
+    const hand = x.hands[s], v = handValue(hand), had = seen[s] || 0;
+    const cardsHtml = hand.map((c, i) => { const extra = i >= had ? ' new' : ''; return show ? face(c, extra) : back(extra); }).join('');
+    let badge = '';
+    if (!isDealer && shownRes) badge = `<em class="xd-badge ${res!.result > 0 ? 'w' : res!.result < 0 ? 'l' : 'd'}">${res!.result > 0 ? T.win : res!.result < 0 ? T.lose : T.draw0}${res!.delta ? ' ' + sgn(res!.delta) : ''}</em>`;
+    if (isDealer && x.phase === 'done' && !revealing) badge = `<em class="xd-badge ${x.deltas[s] > 0 ? 'w' : x.deltas[s] < 0 ? 'l' : 'd'}">${sgn(x.deltas[s])}</em>`;
+    const canCheck = !revealing && me === x.dealer && !isDealer && legal(x, me).check.includes(s);
+    const turn = x.phase !== 'done' && x.turn === s;
+    // vị trí quanh bàn (máy tính): bạn ở dưới, những người khác theo chiều kim đồng hồ
+    const a = Math.PI / 2 + (s * 2 * Math.PI) / x.n;
+    const px = 50 + 39 * Math.cos(a), py = 49 + 36 * Math.sin(a);
+    return `<div class="xd-seat${turn ? ' turn' : ''}${s === me ? ' me' : ''}${isDealer ? ' is-dealer' : ''}" style="--px:${px.toFixed(1)}%;--py:${py.toFixed(1)}%">
+      <div class="xd-head"><span class="xd-av" style="--c:${COLORS[s % COLORS.length]}">${[...nameOf(s)][0]}</span><span class="xd-who"><b>${nameOf(s)}</b><small>🪙 ${chips[s]}</small></span>${isDealer ? `<span class="xd-tag">👑 ${T.cai}</span>` : `<span class="xd-bet">${fmt(T.botBet, { b: x.bets[s] })}</span>`}</div>
+      <div class="xd-hand">${cardsHtml}</div>
+      <div class="xd-foot">${show ? `<span class="xd-val ${v.kind}">${kindText(v)}</span>` : `<span class="xd-val">${fmt(T.cards, { c: hand.length })}</span>`}${badge}${canCheck ? `<button type="button" class="xd-check" data-check="${s}">🔍 ${T.check}</button>` : ''}</div>
+    </div>`;
+  }
+
+  function statusText(): string {
+    const x = st!;
+    if (revealing) return T.dealerTurn;
+    if (x.phase === 'done') {
+      const d = x.deltas[me];
+      return chips[me] <= 0 ? T.broke : d ? fmt(T.done, { d: sgn(d) }) : T.flat;
+    }
+    if (x.turn === me) {
+      const v = handValue(x.hands[me]);
+      if (me === x.dealer) return v.total < MIN_DEALER ? fmt(T.needMin, { m: MIN_DEALER }) : T.youDealer;
+      return v.total < MIN_PLAYER && v.kind !== 'quac' ? fmt(T.needMin, { m: MIN_PLAYER }) : T.yourTurn;
+    }
+    if (x.phase === 'dealer') return T.dealerTurn;
+    return x.stood[me] && me !== x.dealer ? T.waiting : fmt(T.turnOf, { n: nameOf(x.turn) });
+  }
+
+  function render() {
+    const x = st!;
+    $('xd-seats').innerHTML = Array.from({ length: x.n }, (_, s) => seatHtml(s)).join('');
+    $('xd-table').dataset.n = String(x.n);
+    seen = x.hands.map((h) => h.length);
+    $('xd-status').textContent = statusText();
+    const lg = legal(x, me);
+    const done = x.phase === 'done' && !revealing;
+    ($('xd-draw') as HTMLButtonElement).disabled = revealing || !lg.draw;
+    ($('xd-stand') as HTMLButtonElement).disabled = revealing || !lg.stand;
+    $('xd-stand').textContent = me === x.dealer ? T.standAll : T.stand;
+    $('xd-draw').hidden = done; $('xd-stand').hidden = done;
+    $('xd-next').hidden = !done;
+    $('xd-next').textContent = chips[me] <= 0 ? T.reset : T.again;
+    $('xd-stats').textContent = fmt(T.stats, { r: stats.r, w: stats.w });
+  }
+
+  function confetti() {
+    const cols = ['#ffd43b', '#ff6b6b', '#4dabf7', '#69db7c', '#f783ac'];
+    const box = document.createElement('div');
+    box.className = 'xd-conf';
+    box.innerHTML = Array.from({ length: 28 }, (_, i) => `<i style="left:${Math.random() * 100}%;background:${cols[i % 5]};animation-delay:${(Math.random() * 0.5).toFixed(2)}s"></i>`).join('');
+    $('xd-table').appendChild(box);
+    setTimeout(() => box.remove(), 2600);
+  }
+
+  function finishRound() {
+    if (!st || st.phase !== 'done' || counted) return;
+    counted = true;
+    st.deltas.forEach((d, i) => { chips[i] += d; });
+    stats.r++; if (st.deltas[me] > 0) stats.w++;
+    try { localStorage.setItem('xidach-stats', JSON.stringify(stats)); } catch {}
+    sfx.play(st.deltas[me] > 0 ? 'win' : st.deltas[me] < 0 ? 'lose' : 'click');
+    if (st.deltas[me] > 0) confetti();
+  }
+
+  // ---------- xét bài: lật từng lá ----------
+  async function revealOne(s: number, g: number) {
+    const x = st!, res = x.settled[s]!, hand = x.hands[s], dHand = x.hands[x.dealer];
+    const manual = x.dealer === me && !fast; // bạn làm cái thì tự tay lật
+    const box = $('xd-reveal');
+    const title = s === me ? fmt(T.checkYou, { d: nameOf(x.dealer) }) : x.dealer === me ? fmt(T.youCheck, { p: nameOf(s) }) : fmt(T.checkTitle, { d: nameOf(x.dealer), p: nameOf(s) });
+    box.innerHTML = `<div class="xd-rbox">
+      <h3>${title}</h3>
+      <div class="xd-rdealer"><span>${fmt(T.dealerHas, { v: kindText(res.dealer) })}</span><div class="xd-hand">${dHand.slice(0, 5).map((c) => face(c)).join('')}</div></div>
+      <div class="xd-rhand">${hand.map((_, i) => back(` rc" data-i="${i}`)).join('')}</div>
+      <p class="xd-rtotal">${manual ? T.tapHint : '…'}</p>
+      <p class="xd-rresult"></p>
+      <div class="xd-rbtns">${manual ? `<button type="button" class="btn sm" data-r="next">${T.nextCard}</button><button type="button" class="btn sm" data-r="all">${T.flipAll}</button>` : ''}<button type="button" class="btn sm ghost" data-r="skip">${T.skip}</button></div>
+    </div>`;
+    box.hidden = false;
+    let flipped = 0, all = false, skip = false, wake: (() => void) | null = null;
+    const slots = () => Array.from(box.querySelectorAll<HTMLElement>('.xd-rhand .xd-c'));
+    box.onclick = (e) => {
+      const t = e.target as HTMLElement;
+      const r = t.closest<HTMLElement>('[data-r]')?.dataset.r;
+      if (r === 'skip') skip = true;
+      else if (r === 'all') all = true;
+      else if (r !== 'next' && !(manual && t.closest('.xd-rhand .back'))) return;
+      wake?.();
+    };
+    const waitTap = () => new Promise<void>((res2) => { wake = () => { wake = null; res2(); }; });
+    const flip = async (i: number) => {
+      const el = slots()[i];
+      el.classList.add('flipping');
+      sfx.play('flip');
+      await sleep(170);
+      el.outerHTML = face(hand[i], ' shown');
+      flipped++;
+      const total = box.querySelector('.xd-rtotal') as HTMLElement;
+      total.textContent = flipped === hand.length ? kindText(res.player) : fmt(T.running, { t: handValue(hand.slice(0, flipped)).total });
+      total.className = 'xd-rtotal' + (flipped === hand.length ? ' final ' + res.player.kind : '');
+      await sleep(190);
+    };
+    if (!manual) await sleep(450);
+    while (flipped < hand.length && !skip && g === gen) {
+      if (manual && !all) { await waitTap(); if (skip || g !== gen) break; }
+      else await sleep(flipped === hand.length - 1 ? 950 : 520); // lá cuối chậm hơn cho hồi hộp
+      if (skip || g !== gen) break;
+      await flip(flipped);
+    }
+    if (g !== gen) return { skip: true };
+    if (!skip) {
+      const who = nameOf(s), d = res.delta ? sgn(res.delta) : '';
+      const msg = res.result > 0 ? fmt(s === me ? T.youWin : T.pWin, { p: who, d }) : res.result < 0 ? fmt(s === me ? T.youLose : T.pLose, { p: who, d }) : fmt(s === me ? T.youPush : T.pPush, { p: who });
+      const el = box.querySelector('.xd-rresult') as HTMLElement;
+      el.textContent = msg;
+      el.className = 'xd-rresult ' + (res.result > 0 ? 'w' : res.result < 0 ? 'l' : 'd');
+      sfx.play((s === me && res.result > 0) || (x.dealer === me && res.result < 0) ? 'win' : res.result === 0 ? 'click' : 'lose', 0.6);
+      (box.querySelector('.xd-rbtns') as HTMLElement).innerHTML = `<button type="button" class="btn sm" data-r="next">${T.cont}</button>`;
+      await Promise.race([waitTap(), sleep(manual ? 6000 : 1500)]);
+    }
+    return { skip };
+  }
+
+  async function runReveals(list: number[]) {
+    const g = gen;
+    revealing = true; dealerShown = true;
+    render();
+    for (let i = 0; i < list.length; i++) {
+      const r = await revealOne(list[i], g);
+      if (g !== gen || !st) return;
+      revealed.add(list[i]);
+      if (r.skip) { list.forEach((s) => revealed.add(s)); break; }
+      render();
+    }
+    $('xd-reveal').hidden = true;
+    revealing = false;
+    step();
+  }
+
+  // Sau mỗi hành động: xét bài (nếu có), vẽ lại, rồi cho máy đánh nếu đến lượt máy
+  function step() {
+    clearTimeout(timer);
+    if (!st) return;
+    const x = st;
+    const fresh = others(x).filter((s) => x.settled[s] && !revealed.has(s));
+    const natural = (s: number) => x.settled[s]!.player.kind === 'xibang' || x.settled[s]!.player.kind === 'xidach';
+    fresh.filter((s) => natural(s)).forEach((s) => revealed.add(s)); // xì bàng / xì dách ngửa bài ngay
+    const toReveal = fresh.filter((s) => !natural(s));
+    if (toReveal.length) { void runReveals(toReveal); return; }
+    finishRound();
+    render();
+    if (x.phase === 'done' || x.turn === me) return;
+    timer = window.setTimeout(() => {
+      if (!st || st.phase === 'done' || revealing) return;
+      const seat = st.turn;
+      const a = botAction(st, seat);
+      apply(st, seat, a);
+      if (a.type === 'draw') sfx.play('flip', 0.6);
+      step();
+    }, fast ? 60 : 650);
+  }
+
+  function newRound() {
+    const n = opp + 1;
+    if (chips.length !== n || chips[me] <= 0) chips = new Array(n).fill(1000);
+    for (let i = 1; i < n; i++) if (chips[i] <= 0) chips[i] = 1000;
+    const dealer = role === 'dealer' ? me : 1;
+    const bets = Array.from({ length: n }, (_, i) => (i === dealer ? 0 : i === me ? Math.min(bet, Math.max(1, chips[me])) : [10, 20, 50][Math.floor(Math.random() * 3)]));
+    gen++; revealed = new Set(); dealerShown = false; revealing = false; counted = false; seen = [];
+    $('xd-reveal').hidden = true;
+    st = deal(n, dealer, bets);
+    $('xd-setup').hidden = true; $('xd-game').hidden = false;
+    sfx.play('flip');
+    step();
+    // điện thoại: đưa cả bàn vào màn hình
+    if (window.matchMedia('(max-width: 900px)').matches) $('xd-game').scrollIntoView({ block: 'start', behavior: 'instant' as ScrollBehavior });
+  }
+
+  $('xd-deal').addEventListener('click', newRound);
+  $('xd-next').addEventListener('click', newRound);
+  $('xd-draw').addEventListener('click', () => { if (st && !revealing && draw(st, me)) { sfx.play('flip'); step(); } });
+  $('xd-stand').addEventListener('click', () => { if (st && !revealing && stand(st, me)) { sfx.play('click'); step(); } });
+  $('xd-menu').addEventListener('click', () => { clearTimeout(timer); gen++; revealing = false; st = null; $('xd-reveal').hidden = true; $('xd-game').hidden = true; $('xd-setup').hidden = false; });
+  $('xd-seats').addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>('[data-check]');
+    if (b && st && !revealing && check(st, Number(b.dataset.check))) { sfx.play('click'); step(); }
+  });
+  mountMute($('xd-actions'));
+  $('xd-stats').textContent = fmt(T.stats, { r: stats.r, w: stats.w });
+  // dùng cho kiểm thử tự động
+  if (location.hash === '#debug') (window as any).__xd = { get st() { return st; }, get chips() { return chips; }, get revealing() { return revealing; }, newRound, setFast: (f: boolean) => { fast = f; } };
+</script>
+
+<style is:global>
+  #xd { max-width: 960px; }
+  .xd-game { position: relative; }
+  .xd-game[hidden], .xd-setup[hidden], #xd-betwrap[hidden], .xd-reveal[hidden] { display: none; }
+  .xd-table { position: relative; height: 660px; color: #fff; width: min(980px, calc(100vw - 24px)); left: 50%; transform: translateX(-50%); }
+  .xd-felt { position: absolute; inset: 4% 3%; border-radius: 50% / 46%; background: radial-gradient(ellipse at 50% 38%, #2aa268, #12683f 55%, #0b4529 100%); border: 14px solid #6b4423; box-shadow: inset 0 0 0 3px #d9a441, inset 0 0 50px rgba(0, 0, 0, .45), 0 0 0 3px #3f2712, 0 18px 40px rgba(0, 0, 0, .35); }
+  .xd-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: grid; justify-items: center; gap: 10px; width: 36%; text-align: center; }
+  .xd-deck { position: relative; width: 46px; height: 66px; }
+  .xd-deck i { position: absolute; inset: 0; border-radius: 7px; border: 3px solid #fff; background: repeating-linear-gradient(45deg, #b3261e 0 5px, #8e1b15 5px 10px); box-shadow: 0 3px 7px rgba(0, 0, 0, .4); }
+  .xd-deck i:nth-child(1) { transform: translate(-4px, 3px) rotate(-5deg); } .xd-deck i:nth-child(2) { transform: translate(0, 1px) rotate(1deg); } .xd-deck i:nth-child(3) { transform: translate(3px, -2px) rotate(4deg); }
+  .xd-status { margin: 0; font-weight: 800; color: #ffe066; text-shadow: 0 2px 4px rgba(0, 0, 0, .55); min-height: 1.4em; line-height: 1.35; }
+  .xd-seat { position: absolute; left: var(--px); top: var(--py); transform: translate(-50%, -50%); width: 176px; padding: 7px 8px; border-radius: 14px; background: linear-gradient(180deg, rgba(14, 22, 18, .88), rgba(8, 14, 11, .82)); border: 2px solid rgba(217, 164, 65, .35); box-shadow: 0 6px 14px rgba(0, 0, 0, .35); z-index: 2; }
+  .xd-seat.is-dealer { border-color: #d9a441; }
+  .xd-seat.me { width: 270px; }
+  .xd-seat.turn { border-color: #ffd43b; animation: xdPulse 1.2s ease-in-out infinite; z-index: 3; }
+  @keyframes xdPulse { 50% { box-shadow: 0 0 0 6px rgba(255, 212, 59, .3), 0 6px 14px rgba(0, 0, 0, .35); } }
+  .xd-head { display: flex; align-items: center; gap: 6px; font-size: .82rem; line-height: 1.15; }
+  .xd-av { flex: 0 0 28px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--c); font-weight: 800; border: 2px solid rgba(255, 255, 255, .75); }
+  .xd-who { display: grid; min-width: 0; } .xd-who small { opacity: .85; font-size: .74rem; }
+  .xd-tag { margin-left: auto; background: linear-gradient(#ffe27a, #f2b705); color: #3b2a00; border-radius: 999px; padding: 2px 7px; font-weight: 800; font-size: .7rem; white-space: nowrap; }
+  .xd-bet { margin-left: auto; opacity: .85; font-size: .74rem; white-space: nowrap; }
+  .xd-hand { display: flex; justify-content: center; min-height: 58px; margin: 5px 0; padding-right: 8px; }
+  .xd-c { position: relative; display: inline-block; flex: 0 0 auto; width: 40px; height: 58px; margin-right: -10px; border-radius: 6px; background: linear-gradient(160deg, #fff, #eef0f4); color: #15171c; box-shadow: -1px 2px 6px rgba(0, 0, 0, .45); font-family: Georgia, 'Times New Roman', serif; line-height: 1; }
+  .xd-c.red { color: #c8102e; }
+  .xd-c b { position: absolute; left: 3px; top: 3px; display: grid; justify-items: center; font-size: .86rem; } .xd-c b small { font-size: .7rem; }
+  .xd-c em { position: absolute; right: 4px; bottom: 4px; font-style: normal; font-size: 1.15rem; }
+  .xd-c em.court { right: 4px; bottom: 4px; display: grid; justify-items: center; padding: 1px 3px; border: 1.5px solid #d9a441; border-radius: 4px; background: #fff7dc; font-size: .74rem; font-weight: 700; } .xd-c em.court small { font-size: .62rem; }
+  .xd-hand .xd-c:not(:last-child) em { display: none; } /* bài xếp chồng: chỉ lá trên cùng hiện hình giữa, khỏi bị che dở */
+  .xd-c.back { background: radial-gradient(circle, rgba(255, 215, 120, .55) 0 22%, transparent 23%), repeating-linear-gradient(45deg, #b3261e 0 5px, #8e1b15 5px 10px); border: 3px solid #fff; box-sizing: border-box; }
+  .xd-c.new { animation: xdDeal .38s cubic-bezier(.2, .8, .3, 1.2) both; }
+  @keyframes xdDeal { from { opacity: 0; transform: translateY(-34px) rotate(-18deg) scale(.7); } }
+  .xd-seat.me .xd-hand { min-height: 88px; }
+  .xd-seat.me .xd-c { width: 60px; height: 88px; margin-right: -12px; border-radius: 8px; }
+  .xd-seat.me .xd-c b { font-size: 1.35rem; left: 5px; top: 5px; } .xd-seat.me .xd-c b small { font-size: 1rem; } .xd-seat.me .xd-c em { font-size: 1.9rem; }
+  .xd-seat.me .xd-c em.court { font-size: 1.1rem; } .xd-seat.me .xd-c em.court small { font-size: .9rem; }
+  .xd-foot { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px; min-height: 24px; font-size: .8rem; }
+  .xd-val { font-weight: 700; }
+  .xd-val.xibang, .xd-val.xidach, .xd-val.ngulinh { color: #ffd43b; } .xd-val.quac { color: #ffa8a8; }
+  .xd-badge { font-style: normal; font-weight: 800; border-radius: 999px; padding: 2px 9px; font-size: .76rem; background: #868e96; animation: xdPop .35s cubic-bezier(.2, .9, .3, 1.5) both; }
+  .xd-badge.w { background: linear-gradient(#40c057, #2b8a3e); } .xd-badge.l { background: linear-gradient(#fa5252, #c92a2a); }
+  @keyframes xdPop { from { transform: scale(.3); opacity: 0; } }
+  .xd-check { border: 0; border-radius: 999px; padding: 4px 11px; font-weight: 800; font-size: .76rem; cursor: pointer; background: linear-gradient(#ffe27a, #f2b705); color: #3b2a00; min-height: 28px; }
+  .xd-reveal { position: absolute; inset: 0; z-index: 10; display: grid; place-items: center; background: rgba(4, 10, 7, .66); border-radius: 22px; }
+  .xd-rbox { width: min(94%, 440px); padding: 14px 14px 12px; text-align: center; border-radius: 18px; background: linear-gradient(180deg, #16342a, #0b1f18); border: 2px solid #d9a441; box-shadow: 0 18px 44px rgba(0, 0, 0, .55); animation: xdPop .25s ease-out both; }
+  .xd-rbox h3 { margin: 0 0 8px; font-size: 1.1rem; color: #ffe066; }
+  .xd-rdealer { font-size: .85rem; opacity: .95; } .xd-rdealer .xd-c { width: 34px; height: 49px; } .xd-rdealer .xd-c b { font-size: .76rem; } .xd-rdealer .xd-c em { font-size: .95rem; } .xd-rdealer .xd-c em.court { font-size: .62rem; } .xd-rdealer .xd-hand { min-height: 49px; }
+  .xd-rhand { display: flex; justify-content: center; gap: 7px; margin: 10px 0; min-height: 100px; flex-wrap: wrap; }
+  .xd-rhand .xd-c { width: 66px; height: 98px; margin: 0; border-radius: 9px; }
+  .xd-rhand .xd-c.back { cursor: pointer; }
+  .xd-rhand .xd-c b { font-size: 1.45rem; left: 6px; top: 6px; } .xd-rhand .xd-c b small { font-size: 1.05rem; } .xd-rhand .xd-c em { font-size: 2rem; }
+  .xd-rhand .xd-c em.court { font-size: 1.2rem; } .xd-rhand .xd-c em.court small { font-size: 1rem; }
+  .xd-rhand .xd-c.flipping { animation: xdFlipOut .17s ease-in forwards; }
+  .xd-rhand .xd-c.shown { animation: xdFlipIn .2s ease-out both; }
+  @keyframes xdFlipOut { to { transform: scaleX(0) translateY(-8px); } }
+  @keyframes xdFlipIn { from { transform: scaleX(0) translateY(-8px); } }
+  .xd-rtotal { margin: 4px 0; font-weight: 800; font-size: 1.05rem; min-height: 1.5em; }
+  .xd-rtotal.final { font-size: 1.4rem; } .xd-rtotal.xibang, .xd-rtotal.xidach, .xd-rtotal.ngulinh { color: #ffd43b; } .xd-rtotal.quac { color: #ff8787; }
+  .xd-rresult { margin: 4px 0 8px; min-height: 1.7em; font-weight: 900; font-size: 1.3rem; }
+  .xd-rresult.w { color: #69db7c; animation: xdPop .35s both; } .xd-rresult.l { color: #ff8787; animation: xdPop .35s both; } .xd-rresult.d { color: #ced4da; }
+  .xd-rbtns { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; } .xd-rbtns .btn { min-height: 40px; }
+  .xd-rbtns .btn.ghost { color: #fff; }
+  .xd-conf { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 12; }
+  .xd-conf i { position: absolute; top: -12px; width: 9px; height: 14px; border-radius: 2px; animation: xdFall 1.9s linear forwards; }
+  @keyframes xdFall { to { top: 105%; transform: rotate(540deg); } }
+  .xd-actions { display: flex; gap: 10px; margin-top: 12px; }
+  .xd-actions .btn { flex: 1; min-height: 50px; font-size: 1.05rem; }
+  .xd-actions #xd-menu { flex: 0 0 56px; }
+  .xd-actions .btn:disabled { opacity: .45; }
+  .xd-actions .btn[hidden] { display: none; }
+  .xd-actions .sfx-btn { position: static !important; flex: 0 0 50px; height: 50px; }
+  .xd-rules { margin-top: 14px; } .xd-rules li { margin: 6px 0; line-height: 1.5; }
+
+  /* Màn hình hẹp: bỏ bàn bầu dục, xếp ghế theo lưới, bài của bạn ở dưới */
+  @media (max-width: 900px) {
+    .xd-table { display: flex; flex-direction: column; height: auto; width: auto; left: 0; transform: none; padding: 8px; border-radius: 18px; background: radial-gradient(ellipse at 50% 30%, #2aa268, #12683f 55%, #0b4529); box-shadow: inset 0 0 0 4px #6b4423, inset 0 0 0 6px #d9a441; }
+    .xd-felt { display: none; }
+    .xd-center { position: static; transform: none; width: auto; padding: 2px 0 6px; display: block; }
+    .xd-deck { display: none; }
+    .xd-seat { position: static; transform: none; width: auto; padding: 5px; border-radius: 11px; }
+    .xd-seats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
+    .xd-seat.me { grid-column: 1 / -1; order: 99; width: auto; }
+    .xd-status { font-size: .86rem; }
+    .xd-head { gap: 4px; font-size: .74rem; flex-wrap: wrap; }
+    .xd-av { flex-basis: 20px; width: 20px; height: 20px; font-size: .7rem; border-width: 1.5px; }
+    .xd-seat:not(.me) .xd-bet { display: none; }
+    .xd-seat:not(.me) .xd-tag { font-size: .62rem; padding: 1px 5px; }
+    .xd-seat:not(.me) .xd-who small { font-size: .66rem; }
+    .xd-seat:not(.me) .xd-c { width: 25px; height: 37px; margin-right: -10px; border-radius: 4px; }
+    .xd-seat:not(.me) .xd-c.back { border-width: 2px; }
+    .xd-seat:not(.me) .xd-c b { font-size: .62rem; left: 2px; top: 2px; } .xd-seat:not(.me) .xd-c b small { font-size: .52rem; } .xd-seat:not(.me) .xd-c em { font-size: .72rem; right: 2px; bottom: 2px; }
+    .xd-seat:not(.me) .xd-c em.court { display: none; }
+    .xd-seat:not(.me) .xd-hand { min-height: 37px; margin: 3px 0; }
+    .xd-seat:not(.me) .xd-foot { font-size: .68rem; gap: 3px; min-height: 18px; }
+    .xd-seat:not(.me) .xd-badge { font-size: .64rem; padding: 1px 6px; }
+    .xd-check { font-size: .7rem; padding: 3px 8px; min-height: 28px; }
+    .xd-seat.me .xd-hand { min-height: 70px; margin: 3px 0; }
+    .xd-seat.me .xd-c { width: 48px; height: 70px; margin-right: -9px; }
+    .xd-seat.me .xd-c b { font-size: 1.05rem; } .xd-seat.me .xd-c b small { font-size: .8rem; } .xd-seat.me .xd-c em { font-size: 1.45rem; }
+    .xd-reveal { position: fixed; border-radius: 0; z-index: 90; }
+    .xd-rhand { gap: 5px; } .xd-rhand .xd-c { width: 56px; height: 84px; }
+    .xd-actions { position: sticky; bottom: 0; background: var(--bg); padding: 8px 0; z-index: 5; gap: 8px; }
+    .xd-actions #xd-menu { flex: 0 0 48px; }
+  }
+</style>

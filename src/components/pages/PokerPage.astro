@@ -42,14 +42,14 @@ const T = vi ? {
     hostTag: 'Chủ phòng', youTag: 'Bạn', botTag: 'Máy', onlineTag: 'Online', offlineTag: 'Mất kết nối', replacedTag: 'Máy chơi thay', offlineLabel: 'offline',
     timerLbl: 'Đồng hồ mỗi lượt', timerOpts: ['Tắt', '20 giây', '30 giây', '45 giây'],
     startOnline: 'Bắt đầu ván', waitHost: 'Đang chờ chủ phòng bắt đầu...', leaveRoom: 'Rời phòng',
-    lobbyNote: 'Chơi online dùng kết nối trực tiếp giữa các máy; chủ phòng chạy luật của ván và về lý thuyết nhìn được tất cả bài, nên chỉ chơi với bạn bè. Chip ảo, không dùng tiền thật.',
+    lobbyNote: 'Phòng online chạy qua máy chủ Firebase của Google; chủ phòng chạy luật của ván và về lý thuyết nhìn được tất cả bài, nên chỉ chơi với bạn bè. Chip ảo, không dùng tiền thật.',
     settingsSummary: 'Thiết lập: {n} chỗ, {s} chip, {b}, độ khó máy {l}, đồng hồ: {t}.',
     errs: {
       noroom: 'Không tìm thấy phòng. Kiểm tra lại mã phòng.', full: 'Phòng đã đủ người.', started: 'Ván đã bắt đầu, không vào thêm được.',
-      version: 'Phiên bản game không khớp, hãy tải lại trang.', timeout: 'Không kết nối được. Mạng của bạn có thể chặn kết nối trực tiếp (thử mạng khác).',
-      network: 'Không kết nối được. Mạng của bạn có thể chặn kết nối trực tiếp (thử mạng khác).', closed: 'Phòng đã đóng.', hostLeft: 'Chủ phòng đã thoát, phòng đã đóng.',
+      version: 'Phiên bản game không khớp, hãy tải lại trang.', timeout: 'Không kết nối được tới máy chủ phòng chơi. Kiểm tra mạng rồi thử lại.',
+      network: 'Không kết nối được tới máy chủ phòng chơi. Kiểm tra mạng rồi thử lại.', closed: 'Phòng đã đóng.', hostLeft: 'Chủ phòng đã thoát, phòng đã đóng.',
       kicked: 'Bạn đã bị mời ra khỏi phòng.', lost: 'Mất kết nối quá lâu nên bạn đã rời phòng.', badmsg: 'Phòng không trả lời đúng. Thử lại sau.',
-      badcode: 'Mã phòng gồm 5 ký tự (chữ và số).', create: 'Không tạo được phòng. Mạng có thể chặn kết nối trực tiếp hoặc máy chủ báo hiệu không phản hồi.',
+      badcode: 'Mã phòng gồm 5 ký tự (chữ và số).', create: 'Không tạo được phòng. Kiểm tra mạng rồi thử lại.',
     },
     connOk: 'Online', connLost: 'Mất kết nối, đang nối lại...', connHost: 'Chủ phòng', roomClosed: 'Phòng đã đóng', toMenu: 'Về menu',
     restart: 'Chơi lại', waitRestart: 'Chờ chủ phòng chơi lại...', confirmRestart: 'Chơi lại từ đầu và đặt lại chip cho mọi người?',
@@ -90,14 +90,14 @@ const T = vi ? {
     hostTag: 'Host', youTag: 'You', botTag: 'Bot', onlineTag: 'Online', offlineTag: 'Disconnected', replacedTag: 'Bot playing', offlineLabel: 'offline',
     timerLbl: 'Turn timer', timerOpts: ['Off', '20 seconds', '30 seconds', '45 seconds'],
     startOnline: 'Start the game', waitHost: 'Waiting for the host to start...', leaveRoom: 'Leave room',
-    lobbyNote: "Online play uses direct connections between devices; the host runs the rules and in theory can see everyone's cards, so play with friends only. Virtual chips, no real money.",
+    lobbyNote: "Online rooms run through Google's Firebase servers; the host runs the rules and in theory can see everyone's cards, so play with friends only. Virtual chips, no real money.",
     settingsSummary: 'Settings: {n} seats, {s} chips, {b}, bot level {l}, timer: {t}.',
     errs: {
       noroom: 'Room not found. Check the code.', full: 'The room is full.', started: 'The game has already started, nobody can join now.',
-      version: 'Game version mismatch, please reload the page.', timeout: 'Could not connect. Your network may block direct connections (try another network).',
-      network: 'Could not connect. Your network may block direct connections (try another network).', closed: 'The room has closed.', hostLeft: 'The host left, the room is closed.',
+      version: 'Game version mismatch, please reload the page.', timeout: 'Could not reach the room server. Check your connection and try again.',
+      network: 'Could not reach the room server. Check your connection and try again.', closed: 'The room has closed.', hostLeft: 'The host left, the room is closed.',
       kicked: 'You were removed from the room.', lost: 'Disconnected for too long, so you left the room.', badmsg: 'The room did not answer correctly. Try again later.',
-      badcode: 'A room code has 5 characters (letters and digits).', create: 'Could not create the room. Your network may block direct connections or the signaling server did not answer.',
+      badcode: 'A room code has 5 characters (letters and digits).', create: 'Could not create the room. Check your connection and try again.',
     },
     connOk: 'Online', connLost: 'Connection lost, reconnecting...', connHost: 'Host', roomClosed: 'Room closed', toMenu: 'Back to menu',
     restart: 'Play again', waitRestart: 'Waiting for the host to restart...', confirmRestart: "Restart and reset everyone's chips?",
@@ -289,7 +289,7 @@ const SUITS = [
   import { evaluate, handName, rankOf, suitOf, RANK_CH } from '../../data/pokerEval';
   import { sfx, mountMute } from '../../data/sfx';
   import { PKNetHost, PKNetClient, type NetState } from '../../data/pokerNet';
-  import { PeerTransport } from '../../data/net/peerTransport';
+  import { FirebaseTransport } from '../../data/net/firebaseTransport';
   import { LoopbackHub } from '../../data/net/loopbackTransport';
   import { normCode, validCode, sanitizeName, escapeHtml as esc, realClock, RoomError, type RejectReason } from '../../data/net/room';
   import type { Transport } from '../../data/net/transport';
@@ -753,7 +753,7 @@ const SUITS = [
   const defaultName = () => (loadName() || (lang === 'en' ? 'Player ' : 'Người chơi ') + (100 + Math.floor(Math.random() * 900)));
   const setErr = (id: string, msg: string) => { const e = $(id); e.textContent = msg; e.hidden = !msg; };
   const errText = (r: string) => ((ui.net.errs as Record<string, string>)[r] || ui.net.errs.network);
-  const peerFactory = (): Transport => new PeerTransport();
+  const peerFactory = (): Transport => new FirebaseTransport();
   const VIEWS = ['home', 'solo', 'create', 'join', 'lobby'];
   function showView(v: string) {
     inGame = false;
