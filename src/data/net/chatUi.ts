@@ -14,7 +14,7 @@ const isEmoji = (t: string) => EMOJIS.includes(t);
 const CSS = `
 .gk-chat { position: fixed; right: 8px; top: 68px; z-index: 95; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; pointer-events: none; }
 .gk-chat > * { pointer-events: auto; }
-main:has(#pk-v-lobby) .gk-chat { top: 124px; } /* poker: tránh nút toàn màn hình và âm thanh ở góc trên */
+main:has(#pk-v-lobby) .gk-chat, main:has(#cm-root) .gk-chat { top: 124px; } /* poker: tránh nút toàn màn hình và âm thanh ở góc trên */
 .gk-fab { position: relative; width: 46px; height: 46px; opacity: .93; border-radius: 50%; border: 2px solid #fff; background: linear-gradient(135deg, #5b6cff, #3b46c4); color: #fff; font-size: 24px; cursor: pointer; box-shadow: 0 6px 16px rgba(0,0,0,.35); }
 .gk-fab b { position: absolute; top: -4px; right: -4px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: #e03131; font-size: 12px; line-height: 20px; }
 .gk-fab b[hidden], .gk-panel[hidden] { display: none; }

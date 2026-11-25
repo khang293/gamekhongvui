@@ -1,0 +1,820 @@
+---
+import Base from '../../layouts/Base.astro';
+import { lp, type Lang } from '../../i18n';
+import { gamesUi } from '../../data/games';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const g = gamesUi[lang];
+const T = {
+  vi: {
+    title: 'Còn Một!', sub: 'Trò đổ bài theo màu và số: chơi với máy hoặc với bạn bè qua phòng online, 2 đến 8 người. Bộ lá tự thiết kế.',
+    opp: 'Số đối thủ (máy)', start: 'Chơi ngay', you: 'Bạn', bots: ['Gà', 'Mèo', 'Gấu Trúc', 'Cáo', 'Thỏ', 'Ếch', 'Cánh Cụt', 'Gấu'],
+    onlineH: 'Chơi online với bạn bè', namePh: 'Tên của bạn', create: 'Tạo phòng', codePh: 'Mã phòng', join: 'Vào phòng', connecting: 'Đang kết nối...', defName: 'Người chơi',
+    onlineNote: 'Phòng online chạy qua máy chủ Firebase của Google. Máy chủ phòng chia bài nên chỉ chơi với người quen.',
+    roomCode: 'Mã phòng', copyCode: 'Chép mã', copyLink: 'Chép link mời', copied: 'Đã chép', seats: 'Số người ở bàn (chỗ trống do máy chơi)', timer: 'Giới hạn 30 giây mỗi lượt', startRoom: 'Bắt đầu', waitHost: 'Chờ chủ phòng bắt đầu', leave: 'Rời phòng', leaveConfirm: 'Rời phòng? Nếu bạn là chủ phòng, phòng sẽ đóng.', menuConfirm: 'Bỏ ván đang chơi?', hostTag: 'Chủ phòng', botTag: 'Máy',
+    colors: ['Đỏ san hô', 'Vàng hổ phách', 'Xanh ngọc', 'Tím'], pickColor: 'Chọn màu', cancel: 'Thôi',
+    call: '📣 Còn một!', catch: '👀 Bắt {n}!', pass: 'Bỏ lượt', menu: 'Menu', drawLabel: 'Rút bài', left: 'Còn {c} lá',
+    dealing: 'Đang chia bài...', yourTurn: 'Đến lượt bạn.', turnOf: 'Đến lượt {n}.', noPlay: 'Không có lá đánh được: bấm chồng bài để rút.', drawnHint: 'Vừa rút được lá đánh được: đánh nó hoặc Bỏ lượt.', pending: 'Bạn bị +{k}: đè lên hoặc bấm chồng bài để rút {k}.', cant: 'Lá này không đánh được.', lost: 'Mất kết nối, đang nối lại...',
+    shout: '{n}: CÒN MỘT!', caught: '{n} quên hô! +2', skip: '⊘ {n} mất lượt', reverse: '⇄ Đảo chiều', toColor: 'Đổi sang {c}',
+    youWin: 'Bạn thắng!', wins: '{n} thắng!', score: 'Số ván thắng', again: 'Ván mới', waitNext: 'Chờ chủ phòng chia ván mới',
+    errs: { noroom: 'Không tìm thấy phòng này.', full: 'Phòng đã đủ người.', started: 'Ván đã bắt đầu, không vào được nữa.', version: 'Hai máy đang dùng bản khác nhau, hãy tải lại trang.', timeout: 'Kết nối quá lâu, hãy thử lại.', network: 'Không kết nối được, hãy kiểm tra mạng rồi thử lại.', closed: 'Phòng đã đóng.', hostLeft: 'Chủ phòng đã rời, phòng đóng.', lost: 'Mất kết nối với phòng.', kicked: 'Bạn đã bị mời ra khỏi phòng.', badmsg: 'Mã này là phòng của trò khác.', badcode: 'Mã phòng gồm 5 ký tự.' },
+    rulesTitle: 'Luật chơi', rules: [
+      '2 đến 8 người, mỗi người 7 lá. Ai hết bài trước thắng ván.',
+      'Đánh một lá cùng màu, cùng số hoặc cùng ký hiệu với lá trên bàn. Lá đổi màu đánh lúc nào cũng được rồi chọn màu mới.',
+      '⊘ Cấm lượt người kế. ⇄ Đảo chiều (chơi 2 người thì như cấm lượt). +2 và +4: người kế phải rút bài và mất lượt.',
+      'Cộng dồn: bị +2 được đè +2 hoặc +4; bị +4 chỉ đè được +4. Người không đè được rút tổng số lá.',
+      'Không đánh được (hoặc không muốn đánh) thì rút 1 lá. Lá vừa rút đánh được thì được đánh ngay hoặc bỏ lượt.',
+      'Còn 2 lá và sắp đánh một lá, hãy bấm "Còn một!". Quên hô mà bị người khác bấm "Bắt" trước khi người kế đi thì rút 2 lá.',
+      'Hết lá cuối là thắng ngay, kể cả khi lá cuối là +2 hay +4.',
+      'Bật đồng hồ trong phòng online: quá 30 giây thì tự rút bài và mất lượt.',
+    ],
+  },
+  en: {
+    title: 'Last Card!', sub: 'A colour and number shedding game against the computer or with friends in an online room, 2 to 8 players. Our own card design.',
+    opp: 'Computer opponents', start: 'Play', you: 'You', bots: ['Chick', 'Cat', 'Panda', 'Fox', 'Bunny', 'Frog', 'Penguin', 'Bear'],
+    onlineH: 'Play online with friends', namePh: 'Your name', create: 'Create room', codePh: 'Room code', join: 'Join', connecting: 'Connecting...', defName: 'Player',
+    onlineNote: 'Online rooms run through Google Firebase. The host device deals the cards, so only play with people you know.',
+    roomCode: 'Room code', copyCode: 'Copy code', copyLink: 'Copy invite link', copied: 'Copied', seats: 'Players at the table (empty seats are played by the computer)', timer: '30 second limit per turn', startRoom: 'Start', waitHost: 'Waiting for the host to start', leave: 'Leave room', leaveConfirm: 'Leave the room? If you are the host, the room closes.', menuConfirm: 'Abandon this game?', hostTag: 'Host', botTag: 'Computer',
+    colors: ['Coral', 'Amber', 'Teal', 'Violet'], pickColor: 'Pick a colour', cancel: 'Cancel',
+    call: '📣 Last card!', catch: '👀 Catch {n}!', pass: 'Pass', menu: 'Menu', drawLabel: 'Draw a card', left: '{c} cards left',
+    dealing: 'Dealing...', yourTurn: 'Your turn.', turnOf: "{n}'s turn.", noPlay: 'Nothing to play: tap the pile to draw.', drawnHint: 'You drew a playable card: play it or Pass.', pending: 'You face +{k}: stack on it or tap the pile to draw {k}.', cant: 'That card cannot be played.', lost: 'Connection lost, reconnecting...',
+    shout: '{n}: LAST CARD!', caught: '{n} forgot to call! +2', skip: '⊘ {n} is skipped', reverse: '⇄ Reverse', toColor: 'Now {c}',
+    youWin: 'You win!', wins: '{n} wins!', score: 'Hands won', again: 'New hand', waitNext: 'Waiting for the host to deal',
+    errs: { noroom: 'Room not found.', full: 'The room is full.', started: 'The game has already started.', version: 'The two devices run different versions, please reload.', timeout: 'Connecting took too long, try again.', network: 'Could not connect, check your network and try again.', closed: 'The room has closed.', hostLeft: 'The host left, the room is closed.', lost: 'Lost the connection to the room.', kicked: 'You were removed from the room.', badmsg: 'That code belongs to another game.', badcode: 'A room code has 5 characters.' },
+    rulesTitle: 'Rules', rules: [
+      '2 to 8 players with 7 cards each. First to empty their hand wins.',
+      'Play a card of the same colour, number or symbol as the top card. A colour-change card can be played any time; pick the new colour.',
+      '⊘ skips the next player. ⇄ reverses (with 2 players it skips). +2 and +4 make the next player draw and lose the turn.',
+      'Stacking: on +2 you may play +2 or +4; on +4 only +4. Whoever cannot stack draws the total.',
+      'If you cannot (or will not) play, draw 1. If the drawn card fits you may play it or pass.',
+      'With 2 cards and about to play one, press "Last card!". If someone presses "Catch" before the next player moves, you draw 2.',
+      'Playing your last card wins at once, even if it is a +2 or +4.',
+      'With the room timer on, after 30 seconds you draw and lose the turn.',
+    ],
+  },
+}[lang];
+---
+<Base lang={lang} title={T.title} description={T.sub} noindex wide>
+  <p class="meta"><a href={lp(lang, '/')}>{g.back}</a></p>
+  <h1>{T.title}</h1>
+  <p class="meta">{T.sub}</p>
+
+  <div id="cm-root" data-ui={JSON.stringify(T)}>
+    <div id="cm-setup">
+      <h2 class="bd-h">{T.opp}</h2>
+      <div class="bd-row" id="cm-oppn">{[1, 2, 3, 4, 5, 6, 7].map((n) => <button type="button" class={`bd-opt${n === 3 ? ' sel' : ''}`} data-v={n}>{n}</button>)}</div>
+      <p><button type="button" class="btn" id="cm-start">🃏 {T.start}</button></p>
+      <div class="cm-online">
+        <h2 class="bd-h">{T.onlineH}</h2>
+        <div class="bd-row"><input id="cm-name" class="cm-input" type="text" maxlength="16" autocomplete="nickname" placeholder={T.namePh} aria-label={T.namePh} /><button type="button" class="btn" id="cm-create">🌐 {T.create}</button></div>
+        <div class="bd-row"><input id="cm-code" class="cm-input cm-codein" type="text" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder={T.codePh} aria-label={T.codePh} /><button type="button" class="btn ghost" id="cm-join">🔑 {T.join}</button></div>
+        <p class="cm-err" id="cm-err" aria-live="polite"></p>
+        <p class="meta">{T.onlineNote}</p>
+      </div>
+    </div>
+
+    <div id="cm-lobby" hidden></div>
+
+    <div id="cm-game" hidden>
+      <p class="cm-roomline" id="cm-roomline" hidden></p>
+      <div class="cm-table" id="cm-table" data-color="coral">
+        <div class="cm-sky" id="cm-sky" aria-hidden="true"></div>
+        <div class="cm-felt" aria-hidden="true"></div>
+        <div class="cm-glow"></div>
+        <svg class="cm-ring" viewBox="0 0 200 200" aria-hidden="true">
+          <g fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round">
+            <path d="M100 14A86 86 0 0 1 174 57"/><path d="M186 100A86 86 0 0 1 143 174"/><path d="M100 186A86 86 0 0 1 26 143"/><path d="M14 100A86 86 0 0 1 57 26"/>
+          </g>
+          <g fill="currentColor"><path d="M180 66l-14-3l9-11Z"/><path d="M134 180l3-14l11 9Z"/><path d="M20 134l14 3l-9 11Z"/><path d="M66 20l-3 14l-11-9Z"/></g>
+        </svg>
+        <div id="cm-opps"></div>
+        <div class="cm-center">
+          <button type="button" class="cm-pile" id="cm-draw" aria-label={T.drawLabel}></button>
+          <div class="cm-discard" id="cm-discard"></div>
+        </div>
+        <div class="cm-me" id="cm-me"><span class="face"></span><b>{T.you}</b></div>
+        <p class="cm-status" id="cm-status" aria-live="polite"></p>
+        <div class="cm-hand" id="cm-hand"></div>
+        <div class="cm-banner" id="cm-banner"></div>
+        <div class="cm-picker" id="cm-picker" hidden></div>
+        <div class="cm-over" id="cm-over" hidden></div>
+      </div>
+      <div class="cm-actions" id="cm-actions">
+        <button type="button" class="btn" id="cm-call" hidden>{T.call}</button>
+        <button type="button" class="btn" id="cm-catch" hidden></button>
+        <button type="button" class="btn ghost" id="cm-pass" hidden>{T.pass}</button>
+        <button type="button" class="btn ghost" id="cm-menu" aria-label={T.menu}>☰</button>
+      </div>
+    </div>
+    <details class="cm-rules"><summary>{T.rulesTitle}</summary><ul>{T.rules.map((r) => <li>{r}</li>)}</ul></details>
+  </div>
+</Base>
+
+<script>
+  import { sfx, mountMute } from '../../data/sfx';
+  import { DECK, matches } from '../../data/conmotEngine';
+  import { CMGame, CMNetHost, CMNetClient, type CMNetState, type CMEvent } from '../../data/conmotNet';
+  import { FirebaseTransport } from '../../data/net/firebaseTransport';
+  import { mountChat, type ChatBox } from '../../data/net/chatUi';
+  import { normCode, validCode, sanitizeName, realClock, RoomError } from '../../data/net/room';
+
+  const root = document.getElementById('cm-root') as HTMLElement;
+  const T = JSON.parse(root.dataset.ui || '{}');
+  const LANG = document.documentElement.lang.startsWith('en') ? 'en' : 'vi';
+  const fmt = (s: string, o: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (_, k) => String(o[k] ?? ''));
+  type Color = 'coral' | 'amber' | 'teal' | 'violet';
+  interface Card { c: Color | 'wild'; v: string }
+  const COLORS: Color[] = ['coral', 'amber', 'teal', 'violet'];
+  const MARK: Record<Color, string> = { coral: '▲', amber: '●', teal: '■', violet: '◆' };
+  const $ = (id: string) => document.getElementById(id) as HTMLElement;
+  const table = $('cm-table');
+  const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+  let fast = false; // thử tự động
+  const still = () => fast || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---------- vẽ lá bài ----------
+  function symbol(v: string): string {
+    if (v === 'skip') return '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="14" fill="none" stroke="currentColor" stroke-width="6"/><path d="M10 30L30 10" stroke="currentColor" stroke-width="6"/></svg>';
+    if (v === 'rev') return '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 18V15q0-5 5-5h19M26 4l7 6l-7 6"/><path d="M32 22v3q0 5-5 5H8M14 24l-7 6l7 6"/></svg>';
+    if (v === 'd2') return '<svg viewBox="0 0 40 40"><rect x="5" y="8" width="16" height="23" rx="3" fill="currentColor" transform="rotate(-12 13 20)"/><rect x="18" y="9" width="16" height="23" rx="3" fill="currentColor" stroke="#fff" stroke-width="2.5" transform="rotate(10 26 20)"/></svg>';
+    if (v === 'wild' || v === 'd4') return `<svg viewBox="-22 -22 44 44">${['#ff5a5f', '#ffb703', '#0fb5a6', '#7b4dff'].map((c, i) => `<path d="M0 0Q4 -20 19 -14Q18 -2 0 0Z" fill="${c}" transform="rotate(${i * 90})"/>`).join('')}<circle r="4.5" fill="#fff"/></svg>`;
+    return `<b>${v}</b>`;
+  }
+  const corner = (v: string) => (v === 'skip' ? '⊘' : v === 'rev' ? '⇄' : v === 'd2' ? '+2' : v === 'd4' ? '+4' : v === 'wild' ? '✦' : v);
+  function face(card: Card, extra = ''): string {
+    const mark = card.c === 'wild' ? '✦' : MARK[card.c];
+    return `<span class="cm-c ${card.c}${extra}"><i class="tl">${corner(card.v)}<small>${mark}</small></i><span class="mid${card.v === '6' || card.v === '9' ? ' under' : ''}">${symbol(card.v)}</span><i class="br">${corner(card.v)}<small>${mark}</small></i></span>`;
+  }
+  const back = (extra = '') => `<span class="cm-c back${extra}"><span class="logo">1<small>!</small></span></span>`;
+
+  // ---------- nhân vật: bốn con thú tự vẽ ----------
+  const eyes = (y = 30, dx = 9) => `<g class="eyes"><circle cx="${32 - dx}" cy="${y}" r="3.4" fill="#1d1d28"/><circle cx="${32 + dx}" cy="${y}" r="3.4" fill="#1d1d28"/><circle cx="${33.2 - dx}" cy="${y - 1.2}" r="1.1" fill="#fff"/><circle cx="${33.2 + dx}" cy="${y - 1.2}" r="1.1" fill="#fff"/></g>`;
+  const cheeks = '<ellipse cx="15" cy="40" rx="4.6" ry="2.8" fill="#ff7b9c" opacity=".55"/><ellipse cx="49" cy="40" rx="4.6" ry="2.8" fill="#ff7b9c" opacity=".55"/>';
+  const FACES: Record<string, string> = {
+    cat: `<path d="M9 26L11 4L27 14Z" fill="#ffa94d"/><path d="M55 26L53 4L37 14Z" fill="#ffa94d"/><path d="M13 19L14 9L22 14Z" fill="#ffc9c9"/><path d="M51 19L50 9L42 14Z" fill="#ffc9c9"/><circle cx="32" cy="35" r="24" fill="#ffa94d"/><path d="M26 13v8M32 12v9M38 13v8" stroke="#e8590c" stroke-width="2.6" stroke-linecap="round"/><ellipse cx="32" cy="44" rx="12" ry="9" fill="#fff"/>${eyes()}<path d="M29 39h6l-3 3.4Z" fill="#e64980"/><path d="M32 42q-3 5-7 2M32 42q3 5 7 2M6 38l12 2M6 45l12-1M58 38l-12 2M58 45l-12-1" fill="none" stroke="#5c3a1e" stroke-width="1.4" stroke-linecap="round"/>${cheeks}`,
+    panda: `<circle cx="13" cy="16" r="10" fill="#23232f"/><circle cx="51" cy="16" r="10" fill="#23232f"/><circle cx="32" cy="35" r="24" fill="#fff"/><ellipse cx="22" cy="31" rx="8" ry="9.5" fill="#23232f" transform="rotate(28 22 31)"/><ellipse cx="42" cy="31" rx="8" ry="9.5" fill="#23232f" transform="rotate(-28 42 31)"/><g class="eyes"><circle cx="23" cy="30" r="3.2" fill="#fff"/><circle cx="41" cy="30" r="3.2" fill="#fff"/><circle cx="23" cy="30.6" r="1.8" fill="#111"/><circle cx="41" cy="30.6" r="1.8" fill="#111"/></g><ellipse cx="32" cy="41" rx="4.4" ry="3" fill="#23232f"/><path d="M32 44q-3 5-7 1.6M32 44q3 5 7 1.6" fill="none" stroke="#23232f" stroke-width="1.8" stroke-linecap="round"/>${cheeks}`,
+    fox: `<path d="M7 30L9 3L29 17Z" fill="#f76707"/><path d="M57 30L55 3L35 17Z" fill="#f76707"/><path d="M12 20L12.6 9L22 16Z" fill="#3b1f12"/><path d="M52 20L51.4 9L42 16Z" fill="#3b1f12"/><path d="M8 30Q14 12 32 12T56 30Q52 52 32 60Q12 52 8 30Z" fill="#f76707"/><path d="M9 33Q22 34 32 46Q42 34 55 33Q50 52 32 60Q14 52 9 33Z" fill="#fff"/>${eyes(31, 10)}<ellipse cx="32" cy="48" rx="4" ry="3" fill="#23232f"/>${cheeks}`,
+    chick: `<circle cx="32" cy="35" r="24" fill="#ffd43b"/><path d="M26 13q2-10 8-7q-3 2-2 6q4-6 9-2q-5 1-5 5Z" fill="#fab005"/>${eyes(31, 10)}<path d="M25 39q7-6 14 0q-7 3-14 0Z" fill="#ff922b"/><path d="M26 40q6 8 12 0q-6 3-12 0Z" fill="#e8590c"/>${cheeks}`,
+  };
+  Object.assign(FACES, {
+    rabbit: `<ellipse cx="21" cy="12" rx="7" ry="15" fill="#f1f3f5"/><ellipse cx="43" cy="12" rx="7" ry="15" fill="#f1f3f5"/><ellipse cx="21" cy="12" rx="3" ry="10" fill="#ffc9c9"/><ellipse cx="43" cy="12" rx="3" ry="10" fill="#ffc9c9"/><circle cx="32" cy="38" r="22" fill="#f8f9fa"/>${eyes(33, 9)}<ellipse cx="32" cy="41" rx="3.4" ry="2.4" fill="#e64980"/><path d="M32 43v4M32 47q-4 3-7 0M32 47q4 3 7 0" fill="none" stroke="#868e96" stroke-width="1.5" stroke-linecap="round"/><path d="M29 48h6v6h-6zM32 48v6" fill="#fff" stroke="#adb5bd" stroke-width="1"/>${cheeks}`,
+    frog: `<circle cx="18" cy="18" r="11" fill="#51cf66"/><circle cx="46" cy="18" r="11" fill="#51cf66"/><ellipse cx="32" cy="38" rx="27" ry="21" fill="#51cf66"/><g class="eyes"><circle cx="18" cy="17" r="6.5" fill="#fff"/><circle cx="46" cy="17" r="6.5" fill="#fff"/><circle cx="19" cy="18" r="3.2" fill="#1d1d28"/><circle cx="45" cy="18" r="3.2" fill="#1d1d28"/></g><path d="M16 41q16 14 32 0" fill="none" stroke="#1b5e20" stroke-width="2.6" stroke-linecap="round"/>${cheeks}`,
+    penguin: `<circle cx="32" cy="34" r="26" fill="#343a56"/><path d="M32 18q-8-8-15 1q-6 9 2 22q5 12 13 14q8-2 13-14q8-13 2-22q-7-9-15-1Z" fill="#fff"/>${eyes(30, 8)}<path d="M25 38h14l-7 8Z" fill="#ff922b"/>${cheeks}`,
+    bear: `<circle cx="13" cy="17" r="10" fill="#a47148"/><circle cx="51" cy="17" r="10" fill="#a47148"/><circle cx="13" cy="17" r="5" fill="#e6c29a"/><circle cx="51" cy="17" r="5" fill="#e6c29a"/><circle cx="32" cy="35" r="24" fill="#a47148"/><ellipse cx="32" cy="43" rx="13" ry="10" fill="#e6c29a"/>${eyes(30, 10)}<ellipse cx="32" cy="39" rx="4.6" ry="3.2" fill="#3b2314"/><path d="M32 42q-3 6-7 2M32 42q3 6 7 2" fill="none" stroke="#3b2314" stroke-width="1.7" stroke-linecap="round"/>${cheeks}`,
+  });
+  const faceSvg = (k: string) => `<svg viewBox="0 0 64 64" aria-hidden="true">${FACES[k]}</svg>`;
+  const SEAT_FACE = ['chick', 'cat', 'panda', 'fox', 'rabbit', 'frog', 'penguin', 'bear'];
+  const HEX: Record<Color, string> = { coral: '#ff5a5f', amber: '#ffc233', teal: '#1fd1bd', violet: '#9d7bff' };
+
+  // tia sáng và vòng sóng tại chỗ lá bài đáp xuống
+  function burst(at: Element, hex: string, n = 22) {
+    const r = at.getBoundingClientRect(), t = table.getBoundingClientRect();
+    const box = document.createElement('div');
+    box.className = 'cm-burst';
+    box.style.left = r.left - t.left + r.width / 2 + 'px';
+    box.style.top = r.top - t.top + r.height / 2 + 'px';
+    box.style.setProperty('--h', hex);
+    box.innerHTML = '<u></u><u></u>' + Array.from({ length: n }, (_, i) => {
+      const a = (i / n) * Math.PI * 2 + Math.random() * 0.4, d = 70 + Math.random() * 90;
+      return `<i style="--x:${(Math.cos(a) * d).toFixed(0)}px;--y:${(Math.sin(a) * d).toFixed(0)}px;--s:${(4 + Math.random() * 7).toFixed(0)}px;background:${i % 4 ? hex : '#fff'}"></i>`;
+    }).join('');
+    table.appendChild(box);
+    setTimeout(() => box.remove(), 900);
+  }
+  function flash(hex: string) {
+    const f = document.createElement('div');
+    f.className = 'cm-flash';
+    f.style.setProperty('--h', hex);
+    table.appendChild(f);
+    setTimeout(() => f.remove(), 700);
+  }
+  function bolts() {
+    const box = document.createElement('div');
+    box.className = 'cm-bolts';
+    box.innerHTML = [12, 30, 70, 86].map((x, i) => `<svg style="left:${x}%;animation-delay:${i * 0.07}s" viewBox="0 0 40 160" aria-hidden="true"><path d="M22 0L6 72h12L8 160L36 62H22L34 0Z" fill="#ffe066" stroke="#fff" stroke-width="2"/></svg>`).join('');
+    table.appendChild(box);
+    setTimeout(() => box.remove(), 800);
+  }
+  $('cm-sky').innerHTML = Array.from({ length: 34 }, () => `<i style="left:${(Math.random() * 100).toFixed(1)}%;top:${(Math.random() * 100).toFixed(1)}%;--d:${(3 + Math.random() * 5).toFixed(1)}s;--w:-${(Math.random() * 6).toFixed(1)}s;--s:${(2 + Math.random() * 3).toFixed(1)}px"></i>`).join('');
+
+  const spec = (id: number): Card => ({ c: DECK[id].c === 4 ? 'wild' : COLORS[DECK[id].c], v: DECK[id].v });
+
+  // ---------- phiên chơi ----------
+  let ctl: { kind: 'solo'; game: CMGame } | { kind: 'host'; host: CMNetHost } | { kind: 'client'; client: CMNetClient } | null = null;
+  let cur: CMNetState | null = null;      // trạng thái đang vẽ
+  let queue: CMNetState[] = [];
+  let busy = false, lastEv = 0, gen = 0, sentSeq = -1, deadline = 0, lost = false, note = '';
+  let chat: ChatBox | null = null;
+
+  const nameOf = (i: number) => (cur && i === cur.mySlot ? T.you : cur?.slots[i]?.name || '?');
+  const online = () => !!ctl && ctl.kind !== 'solo';
+  function send(p: Record<string, unknown>) {
+    if (!ctl) return;
+    if (ctl.kind === 'solo') ctl.game.intent(0, p);
+    else if (ctl.kind === 'host') ctl.host.send(p);
+    else ctl.client.send(p);
+  }
+  /** nước đi trong lượt: mỗi trạng thái chỉ gửi một lần */
+  function act(p: Record<string, unknown>) {
+    if (!cur || busy || lost || sentSeq === cur.seq) return;
+    sentSeq = cur.seq; note = '';
+    send(p);
+  }
+
+  const show = (v: 'setup' | 'lobby' | 'game') => { $('cm-setup').hidden = v !== 'setup'; $('cm-lobby').hidden = v !== 'lobby'; $('cm-game').hidden = v !== 'game'; };
+  function resetTable() {
+    gen++; cur = null; queue = []; busy = false; lastEv = 0; sentSeq = -1; deadline = 0; lost = false; note = '';
+    $('cm-opps').innerHTML = ''; $('cm-discard').innerHTML = ''; $('cm-hand').innerHTML = ''; $('cm-banner').innerHTML = '';
+    $('cm-picker').hidden = true; $('cm-over').hidden = true; $('cm-roomline').hidden = true;
+    delete $('cm-opps').dataset.key;
+    table.querySelectorAll('.cm-fly, .cm-burst, .cm-flash, .cm-bolts, .cm-conf').forEach((x) => x.remove());
+  }
+
+  // ---------- nhận trạng thái ----------
+  function onState(s: CMNetState) {
+    if (!ctl) return;
+    if (s.phase === 'lobby') {
+      if (ctl.kind === 'solo') return;
+      resetTable(); show('lobby'); renderLobby(s); return;
+    }
+    queue.push(s);
+    void pump();
+  }
+  async function pump() {
+    if (busy) return;
+    busy = true;
+    const g = gen;
+    while (queue.length && g === gen) {
+      const s = queue.shift()!;
+      const first = !cur;
+      if (first) { show('game'); $('cm-game').scrollIntoView({ block: 'start', behavior: 'instant' as ScrollBehavior }); } // đưa cả bàn và bài trên tay vào màn hình
+      const ev = s.ev && s.ev.n > lastEv ? s.ev : null;
+      if (s.ev) lastEv = s.ev.n;
+      deadline = s.turnMs ? Date.now() + s.turnMs : 0;
+      const animate = ev && !still() && queue.length < 3 && (!first || ev.kind === 'deal');
+      if (animate && ev.kind === 'deal') await dealAnim(s);
+      else if (animate) await before(s, ev);
+      if (g !== gen) return;
+      cur = s;
+      render();
+      if (ev && (!first || ev.kind === 'deal')) after(s, ev);
+    }
+    busy = false;
+    if (cur && g === gen) render();
+  }
+
+  // ---------- vẽ ----------
+  const pos = (i: number, k: number) => { // đối thủ thứ i (1..k) tính theo chiều đi, xếp vòng cung trái - trên - phải
+    const t = Math.PI * (-0.1 + ((i - 0.5) / k) * 1.2);
+    return { x: 50 - 41 * Math.cos(t), y: Math.max(1.5, 37 - 35 * Math.sin(t)) };
+  };
+  const seatEl = (seat: number) => (cur && seat === cur.mySlot ? $('cm-me') : (table.querySelector(`.cm-opp[data-seat="${seat}"]`) as HTMLElement | null));
+  function renderOpps(s: CMNetState, counts: number[]) {
+    const n = s.slots.length, k = n - 1, v = s.view!;
+    const key = JSON.stringify([s.mySlot, counts, v.turn, v.called, s.phase, s.slots.map((p) => [p.name, p.online, p.wins])]);
+    if ($('cm-opps').dataset.key === key) return;
+    $('cm-opps').dataset.key = key;
+    table.classList.toggle('many', k >= 5);
+    $('cm-opps').innerHTML = Array.from({ length: k }, (_, j) => {
+      const seat = (s.mySlot + j + 1) % n, p = s.slots[seat], c = counts[seat], at = pos(j + 1, k), shown = Math.min(c, 8);
+      return `<div class="cm-opp${v.turn === seat && s.phase === 'play' ? ' on' : ''}${p.human && !p.online ? ' off' : ''}" data-seat="${seat}" style="left:${at.x.toFixed(1)}%;top:${at.y.toFixed(1)}%">
+        <span class="face">${faceSvg(SEAT_FACE[seat])}</span><b>${p.name}${p.human && !p.online ? ' 📴' : ''}</b>
+        <span class="fan">${Array.from({ length: shown }, (_, i) => back(` mini" style="--i:${i - (shown - 1) / 2}`)).join('')}</span>
+        <span class="count${c <= 2 ? ' low' : ''}">${c}</span>${c === 1 && v.called[seat] ? `<span class="one">${LANG === 'en' ? 'Last card!' : 'Còn một!'}</span>` : ''}</div>`;
+    }).join('');
+  }
+  function renderDiscard(recent: number[]) {
+    $('cm-discard').innerHTML = recent.map((id) => face(spec(id), `" style="--r:${((id * 37) % 29) - 14}deg" data-id="${id}`)).join('');
+  }
+  const sortHand = (h: number[]) => h.slice().sort((a, b) => DECK[a].c - DECK[b].c || DECK[a].v.localeCompare(DECK[b].v) || a - b);
+  const topOf = (s: CMNetState) => s.view!.recent[s.view!.recent.length - 1];
+  const myMove = (s: CMNetState) => s.phase === 'play' && s.view!.turn === s.mySlot;
+  const playable = (s: CMNetState, id: number) => myMove(s) && (s.view!.drawn === null || s.view!.drawn === id) && matches(id, topOf(s), s.view!.color, s.view!.pendingKind);
+  function renderHand(s: CMNetState, hand: number[]) {
+    const el = $('cm-hand'), n = hand.length;
+    const narrow = window.matchMedia('(max-width: 640px)').matches, cw = narrow ? 72 : 84, W = table.clientWidth || 360;
+    const rot = Math.min(3.2, 22 / Math.max(1, n));
+    el.style.setProperty('--gap', Math.min(narrow ? 44 : 60, (W - cw - (narrow ? 62 : 120)) / Math.max(1, n - 1)).toFixed(1) + 'px');
+    el.style.setProperty('--rot', rot.toFixed(2) + 'deg');
+    el.style.setProperty('--arc', Math.min(1.6, 40 / Math.max(1, n * n)).toFixed(2) + 'px');
+    el.innerHTML = sortHand(hand).map((id, i) => `<button type="button" class="cm-slot${playable(s, id) ? ' can' : ''}${s.view!.drawn === id ? ' drawn' : ''}" data-card="${id}" style="--i:${i - (n - 1) / 2}">${face(spec(id))}</button>`).join('');
+  }
+  function statusText(s: CMNetState) {
+    const v = s.view!;
+    if (lost) return T.lost;
+    if (note) return note;
+    if (s.phase === 'over') return v.winner === s.mySlot ? T.youWin : fmt(T.wins, { n: nameOf(v.winner) });
+    const left = deadline ? Math.ceil((deadline - Date.now()) / 1000) : 0;
+    const time = left > 0 && left <= 30 ? ` · ${left}s` : '';
+    if (v.turn !== s.mySlot) return fmt(T.turnOf, { n: nameOf(v.turn) }) + time;
+    if (v.pending) return fmt(T.pending, { k: v.pending }) + time;
+    if (v.drawn !== null) return T.drawnHint + time;
+    return (v.hand.some((id) => playable(s, id)) ? T.yourTurn : T.noPlay) + time;
+  }
+  function render() {
+    const s = cur;
+    if (!s || !s.view) return;
+    const v = s.view;
+    table.dataset.color = COLORS[v.color];
+    table.classList.toggle('ccw', v.dir < 0);
+    renderOpps(s, v.counts);
+    renderDiscard(v.recent);
+    renderHand(s, v.hand);
+    $('cm-draw').innerHTML = back() + back() + back() + (v.pending ? `<span class="cm-badge">+${v.pending}</span>` : '') + `<span class="cm-pilecount">${fmt(T.left, { c: v.drawCount })}</span>`;
+    const me = $('cm-me');
+    me.classList.toggle('on', myMove(s));
+    const faceBox = me.querySelector('.face') as HTMLElement;
+    if (faceBox.dataset.f !== SEAT_FACE[s.mySlot]) { faceBox.dataset.f = SEAT_FACE[s.mySlot]; faceBox.innerHTML = faceSvg(SEAT_FACE[s.mySlot]); }
+    $('cm-status').textContent = statusText(s);
+    $('cm-call').hidden = !(s.phase === 'play' && !v.called[s.mySlot] && (v.catchable === s.mySlot || (v.turn === s.mySlot && v.hand.length === 2)));
+    const c = s.phase === 'play' && v.catchable >= 0 && v.catchable !== s.mySlot;
+    $('cm-catch').hidden = !c;
+    if (c) $('cm-catch').textContent = fmt(T.catch, { n: nameOf(v.catchable) });
+    $('cm-pass').hidden = !(myMove(s) && v.drawn !== null);
+    $('cm-roomline').hidden = !online(); $('cm-roomline').textContent = `${T.roomCode}: ${s.code}`;
+    if (!myMove(s)) $('cm-picker').hidden = true;
+    renderOver(s);
+  }
+  function renderOver(s: CMNetState) {
+    const el = $('cm-over');
+    if (s.phase !== 'over' || busy) { el.hidden = true; el.dataset.key = ''; return; }
+    const v = s.view!, key = `${s.round}|${s.slots.map((p) => p.wins)}`;
+    if (el.dataset.key === key) { el.hidden = false; return; }
+    el.dataset.key = key;
+    const host = ctl?.kind !== 'client';
+    const rows = s.slots.map((p, i) => ({ p, i })).sort((a, b) => b.p.wins - a.p.wins || a.i - b.i)
+      .map(({ p, i }) => `<li><span>${i === v.winner ? '👑 ' : ''}${nameOf(i)}${p.human ? '' : ' 🤖'}</span><b>${p.wins}</b></li>`).join('');
+    el.innerHTML = `<div class="cm-box"><h2>${v.winner === s.mySlot ? T.youWin : fmt(T.wins, { n: nameOf(v.winner) })}</h2><p>${T.score}</p><ul>${rows}</ul>
+      <div class="row">${host ? `<button type="button" class="btn" data-over="next">${T.again}</button>` : `<span>${T.waitNext}</span>`}<button type="button" class="btn ghost" data-over="leave">${online() ? T.leave : T.menu}</button></div></div>`;
+    el.hidden = false;
+  }
+
+  // ---------- hiệu ứng ----------
+  function fly(html: string, from: Element, to: Element, ms = 420, spin = 200) {
+    const a = from.getBoundingClientRect(), b = to.getBoundingClientRect(), t = table.getBoundingClientRect();
+    const g = document.createElement('div');
+    g.className = 'cm-fly';
+    g.innerHTML = html;
+    g.style.left = b.left - t.left + b.width / 2 + 'px';
+    g.style.top = b.top - t.top + b.height / 2 + 'px';
+    table.appendChild(g);
+    const dx = a.left + a.width / 2 - (b.left + b.width / 2), dy = a.top + a.height / 2 - (b.top + b.height / 2);
+    return g.animate([{ transform: `translate(-50%,-50%) translate(${dx}px,${dy}px) rotate(${-spin}deg)` }, { transform: 'translate(-50%,-50%)' }], { duration: ms, easing: 'cubic-bezier(.2,.75,.25,1)', fill: 'forwards' }).finished.then(() => g.remove()).catch(() => g.remove());
+  }
+  function banner(text: string, cls: string) {
+    const b = $('cm-banner'), span = document.createElement('span');
+    span.className = cls; span.textContent = text;
+    b.innerHTML = ''; b.appendChild(span);
+    setTimeout(() => span.remove(), 1500);
+  }
+  function confetti() {
+    const cols = ['#ff5a5f', '#ffb703', '#0fb5a6', '#7b4dff', '#fff'];
+    const box = document.createElement('div');
+    box.className = 'cm-conf';
+    box.innerHTML = Array.from({ length: 60 }, (_, i) => `<i style="left:${Math.random() * 100}%;background:${cols[i % 5]};animation-delay:${(Math.random() * 0.6).toFixed(2)}s"></i>`).join('');
+    table.appendChild(box);
+    setTimeout(() => box.remove(), 2800);
+  }
+  async function dealAnim(s: CMNetState) {
+    const g = gen, v = s.view!;
+    cur = s;
+    $('cm-over').hidden = true; $('cm-picker').hidden = true; $('cm-hand').innerHTML = ''; $('cm-discard').innerHTML = '';
+    $('cm-call').hidden = true; $('cm-catch').hidden = true; $('cm-pass').hidden = true;
+    delete $('cm-opps').dataset.key;
+    table.dataset.color = COLORS[v.color]; table.classList.remove('ccw');
+    renderOpps(s, v.counts.map(() => 0));
+    $('cm-draw').innerHTML = back() + back() + back();
+    $('cm-status').textContent = T.dealing;
+    const seats = Array.from({ length: s.slots.length }, (_, i) => i);
+    for (let r = 0; r < 5 && g === gen; r++) {
+      for (const i of seats) { const to = i === s.mySlot ? $('cm-hand') : seatEl(i); if (to) void fly(back(), $('cm-draw'), to, 320, 300); await sleep(240 / seats.length + 14); }
+      sfx.play('flip', 0.35);
+    }
+    await sleep(340);
+    if (g !== gen) return;
+    delete $('cm-opps').dataset.key;
+  }
+  /** hiệu ứng chạy trước khi vẽ trạng thái mới (lá bay đi từ vị trí cũ) */
+  async function before(s: CMNetState, ev: CMEvent) {
+    const prev = cur!;
+    if (ev.kind === 'play' && ev.card !== undefined) {
+      const mine = ev.seat === prev.mySlot;
+      const from = mine ? ($('cm-hand').querySelector(`[data-card="${ev.card}"]`) as HTMLElement | null) : seatEl(ev.seat);
+      if (!from) return;
+      if (mine) from.style.visibility = 'hidden';
+      sfx.play('flip');
+      await fly(face(spec(ev.card)), from, $('cm-discard'));
+      return;
+    }
+    if (ev.kind === 'draw' || ev.kind === 'catch') {
+      const seat = ev.kind === 'catch' ? ev.target! : ev.seat, count = ev.count || 1;
+      const to = seat === prev.mySlot ? $('cm-hand') : seatEl(seat);
+      if (ev.kind === 'catch') banner(fmt(T.caught, { n: nameOf(seat) }), 'turn');
+      if (ev.penalty) {
+        table.classList.remove('shake'); void table.offsetWidth; table.classList.add('shake');
+        banner(`+${count}`, 'plus'); sfx.play('capture');
+        if (count >= 4) { bolts(); flash('#ffe066'); }
+        await sleep(300);
+      }
+      for (let k = 0; k < Math.min(count, 6) && to; k++) { sfx.play('flip', 0.45); await fly(back(), $('cm-draw'), to, 220, 300); }
+    }
+  }
+  /** hiệu ứng chạy sau khi đã vẽ */
+  function after(s: CMNetState, ev: CMEvent) {
+    const v = s.view!, n = s.slots.length;
+    if (ev.kind === 'play' && ev.card !== undefined) {
+      const k = DECK[ev.card];
+      burst($('cm-discard'), HEX[COLORS[v.color]]);
+      if (k.c === 4) { flash(HEX[COLORS[v.color]]); banner(fmt(T.toColor, { c: T.colors[v.color] }), 'color'); }
+      if (s.phase === 'play') {
+        if (k.v === 'rev' && n > 2) { banner(T.reverse, 'turn'); sfx.play('swoosh'); }
+        else if (k.v === 'skip' || (k.v === 'rev' && n === 2)) {
+          const skipped = (((ev.seat + v.dir) % n) + n) % n;
+          const el = seatEl(skipped);
+          if (el && skipped !== s.mySlot) { el.classList.remove('blocked'); void el.offsetWidth; el.classList.add('blocked'); }
+          banner(fmt(T.skip, { n: nameOf(skipped) }), 'turn'); sfx.play('lose', 0.4);
+        } else if (k.v === 'd2' || k.v === 'd4') { banner(`+${v.pending}`, 'plus'); sfx.play('capture'); }
+      } else {
+        banner(v.winner === s.mySlot ? T.youWin : fmt(T.wins, { n: nameOf(v.winner) }), 'win');
+        confetti(); sfx.play(v.winner === s.mySlot ? 'win' : 'lose');
+      }
+    } else if (ev.kind === 'call') { banner(fmt(T.shout, { n: nameOf(ev.seat) }), 'shout'); sfx.play('power'); }
+    else if (ev.kind === 'catch' && (still() || ev.target === undefined)) banner(fmt(T.caught, { n: nameOf(ev.target ?? 0) }), 'turn');
+  }
+
+  // ---------- thao tác ----------
+  $('cm-hand').addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>('.cm-slot');
+    if (!b || !cur || busy) return;
+    const id = Number(b.dataset.card);
+    if (!playable(cur, id)) {
+      b.classList.remove('no'); void b.offsetWidth; b.classList.add('no');
+      if (myMove(cur)) { note = T.cant; $('cm-status').textContent = note; setTimeout(() => { note = ''; if (cur) $('cm-status').textContent = statusText(cur); }, 1500); }
+      sfx.play('lose', 0.3);
+      return;
+    }
+    if (DECK[id].c !== 4) return act({ type: 'play', card: id });
+    const el = $('cm-picker');
+    el.innerHTML = `<div class="cm-box"><h2>${T.pickColor}</h2><div class="cm-colors">${COLORS.map((c, i) => `<button type="button" data-color="${i}" style="background:${HEX[c]}">${MARK[c]} ${T.colors[i]}</button>`).join('')}</div><p><button type="button" class="btn ghost" data-color="-1">${T.cancel}</button></p></div>`;
+    el.dataset.card = String(id);
+    el.hidden = false;
+  });
+  $('cm-picker').addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>('[data-color]'); if (!b) return;
+    const c = Number(b.dataset.color), id = Number($('cm-picker').dataset.card);
+    $('cm-picker').hidden = true;
+    if (c >= 0) act({ type: 'play', card: id, color: c });
+  });
+  $('cm-draw').addEventListener('click', () => { if (cur && myMove(cur) && cur.view!.drawn === null) act({ type: 'draw' }); });
+  $('cm-pass').addEventListener('click', () => act({ type: 'pass' }));
+  // hô và bắt phải nhanh: gửi ngay cả khi đang chạy hiệu ứng
+  $('cm-call').addEventListener('click', () => { $('cm-call').hidden = true; send({ type: 'call' }); });
+  $('cm-catch').addEventListener('click', () => { $('cm-catch').hidden = true; send({ type: 'catch' }); });
+  $('cm-over').addEventListener('click', (e) => {
+    const a = (e.target as HTMLElement).closest<HTMLElement>('[data-over]')?.dataset.over;
+    if (a === 'next') { $('cm-over').hidden = true; send({ type: 'next' }); }
+    else if (a === 'leave') quit();
+  });
+  $('cm-menu').addEventListener('click', () => { if (confirm(online() ? T.leaveConfirm : T.menuConfirm)) quit(); });
+  setInterval(() => { if (cur && deadline && !busy && !note) $('cm-status').textContent = statusText(cur); }, 500);
+  window.addEventListener('resize', () => { if (cur && !busy) renderHand(cur, cur.view!.hand); });
+
+  // ---------- chơi với máy ----------
+  let opp = 3;
+  $('cm-oppn').addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest('button'); if (!b) return;
+    $('cm-oppn').querySelectorAll('button').forEach((x) => x.classList.toggle('sel', x === b));
+    opp = Number(b.dataset.v); sfx.play('click');
+  });
+  function startSolo() {
+    teardown(); resetTable();
+    const game: CMGame = new CMGame(realClock, { botNames: T.bots, timer: false, botMs: fast ? [30, 60] : undefined, onChange: () => { if (ctl?.kind === 'solo' && ctl.game === game) onState(game.stateFor(0)); } });
+    ctl = { kind: 'solo', game };
+    game.settings.n = opp + 1;
+    game.setHuman(0, T.you);
+    game.start();
+  }
+  $('cm-start').addEventListener('click', () => { sfx.play('click'); startSolo(); });
+
+  // ---------- online ----------
+  const ROOM_KEY = 'cm-room';
+  const store = (k: string, v: string | null) => { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch {} };
+  const read = (k: string) => { try { return localStorage.getItem(k) || ''; } catch { return ''; } };
+  const nameIn = $('cm-name') as HTMLInputElement, codeIn = $('cm-code') as HTMLInputElement;
+  nameIn.value = read('xd-name') || read('tl-name');
+  const myName = () => { const n = sanitizeName(nameIn.value, T.defName); store('xd-name', nameIn.value.trim()); return n; };
+  const setErr = (r: string) => { $('cm-err').textContent = r ? (r === 'connecting' ? T.connecting : T.errs[r] || T.errs.network) : ''; };
+  const peers = () => new FirebaseTransport();
+
+  function openChat(say: (t: string) => void, mySlot: number, bind: (cb: (m: { slot: number; name: string; text: string }) => void) => void) {
+    chat?.destroy();
+    chat = mountChat(LANG, say);
+    bind((m) => chat?.add(m, m.slot === mySlot));
+  }
+  function teardown() {
+    const c = ctl; ctl = null;
+    chat?.destroy(); chat = null;
+    try { if (c?.kind === 'host') c.host.close(); else if (c?.kind === 'client') c.client.leave(); } catch {}
+  }
+  function toMenu(err = '') { teardown(); resetTable(); show('setup'); setErr(err); }
+  function quit() { store(ROOM_KEY, null); toMenu(); }
+
+  function renderLobby(s: CMNetState) {
+    const host = ctl?.kind === 'host', el = $('cm-lobby');
+    const list = s.slots.map((p, i) => `<li><span class="face">${faceSvg(SEAT_FACE[i])}</span><b>${p.name}</b>${p.human ? '' : `<em>${T.botTag}</em>`}${i === s.mySlot ? `<em>${T.you}</em>` : ''}${p.host ? `<em>👑 ${T.hostTag}</em>` : ''}</li>`).join('');
+    el.innerHTML = `<div class="cm-codebox"><small>${T.roomCode}</small><b id="cm-bigcode">${s.code}</b><div class="bd-row"><button type="button" class="btn sm" data-copy="code">${T.copyCode}</button><button type="button" class="btn sm" data-copy="link">${T.copyLink}</button></div></div>
+      ${host ? `<h2 class="bd-h">${T.seats}</h2><div class="bd-row">${[2, 3, 4, 5, 6, 7, 8].map((n) => `<button type="button" class="bd-opt${n === s.settings.n ? ' sel' : ''}" data-seats="${n}">${n}</button>`).join('')}</div><p><label><input type="checkbox" id="cm-timer"${s.settings.timer ? ' checked' : ''}> ${T.timer}</label></p>` : ''}
+      <ul class="cm-plist">${list}</ul>
+      <p class="bd-row">${host ? `<button type="button" class="btn" id="cm-startroom">${T.startRoom}</button>` : `<span class="meta">${T.waitHost}</span>`}<button type="button" class="btn ghost" id="cm-leave">${T.leave}</button></p>`;
+    el.dataset.code = s.code;
+  }
+  $('cm-lobby').addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest('button'); if (!b) return;
+    const code = $('cm-lobby').dataset.code || '';
+    if (b.dataset.copy) {
+      navigator.clipboard?.writeText(b.dataset.copy === 'code' ? code : `${location.origin}${location.pathname}?room=${code}`).then(() => { b.textContent = T.copied; }).catch(() => {});
+    } else if (b.dataset.seats && ctl?.kind === 'host') ctl.host.setSettings({ n: Number(b.dataset.seats) });
+    else if (b.id === 'cm-startroom' && ctl?.kind === 'host') { sfx.play('click'); ctl.host.start(); }
+    else if (b.id === 'cm-leave') quit();
+  });
+  $('cm-lobby').addEventListener('change', (e) => { const el = e.target as HTMLInputElement; if (el.id === 'cm-timer' && ctl?.kind === 'host') ctl.host.setSettings({ timer: el.checked }); });
+
+  let connecting = false;
+  const setBusy = (on: boolean) => { connecting = on; ($('cm-create') as HTMLButtonElement).disabled = on; ($('cm-join') as HTMLButtonElement).disabled = on; };
+  async function createRoom() {
+    if (connecting) return;
+    setBusy(true); setErr('connecting'); teardown(); resetTable();
+    try {
+      const pending: CMNetState[] = [];
+      const host: CMNetHost = await CMNetHost.create(peers, myName(), (s) => { if (ctl?.kind === 'host') onState(s); else pending.push(s); }, T.bots);
+      ctl = { kind: 'host', host }; setErr('');
+      openChat((t) => host.room.say(t), 0, (cb) => { host.room.onChat = cb; });
+      const last = pending[pending.length - 1];
+      if (last) onState(last);
+    } catch { setErr('network'); }
+    setBusy(false);
+  }
+  async function joinRoom(codeRaw: string, name: string, token = '') {
+    const code = normCode(codeRaw);
+    if (connecting) return;
+    if (!validCode(code)) { setErr('badcode'); return; }
+    setBusy(true); setErr('connecting'); teardown(); resetTable();
+    const client: CMNetClient = new CMNetClient(peers, {
+      onState: (s) => { if (ctl?.kind === 'client' && ctl.client === client) onState(s); },
+      onStatus: (x) => { lost = x === 'lost'; if (cur) $('cm-status').textContent = statusText(cur); },
+      onClosed: (r) => { if (ctl?.kind === 'client' && ctl.client === client) { store(ROOM_KEY, null); ctl = null; toMenu(r); } },
+    });
+    ctl = { kind: 'client', client };
+    try {
+      const info = await client.join(code, name, token);
+      store(ROOM_KEY, JSON.stringify({ code, token: info.token, name, at: Date.now() }));
+      openChat((t) => client.rc.say(t), info.slot, (cb) => { client.rc.onChat = cb; });
+      setErr('');
+    } catch (e) {
+      ctl = null; store(ROOM_KEY, null);
+      setErr(e instanceof RoomError ? e.reason : 'network');
+    }
+    setBusy(false);
+  }
+  $('cm-create').addEventListener('click', () => { sfx.play('click'); void createRoom(); });
+  $('cm-join').addEventListener('click', () => { sfx.play('click'); void joinRoom(codeIn.value, myName()); });
+  codeIn.addEventListener('input', () => { codeIn.value = normCode(codeIn.value); });
+  window.addEventListener('pagehide', () => { if (ctl?.kind === 'host') { try { ctl.host.close(); } catch {} } });
+  const invite = normCode(new URLSearchParams(location.search).get('room') || '');
+  if (invite) codeIn.value = invite;
+  try {
+    const saved = JSON.parse(read(ROOM_KEY) || 'null');
+    if (saved && saved.code && saved.token && Date.now() - saved.at < 30 * 60 * 1000 && (!invite || invite === saved.code)) void joinRoom(saved.code, saved.name, saved.token);
+  } catch {}
+
+  mountMute(table);
+  if (location.hash === '#debug') (window as any).__cm = { get state() { return cur; }, get ctl() { return ctl; }, get busy() { return busy; }, send, setFast: (f: boolean) => { fast = f; } };
+</script>
+
+<style is:global>
+  .cm-table { --glow: #ff5a5f; position: relative; max-width: 900px; height: 640px; overflow: hidden; border-radius: 24px; color: #fff; user-select: none;
+    background: radial-gradient(ellipse at 50% 42%, #2b3563 0%, #171d3d 55%, #0b0f24 100%); border: 5px solid #2a2f55; box-shadow: 0 18px 44px rgba(0,0,0,.4); }
+  .cm-table[data-color="amber"] { --glow: #ffb703; } .cm-table[data-color="teal"] { --glow: #0fb5a6; } .cm-table[data-color="violet"] { --glow: #8b5cff; }
+  .cm-table.shake { animation: cmShake .55s; }
+  @keyframes cmShake { 10%, 50%, 90% { transform: translate(-7px, 2px) rotate(-.4deg); } 30%, 70% { transform: translate(7px, -2px) rotate(.4deg); } }
+  .cm-table .sfx-btn { background: rgba(255,255,255,.16) !important; }
+  .cm-glow { position: absolute; left: 50%; top: 43%; width: 430px; height: 430px; transform: translate(-50%, -50%); border-radius: 50%; background: radial-gradient(circle, var(--glow) 0%, transparent 66%); opacity: .38; transition: background .4s; animation: cmPulse 2.6s ease-in-out infinite; }
+  @keyframes cmPulse { 50% { opacity: .22; transform: translate(-50%, -50%) scale(.92); } }
+  .cm-ring { position: absolute; left: 50%; top: 43%; width: 300px; height: 300px; margin: -150px 0 0 -150px; color: var(--glow); opacity: .75; animation: cmSpin 9s linear infinite; transition: color .4s; }
+  .cm-table.ccw .cm-ring { animation: cmSpinBack 9s linear infinite; scale: -1 1; }
+  @keyframes cmSpin { to { transform: rotate(360deg); } }
+  @keyframes cmSpinBack { to { transform: rotate(360deg); } }
+
+  .cm-c { --a: #ff6b6f; --b: #d92d4a; position: relative; display: block; width: 74px; height: 110px; border-radius: 12px; border: 4px solid #fff; box-sizing: border-box; background: linear-gradient(150deg, var(--a), var(--b)); box-shadow: 0 5px 12px rgba(0,0,0,.4); color: #fff; font-family: 'Segoe UI', system-ui, sans-serif; overflow: hidden; }
+  .cm-c.amber { --a: #ffd23f; --b: #f08c00; } .cm-c.teal { --a: #2ed3c0; --b: #07897f; } .cm-c.violet { --a: #9d7bff; --b: #5b2fd6; } .cm-c.wild { --a: #3a3f66; --b: #12142a; }
+  .cm-c::before { content: ''; position: absolute; inset: -20%; background: repeating-linear-gradient(35deg, rgba(255,255,255,.12) 0 6px, transparent 6px 18px); }
+  .cm-c .mid { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px 0 0 -26px; transform: rotate(45deg); border-radius: 14px; background: #fff; box-shadow: 0 3px 8px rgba(0,0,0,.28); display: grid; place-items: center; color: var(--b); }
+  .cm-c.wild .mid { background: #1b1e38; border: 2px solid #fff; box-sizing: border-box; }
+  .cm-c .mid > * { transform: rotate(-45deg); }
+  .cm-c .mid b { font-size: 36px; font-weight: 900; line-height: 1; }
+  .cm-c .mid.under b { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 3px; }
+  .cm-c .mid svg { width: 40px; height: 40px; }
+  .cm-c i { position: absolute; display: grid; justify-items: center; font-style: normal; font-weight: 900; font-size: 17px; line-height: 1; text-shadow: 0 1px 3px rgba(0,0,0,.55); }
+  .cm-c i small { font-size: 9px; margin-top: 2px; }
+  .cm-c i.tl { left: 5px; top: 5px; } .cm-c i.br { right: 5px; bottom: 5px; transform: rotate(180deg); }
+  .cm-c em { position: absolute; left: 0; right: 0; bottom: 13px; text-align: center; font-style: normal; font-weight: 900; font-size: 15px; letter-spacing: .04em; color: #ffe066; text-shadow: 0 1px 3px #000; }
+  .cm-c.back { --a: #232a55; --b: #0d1029; }
+  .cm-c.back::before { background: repeating-linear-gradient(-45deg, rgba(255,255,255,.09) 0 4px, transparent 4px 12px); }
+  .cm-c.back .logo { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-12deg); font-weight: 900; font-size: 40px; line-height: 1; color: #ffe066; text-shadow: 2px 2px 0 #ff5a5f, 4px 4px 0 #5b2fd6; }
+  .cm-c.back .logo small { font-size: 30px; }
+  .cm-c.land { animation: cmLand .3s ease-out; }
+
+  .cm-center { position: absolute; left: 50%; top: 43%; transform: translate(-50%, -50%); display: flex; gap: 26px; align-items: center; }
+  .cm-pile { position: relative; width: 74px; height: 110px; padding: 0; border: 0; background: none; cursor: pointer; transition: transform .15s; }
+  .cm-pile:hover { transform: translateY(-4px); }
+  .cm-pile .cm-c { position: absolute; left: 0; top: 0; }
+  .cm-pile .cm-c:nth-child(1) { transform: translate(6px, -6px); } .cm-pile .cm-c:nth-child(2) { transform: translate(3px, -3px); }
+  .cm-discard { position: relative; width: 74px; height: 110px; }
+  .cm-discard .cm-c { position: absolute; left: 0; top: 0; rotate: var(--r, 0deg); }
+  @keyframes cmLand { from { transform: scale(1.35); } }
+
+  .cm-opp { position: absolute; display: grid; justify-items: center; gap: 2px; font-size: .85rem; text-align: center; }
+  .cm-opp.top { left: 50%; top: 10px; transform: translateX(-50%); }
+  .cm-opp.left { left: 10px; top: 33%; } .cm-opp.right { right: 10px; top: 33%; }
+  .cm-opp .av { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-weight: 900; background: linear-gradient(135deg, #4c6ef5, #364fc7); border: 2px solid #fff; }
+  .cm-opp.left .av { background: linear-gradient(135deg, #e8590c, #c92a2a); } .cm-opp.right .av { background: linear-gradient(135deg, #2f9e44, #087f5b); }
+  .cm-opp .fan { position: relative; display: block; width: 110px; height: 46px; }
+  .cm-c.mini { position: absolute; left: 50%; top: 2px; width: 28px; height: 42px; margin-left: -14px; border-width: 2px; border-radius: 6px; transform: translateX(calc(var(--i) * 9px)) rotate(calc(var(--i) * 6deg)); }
+  .cm-c.mini .logo { font-size: 14px; text-shadow: 1px 1px 0 #ff5a5f; } .cm-c.mini .logo small { font-size: 11px; }
+  .cm-opp .count { background: rgba(0,0,0,.45); border-radius: 999px; padding: 0 10px; font-weight: 800; }
+  .cm-opp .one { background: #ffe066; color: #3b2a00; border-radius: 999px; padding: 1px 9px; font-weight: 900; animation: cmBeat .6s ease-in-out infinite; }
+  @keyframes cmBeat { 50% { transform: scale(1.14); } }
+  .cm-opp.blocked::after { content: '⊘'; position: absolute; top: -8px; font-size: 68px; line-height: 1; color: #ff5a5f; text-shadow: 0 3px 8px #000; animation: cmBlock 1.3s ease-out both; }
+  @keyframes cmBlock { 0% { transform: scale(2.6) rotate(-40deg); opacity: 0; } 25% { transform: scale(1); opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+
+  .cm-status { position: absolute; left: 12px; right: 12px; bottom: 168px; margin: 0; text-align: center; font-weight: 800; color: #ffe066; text-shadow: 0 2px 4px #000; font-size: .95rem; }
+  .cm-hand { --gap: min(54px, calc((min(100vw, 900px) - 130px) / max(1, var(--n) - 1))); position: absolute; left: 0; right: 0; bottom: 20px; height: 134px; }
+  .cm-slot { position: absolute; left: 50%; bottom: 0; width: 74px; height: 110px; margin-left: -37px; padding: 0; border: 0; background: none; cursor: pointer;
+    transform: translateX(calc(var(--i) * var(--gap))) translateY(calc(var(--i) * var(--i) * 1.6px)) rotate(calc(var(--i) * 3.2deg)); transform-origin: 50% 100%; transition: transform .18s, translate .18s; }
+  .cm-slot .cm-c { filter: brightness(.62) saturate(.8); transition: filter .2s; }
+  .cm-slot.can { translate: 0 -12px; }
+  .cm-slot.can .cm-c { filter: none; box-shadow: 0 0 0 2px #ffe066, 0 8px 16px rgba(0,0,0,.45); }
+  .cm-slot:hover { translate: 0 -26px; z-index: 5; }
+  .cm-slot.no { animation: cmNo .4s; }
+  @keyframes cmNo { 25%, 75% { margin-left: -45px; } 50% { margin-left: -29px; } }
+  .cm-fly { position: absolute; z-index: 20; pointer-events: none; }
+  .cm-fly .cm-c.mini { position: relative; transform: none; left: 0; margin: 0; }
+
+  .cm-banner { position: absolute; left: 0; right: 0; top: 40%; display: grid; place-items: center; pointer-events: none; z-index: 30; }
+  .cm-banner span { font-weight: 900; padding: 6px 22px; border-radius: 999px; white-space: nowrap; animation: cmPop 1.45s cubic-bezier(.2, 1.6, .4, 1) both; }
+  .cm-banner .plus { font-size: 92px; padding: 0; color: #ffe066; -webkit-text-stroke: 3px #c92a2a; text-shadow: 0 8px 22px #000; }
+  .cm-banner .turn, .cm-banner .color { font-size: 30px; background: rgba(0,0,0,.72); border: 3px solid var(--glow); }
+  .cm-banner .shout { font-size: 34px; color: #3b2a00; background: linear-gradient(#ffe27a, #f2b705); box-shadow: 0 10px 30px rgba(255, 200, 0, .6); }
+  .cm-banner .win { font-size: 46px; color: #fff; background: linear-gradient(135deg, #7b4dff, #ff5a5f); box-shadow: 0 12px 34px rgba(0,0,0,.5); }
+  @keyframes cmPop { 0% { transform: scale(.2) rotate(-12deg); opacity: 0; } 22% { transform: scale(1.08) rotate(2deg); opacity: 1; } 32%, 82% { transform: scale(1); opacity: 1; } 100% { transform: scale(.9) translateY(-26px); opacity: 0; } }
+  .cm-conf { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 28; }
+  .cm-conf i { position: absolute; top: -14px; width: 9px; height: 15px; border-radius: 2px; animation: cmFall 2.1s linear forwards; }
+  @keyframes cmFall { to { top: 106%; transform: rotate(620deg); } }
+
+  @media (max-width: 640px) {
+    .cm-table { height: 590px; border-radius: 18px; }
+    .cm-ring { width: 220px; height: 220px; margin: -110px 0 0 -110px; }
+    .cm-center { gap: 16px; }
+    .cm-opp.left, .cm-opp.right { top: 17%; }
+    .cm-opp .fan { width: 84px; }
+    .cm-c.mini { transform: translateX(calc(var(--i) * 6px)) rotate(calc(var(--i) * 6deg)); }
+    .cm-hand { --gap: min(44px, calc((100vw - 172px) / max(1, var(--n) - 1))); }
+    .cm-banner .shout { font-size: 26px; } .cm-banner .turn, .cm-banner .color { font-size: 22px; }
+  }
+
+  /* ===== lớp trang trí nâng cấp ===== */
+  .cm-table { height: 700px; background: radial-gradient(ellipse at 50% 40%, #34407a 0%, #1a2150 45%, #090c22 100%); border: 0; box-shadow: 0 22px 50px rgba(0,0,0,.45), inset 0 0 0 3px #ffffff1c, inset 0 0 90px rgba(0,0,0,.65); }
+  .cm-sky i { position: absolute; width: var(--s); height: var(--s); border-radius: 50%; background: #fff; opacity: .15; box-shadow: 0 0 8px #fff; animation: cmDrift var(--d) ease-in-out var(--w) infinite; }
+  @keyframes cmDrift { 50% { opacity: .75; transform: translateY(-16px); } }
+  .cm-felt { position: absolute; left: 50%; top: 42%; width: 66%; height: 52%; transform: translate(-50%, -50%); border-radius: 50%; background: radial-gradient(ellipse at 50% 35%, #3d4aa0 0%, #242d6b 55%, #161c47 100%); border: 10px solid #0f1333; box-shadow: 0 0 0 3px var(--glow), 0 0 34px var(--glow), inset 0 0 50px rgba(0,0,0,.55), 0 24px 40px rgba(0,0,0,.45); transition: box-shadow .4s; }
+  .cm-felt::after { content: '1!'; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-10deg); font-weight: 900; font-size: 190px; color: #ffffff0a; }
+  .cm-glow { top: 42%; width: 360px; height: 360px; opacity: .32; }
+  .cm-ring { top: 42%; width: 320px; height: 320px; margin: -160px 0 0 -160px; filter: drop-shadow(0 0 7px var(--glow)); }
+  .cm-center { top: 42%; gap: 30px; perspective: 700px; }
+
+  .cm-c { width: 84px; height: 124px; border-radius: 14px; box-shadow: 0 8px 16px rgba(0,0,0,.45), inset 0 0 0 2px rgba(0,0,0,.14); }
+  .cm-c::before { inset: 0; background: repeating-conic-gradient(from 0deg at 50% 50%, rgba(255,255,255,.17) 0 9deg, transparent 9deg 22deg); -webkit-mask-image: radial-gradient(circle, #000 25%, transparent 75%); mask-image: radial-gradient(circle, #000 25%, transparent 75%); }
+  .cm-c::after { content: ''; position: absolute; inset: 0; background: linear-gradient(118deg, rgba(255,255,255,.42) 0%, rgba(255,255,255,.14) 28%, transparent 29%, transparent 70%, rgba(0,0,0,.18) 100%); pointer-events: none; }
+  .cm-c .mid { width: 58px; height: 58px; margin: -29px 0 0 -29px; border-radius: 17px; background: radial-gradient(circle at 35% 30%, #fff 40%, #eef0fa 100%); box-shadow: 0 0 0 3px rgba(255,255,255,.45), 0 0 0 5px rgba(0,0,0,.18), 0 5px 10px rgba(0,0,0,.35), inset 0 -3px 6px rgba(0,0,0,.12); z-index: 1; }
+  .cm-c.wild .mid { background: radial-gradient(circle, #343a6b, #161933); box-shadow: 0 0 14px rgba(160, 140, 255, .8), 0 5px 10px rgba(0,0,0,.4); }
+  .cm-c .mid b { font-size: 42px; text-shadow: 0 3px 0 rgba(0,0,0,.16); }
+  .cm-c .mid svg { width: 45px; height: 45px; filter: drop-shadow(0 2px 1px rgba(0,0,0,.2)); }
+  .cm-c i { font-size: 19px; z-index: 1; } .cm-c i.tl { left: 6px; top: 6px; } .cm-c i.br { right: 6px; bottom: 6px; }
+  .cm-c.back { background: radial-gradient(circle at 50% 50%, #343d7e, #111538 75%); }
+  .cm-c.back::before { background: repeating-conic-gradient(from 8deg at 50% 50%, rgba(255,224,102,.16) 0 8deg, transparent 8deg 24deg); -webkit-mask-image: none; mask-image: none; }
+  .cm-c.back .logo { font-size: 46px; z-index: 1; }
+  .cm-c.back .logo::before { content: ''; position: absolute; left: 50%; top: 50%; width: 56px; height: 56px; transform: translate(-50%, -50%) rotate(45deg); border: 3px solid #ffe06699; border-radius: 14px; z-index: -1; background: #0e1130aa; }
+  .cm-pile, .cm-discard { width: 84px; height: 124px; }
+  .cm-pile .cm-c:nth-child(1) { transform: translate(8px, -8px); } .cm-pile .cm-c:nth-child(2) { transform: translate(4px, -4px); }
+
+  .cm-opp { gap: 1px; }
+  .cm-opp .face, .cm-me .face { display: block; width: 62px; height: 62px; padding: 4px; box-sizing: border-box; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #5b68c4, #262e70); border: 3px solid #fff; box-shadow: 0 6px 14px rgba(0,0,0,.45); animation: cmBob 3.2s ease-in-out infinite; }
+  .cm-opp.left .face { animation-delay: -1s; } .cm-opp.right .face { animation-delay: -2.1s; }
+  @keyframes cmBob { 50% { transform: translateY(-4px); } }
+  .cm-opp svg, .cm-me svg { width: 100%; height: 100%; overflow: visible; }
+  .cm-table .eyes { transform-box: fill-box; transform-origin: center; animation: cmBlink 4.2s infinite; }
+  @keyframes cmBlink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+  .cm-opp b, .cm-me b { background: rgba(5, 8, 28, .7); border: 1px solid #ffffff33; border-radius: 999px; padding: 0 11px; font-size: .82rem; }
+  .cm-c.mini { width: 30px; height: 44px; margin-left: -15px; }
+  .cm-c.mini .logo::before { width: 18px; height: 18px; border-width: 1.5px; border-radius: 5px; }
+  .cm-c.mini .logo { font-size: 14px; }
+  .cm-opp .count { margin-top: -2px; background: #ffe066; color: #3b2a00; }
+  .cm-me { position: absolute; left: 18px; bottom: 192px; display: grid; justify-items: center; gap: 1px; }
+  .cm-me .face { border-color: #ffe066; animation: cmTurn 1.3s ease-in-out infinite; }
+  @keyframes cmTurn { 50% { box-shadow: 0 0 0 8px rgba(255, 224, 102, .28), 0 6px 14px rgba(0,0,0,.45); } }
+
+  .cm-status { bottom: 182px; left: 100px; right: 100px; }
+  .cm-hand { --gap: min(60px, calc((min(100vw, 900px) - 150px) / max(1, var(--n) - 1))); height: 156px; bottom: 18px; }
+  .cm-slot { width: 84px; height: 124px; margin-left: -42px; }
+  .cm-slot.can .cm-c { box-shadow: 0 0 0 2px #fff, 0 0 18px 3px #ffe066, 0 10px 18px rgba(0,0,0,.45); animation: cmCan 1.6s ease-in-out infinite; }
+  @keyframes cmCan { 50% { box-shadow: 0 0 0 2px #fff, 0 0 8px 1px #ffe066, 0 10px 18px rgba(0,0,0,.45); } }
+  .cm-slot:hover { translate: 0 -32px; scale: 1.1; }
+  .cm-fly { filter: drop-shadow(0 16px 14px rgba(0,0,0,.55)); }
+
+  .cm-burst { position: absolute; z-index: 25; pointer-events: none; }
+  .cm-burst i { position: absolute; width: var(--s); height: var(--s); margin: calc(var(--s) / -2); border-radius: 2px; box-shadow: 0 0 10px var(--h); animation: cmSpark .8s cubic-bezier(.15, .7, .3, 1) forwards; }
+  @keyframes cmSpark { to { transform: translate(var(--x), var(--y)) rotate(260deg) scale(.15); opacity: 0; } }
+  .cm-burst u { position: absolute; width: 90px; height: 90px; margin: -45px; border-radius: 50%; border: 5px solid var(--h); box-shadow: 0 0 20px var(--h); animation: cmWave .65s ease-out forwards; }
+  .cm-burst u + u { animation-delay: .12s; border-color: #fff; opacity: 0; }
+  @keyframes cmWave { from { transform: scale(.4); opacity: .95; } to { transform: scale(3); opacity: 0; } }
+  .cm-flash { position: absolute; inset: 0; z-index: 24; pointer-events: none; background: radial-gradient(circle at 50% 42%, var(--h), transparent 70%); animation: cmFlash .65s ease-out forwards; }
+  @keyframes cmFlash { from { opacity: .75; } to { opacity: 0; } }
+  .cm-bolts { position: absolute; inset: 0; z-index: 26; pointer-events: none; }
+  .cm-bolts svg { position: absolute; top: 4%; width: 38px; height: 150px; opacity: 0; filter: drop-shadow(0 0 12px #ffe066); animation: cmBolt .55s ease-out forwards; }
+  @keyframes cmBolt { 0% { opacity: 0; transform: translateY(-40px); } 20%, 60% { opacity: 1; transform: translateY(0); } 40% { opacity: .2; } 100% { opacity: 0; } }
+  .cm-banner span { box-shadow: 0 10px 30px rgba(0,0,0,.45); }
+  .cm-banner .plus { font-size: 120px; box-shadow: none; filter: drop-shadow(0 0 18px #ffb703); }
+
+  @media (max-width: 640px) {
+    .cm-table { height: 640px; }
+    .cm-felt { width: 82%; height: 40%; top: 44%; border-width: 7px; }
+    .cm-felt::after { font-size: 110px; }
+    .cm-glow, .cm-ring, .cm-center { top: 44%; }
+    .cm-ring { width: 232px; height: 232px; margin: -116px 0 0 -116px; }
+    .cm-center { gap: 18px; }
+    .cm-c { width: 72px; height: 108px; border-radius: 12px; }
+    .cm-c .mid { width: 50px; height: 50px; margin: -25px 0 0 -25px; } .cm-c .mid b { font-size: 35px; } .cm-c .mid svg { width: 38px; height: 38px; } .cm-c i { font-size: 16px; } .cm-c.back .logo { font-size: 38px; }
+    .cm-pile, .cm-discard, .cm-slot { width: 72px; height: 108px; } .cm-slot { margin-left: -36px; }
+    .cm-c.mini { width: 26px; height: 38px; margin-left: -13px; border-radius: 6px; } .cm-c.mini .logo { font-size: 12px; }
+    .cm-opp .face, .cm-me .face { width: 50px; height: 50px; }
+    .cm-opp.left, .cm-opp.right { top: 15%; }
+    .cm-me { left: 8px; bottom: 164px; }
+    .cm-status { bottom: 156px; left: 70px; right: 14px; font-size: .84rem; }
+    .cm-hand { --gap: min(44px, calc((100vw - 172px) / max(1, var(--n) - 1))); height: 140px; }
+    .cm-banner .plus { font-size: 92px; }
+  }
+
+  /* ===== phần của game thật ===== */
+  #cm-root { max-width: 900px; }
+  #cm-game { scroll-margin-top: 66px; }
+  #cm-root .cm-table { height: clamp(580px, calc(100vh - 170px), 700px); } /* bàn và bài trên tay vừa trong một màn hình */
+  #cm-setup[hidden], #cm-lobby[hidden], #cm-game[hidden], .cm-actions button[hidden], .cm-picker[hidden], .cm-over[hidden], .cm-roomline[hidden], .cm-badge[hidden] { display: none; }
+  .cm-online { margin-top: 22px; padding-top: 6px; border-top: 1px solid #8884; }
+  .cm-input { min-height: 44px; padding: 6px 12px; border-radius: 10px; border: 1px solid #8886; background: var(--bg); color: inherit; font: inherit; max-width: 100%; }
+  .cm-codein { width: 150px; text-transform: uppercase; letter-spacing: .25em; font-weight: 800; text-align: center; }
+  .cm-err { margin: 4px 0; color: #e8590c; font-weight: 700; } .cm-err:empty { display: none; }
+  .cm-codebox { display: inline-flex; flex-direction: column; gap: 6px; padding: 14px 18px; border-radius: 16px; background: linear-gradient(160deg, #2b3563, #0b0f24); color: #fff; border: 2px solid #ffe066; }
+  .cm-codebox b { font-size: 2.4rem; letter-spacing: .3em; color: #ffe066; } .cm-codebox .btn { color: #fff; }
+  .cm-plist { list-style: none; padding: 0; display: grid; gap: 6px; max-width: 420px; }
+  .cm-plist li { display: flex; align-items: center; gap: 10px; margin: 0; padding: 5px 10px; border-radius: 12px; border: 1px solid #8884; }
+  .cm-plist .face { width: 34px; height: 34px; } .cm-plist .face svg { width: 100%; height: 100%; overflow: visible; }
+  .cm-plist em { font-style: normal; font-size: .78rem; opacity: .75; }
+  .cm-roomline { margin: 0 0 8px; text-align: center; font-weight: 800; letter-spacing: .08em; font-size: .9rem; }
+  .cm-opp { transform: translateX(-50%); width: 112px; }
+  .cm-opp:not(.on) .face { border-color: #fff; }
+  .cm-opp.on .face { border-color: #ffe066; animation: cmTurn 1.1s ease-in-out infinite; }
+  .cm-opp.off { opacity: .6; }
+  .cm-me:not(.on) .face { border-color: #fff; animation: cmBob 3.2s ease-in-out infinite; }
+  .cm-opp .count.low { background: #ff8787; color: #4a0000; }
+  .cm-badge { position: absolute; right: -14px; top: -14px; z-index: 3; min-width: 40px; height: 40px; padding: 0 6px; border-radius: 999px; display: grid; place-items: center; background: #e03131; color: #fff; border: 3px solid #fff; font-weight: 900; font-size: 18px; animation: cmBeat .6s ease-in-out infinite; }
+  .cm-pilecount { position: absolute; left: 0; right: 0; bottom: -24px; text-align: center; font-size: .75rem; font-weight: 700; color: #fff; opacity: .8; }
+  .cm-slot { transform: translateX(calc(var(--i) * var(--gap))) translateY(calc(var(--i) * var(--i) * var(--arc, 1.6px))) rotate(calc(var(--i) * var(--rot, 3.2deg))); }
+  .cm-slot.drawn .cm-c { box-shadow: 0 0 0 3px #7ee8fa, 0 0 22px 5px #7ee8fa; }
+  .cm-actions { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  .cm-actions .btn { flex: 1; min-height: 50px; font-size: 1.05rem; }
+  .cm-actions #cm-call { background: linear-gradient(#ffe27a, #f2b705); color: #3b2a00; border-color: #f2b705; animation: cmBeat .8s ease-in-out infinite; }
+  .cm-actions #cm-catch { background: #e03131; border-color: #e03131; color: #fff; }
+  .cm-actions #cm-menu { flex: 0 0 56px; margin-left: auto; }
+  .cm-picker, .cm-over { position: absolute; inset: 0; z-index: 40; display: grid; place-items: center; background: rgba(5, 8, 26, .72); }
+  .cm-box { width: min(90%, 380px); max-height: 94%; overflow: auto; padding: 18px; border-radius: 20px; text-align: center; background: linear-gradient(180deg, #2a336a, #121738); border: 2px solid #ffe066; box-shadow: 0 20px 50px rgba(0,0,0,.55); animation: cmZoom .25s ease-out; }
+  @keyframes cmZoom { from { transform: scale(.6); opacity: 0; } }
+  .cm-box h2 { margin: 0 0 12px; font-size: 1.25rem; color: #ffe066; }
+  .cm-colors { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .cm-colors button { min-height: 76px; border-radius: 16px; border: 3px solid #fff; color: #fff; font-size: 1rem; font-weight: 800; cursor: pointer; text-shadow: 0 1px 3px #000a; }
+  .cm-box ul { list-style: none; padding: 0; margin: 0 0 12px; } .cm-box li { display: flex; justify-content: space-between; gap: 10px; margin: 0; padding: 4px 8px; border-bottom: 1px solid #ffffff1f; }
+  .cm-box .row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; } .cm-box .btn.ghost { color: #fff; }
+  .cm-box p { margin: 6px 0; }
+  .cm-rules { margin-top: 14px; } .cm-rules li { margin: 6px 0; line-height: 1.5; }
+  @media (max-width: 640px) {
+    #cm-root .cm-table { height: clamp(560px, calc(100vh - 140px), 640px); }
+    .cm-opp { width: 76px; font-size: .74rem; }
+    .cm-opp .face { width: 46px; height: 46px; }
+    .cm-opp b { font-size: .68rem; padding: 0 6px; max-width: 76px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .many .cm-opp .face { width: 36px; height: 36px; border-width: 2px; }
+    .many .cm-opp .fan { display: none; }
+    .many .cm-opp { width: 58px; } .many .cm-opp b { max-width: 58px; }
+    .cm-actions { position: sticky; bottom: 0; background: var(--bg); padding: 8px 0; z-index: 5; gap: 8px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .cm-table * { animation: none !important; } }
+</style>

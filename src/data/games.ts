@@ -7,6 +7,7 @@ export const gamesUi = {
     back: '← Trò chơi',
     cards: {
       rubik: { icon: '🧊', title: 'Học xoay Rubik', desc: 'Khối Rubik 3D xoay được, dạy giải từng bước cho người mới: có thuật toán chạy thử và nút kiểm tra bước bạn đang làm.' },
+      conmot: { icon: '🎨', title: 'Còn Một!', desc: 'Đổ bài theo màu và số, +2 +4 cộng dồn, quên hô "Còn một!" là bị bắt. Chơi với máy hoặc phòng online tới 8 người.' },
       xidach: { icon: '♠️', title: 'Xì Dách', desc: 'Blackjack kiểu Việt Nam: chơi với máy hoặc mở phòng online tới 8 người, xì bàng, ngũ linh, xét bài. Chip ảo, không dùng tiền thật.' },
       poker: { icon: '🃏', title: 'Poker (Texas Hold\'em)', desc: 'Texas Hold\'em với 1 đến 5 máy ngồi cùng bàn, 3 mức độ. Chơi giải trí bằng chip ảo, không dùng tiền thật.' },
       badminton: { icon: '🏸', title: 'Cầu Lông Người Que', desc: 'Đánh cầu lông với người que: chạy, nhảy, đập cầu và bỏ nhỏ. Đấu với máy 3 mức hoặc hai người một máy.' },
@@ -130,6 +131,7 @@ export const gamesUi = {
     back: '← Games',
     cards: {
       rubik: { icon: '🧊', title: 'Learn the Rubik\'s Cube', desc: 'A 3D cube you can turn, with a step-by-step beginner course: algorithms to watch and a button that checks the step you are on.' },
+      conmot: { icon: '🎨', title: 'Last Card!', desc: 'Shed cards by colour and number, stack +2 and +4, and call your last card. Against the computer or online with up to 8.' },
       xidach: { icon: '♠️', title: 'Xi Dach (Vietnamese Blackjack)', desc: 'Blackjack the Vietnamese way against the computer or in an online room of up to 8: two aces, five-card hands, checking players. Virtual chips, no real money.' },
       poker: { icon: '🃏', title: 'Poker (Texas Hold\'em)', desc: 'Texas Hold\'em against 1 to 5 computer players on 3 levels. Virtual chips for fun only, no real money.' },
       badminton: { icon: '🏸', title: 'Stickman Badminton', desc: 'Badminton with stick figures: run, jump, smash and drop shots. Play the computer on 3 levels or a friend on one device.' },
