@@ -128,6 +128,16 @@ export function check(st: XDState, target: number): boolean {
   return true;
 }
 
+/** Không đủ chip để trả thì trả hết số đang có: cái thu của người thua trước, rồi trả người thắng theo thứ tự ghế. */
+export function capDeltas(d: number[], have: number[], dealer: number): number[] {
+  const out = d.map(() => 0);
+  let pot = have[dealer];
+  d.forEach((v, i) => { if (i !== dealer && v < 0) { out[i] = -Math.min(-v, have[i]); pot -= out[i]; } });
+  d.forEach((v, i) => { if (i !== dealer && v > 0) { out[i] = Math.min(v, pot); pot -= out[i]; } });
+  out[dealer] = pot - have[dealer];
+  return out;
+}
+
 // ---------- Máy ----------
 export type BotAction = { type: 'draw' } | { type: 'stand' } | { type: 'check'; target: number };
 // Máy chỉ biết bài của mình và số lá của người khác (không nhìn bài người khác)

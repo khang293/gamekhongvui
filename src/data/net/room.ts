@@ -72,7 +72,7 @@ export type RejectReason = 'version' | 'full' | 'started' | 'noroom' | 'timeout'
 export class RoomError extends Error { constructor(public reason: RejectReason, msg?: string) { super(msg || reason); } }
 
 type Env = { v: number; t: string; [k: string]: unknown };
-const TYPES = new Set(['hello', 'welcome', 'reject', 'ping', 'pong', 'g', 'closed', 'bye']);
+const TYPES = new Set(['hello', 'welcome', 'reject', 'ping', 'pong', 'g', 'chat', 'closed', 'bye']);
 
 /** Đọc và kiểm tra một tin nhắn thô. Trả null nếu hỏng, quá dài hoặc sai dạng. */
 export function parseEnvelope(raw: unknown): Env | null {
@@ -85,6 +85,17 @@ export function parseEnvelope(raw: unknown): Env | null {
   return o as Env;
 }
 const enc = (t: string, rest: Record<string, unknown> = {}) => JSON.stringify({ v: PROTOCOL, t, ...rest });
+
+// ---------- Chat trong phòng ----------
+// Khách gửi {t:'chat', text}; chủ phòng làm sạch, hạn chế tốc độ rồi phát cho mọi người kèm ghế và tên người gửi.
+export const CHAT_MAX = 120;
+export const CHAT_GAP_MS = 700;
+export interface ChatMsg { slot: number; name: string; text: string }
+/** Bỏ ký tự điều khiển, gộp khoảng trắng, cắt tối đa CHAT_MAX ký tự. Chỉ được hiển thị bằng textContent. */
+export function cleanChat(s: unknown): string {
+  const t = (typeof s === 'string' ? s : '').replace(/[\u0000-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069]/g, ' ').replace(/\s+/g, ' ').trim();
+  return [...t].slice(0, CHAT_MAX).join('');
+}
 
 // ---------- Chủ phòng ----------
 export interface Member {
@@ -120,6 +131,8 @@ export class RoomHost {
   private stopBeat: (() => void) | null = null;
   closed = false;
   stats = { rejected: 0, badmsg: 0 };
+  onChat: ((m: ChatMsg) => void) | null = null;
+  private chatAt = new Map<number, number>();
 
   constructor(private tr: Transport, private hooks: HostHooks, opts: HostOpts) {
     this.code = opts.code;
@@ -185,6 +198,7 @@ export class RoomHost {
       case 'pong': return;
       case 'bye': if (m) this.removeMember(m, 'left'); return;
       case 'g': if (m) this.hooks.onIntent(m, e.p); return;
+      case 'chat': if (m) this.chat(m, e.text); return;
       default: return; // khách không được gửi welcome/reject/closed
     }
   }
@@ -226,6 +240,19 @@ export class RoomHost {
       this.tr.send(m.peerId, enc('ping'));
     }
   }
+
+  private chat(from: Member, raw: unknown) {
+    const text = cleanChat(raw);
+    if (!text || this.closed) return;
+    const t = this.clock.now();
+    if (t - (this.chatAt.get(from.slot) ?? -1e9) < CHAT_GAP_MS) return;
+    this.chatAt.set(from.slot, t);
+    const msg: ChatMsg = { slot: from.slot, name: from.name, text };
+    for (const x of this.members) if (!x.local && x.peerId) this.tr.send(x.peerId, enc('chat', { ...msg }));
+    this.onChat?.(msg);
+  }
+  /** Chủ phòng nói */
+  say(text: string) { this.chat(this.host, text); }
 
   removeMember(m: Member, why: 'left' | 'kicked') {
     if (m.local) return;
@@ -272,6 +299,7 @@ export interface JoinInfo { slot: number; token: string; code: string; name: str
 export class RoomClient {
   status: 'idle' | 'connecting' | 'online' | 'lost' | 'closed' = 'idle';
   info: JoinInfo | null = null;
+  onChat: ((m: ChatMsg) => void) | null = null;
   private tr: Transport | null = null;
   private hostId = '';
   private myName = '';
@@ -338,6 +366,11 @@ export class RoomClient {
     switch (e.t) {
       case 'ping': this.tr?.send(this.hostId, enc('pong')); return;
       case 'g': this.hooks.onGame(e.p); return;
+      case 'chat': {
+        const text = cleanChat(e.text);
+        if (text && Number.isInteger(e.slot)) this.onChat?.({ slot: e.slot as number, name: sanitizeName(e.name), text });
+        return;
+      }
       case 'closed': this.finish(String(e.reason || 'hostLeft') as RejectReason); return;
       default: return;
     }
@@ -375,6 +408,10 @@ export class RoomClient {
   send(payload: unknown) {
     if (this.status !== 'online') return;
     this.tr?.send(this.hostId, enc('g', { p: payload }));
+  }
+  say(text: string) {
+    const t = cleanChat(text);
+    if (t && this.status === 'online') this.tr?.send(this.hostId, enc('chat', { text: t }));
   }
   private finish(reason: RejectReason) {
     if (this.status === 'closed') return;

@@ -7,7 +7,7 @@ export const gamesUi = {
     back: '← Trò chơi',
     cards: {
       rubik: { icon: '🧊', title: 'Học xoay Rubik', desc: 'Khối Rubik 3D xoay được, dạy giải từng bước cho người mới: có thuật toán chạy thử và nút kiểm tra bước bạn đang làm.' },
-      xidach: { icon: '♠️', title: 'Xì Dách', desc: 'Blackjack kiểu Việt Nam: làm nhà con hoặc nhà cái, xì bàng, ngũ linh, xét bài. Chip ảo để vui, không dùng tiền thật.' },
+      xidach: { icon: '♠️', title: 'Xì Dách', desc: 'Blackjack kiểu Việt Nam: chơi với máy hoặc mở phòng online tới 8 người, xì bàng, ngũ linh, xét bài. Chip ảo, không dùng tiền thật.' },
       poker: { icon: '🃏', title: 'Poker (Texas Hold\'em)', desc: 'Texas Hold\'em với 1 đến 5 máy ngồi cùng bàn, 3 mức độ. Chơi giải trí bằng chip ảo, không dùng tiền thật.' },
       badminton: { icon: '🏸', title: 'Cầu Lông Người Que', desc: 'Đánh cầu lông với người que: chạy, nhảy, đập cầu và bỏ nhỏ. Đấu với máy 3 mức hoặc hai người một máy.' },
       link: { icon: '🔗', title: 'Nối Cặp Cổ Điển', desc: 'Nối hai hình giống nhau bằng đường gấp khúc tối đa 3 đoạn, xóa hết bàn trước khi hết giờ.' },
@@ -130,7 +130,7 @@ export const gamesUi = {
     back: '← Games',
     cards: {
       rubik: { icon: '🧊', title: 'Learn the Rubik\'s Cube', desc: 'A 3D cube you can turn, with a step-by-step beginner course: algorithms to watch and a button that checks the step you are on.' },
-      xidach: { icon: '♠️', title: 'Xi Dach (Vietnamese Blackjack)', desc: 'Blackjack the Vietnamese way: play or deal, two aces, five-card hands, checking players. Virtual chips for fun, no real money.' },
+      xidach: { icon: '♠️', title: 'Xi Dach (Vietnamese Blackjack)', desc: 'Blackjack the Vietnamese way against the computer or in an online room of up to 8: two aces, five-card hands, checking players. Virtual chips, no real money.' },
       poker: { icon: '🃏', title: 'Poker (Texas Hold\'em)', desc: 'Texas Hold\'em against 1 to 5 computer players on 3 levels. Virtual chips for fun only, no real money.' },
       badminton: { icon: '🏸', title: 'Stickman Badminton', desc: 'Badminton with stick figures: run, jump, smash and drop shots. Play the computer on 3 levels or a friend on one device.' },
       link: { icon: '🔗', title: 'Classic Pair Link', desc: 'Connect two matching tiles with a path of at most 3 segments and clear the board before time runs out.' },

@@ -102,6 +102,8 @@ for (const side of ['w', 'b'] as const) {
 <script>
   import { startState, legalMoves, makeMove, status, inCheck, bestMove, posKey, type State, type Move } from '../../data/chessEngine';
   import { sfx, mountMute } from '../../data/sfx';
+  import { mountDuel } from '../../data/net/duelUi';
+  import { mySide, myTurn, type DuelState } from '../../data/net/duel';
 
   const root = document.getElementById('chess') as HTMLElement;
   const ui = JSON.parse(root.dataset.ui || '{}');
@@ -123,6 +125,7 @@ for (const side of ['w', 'b'] as const) {
   let legal: Move[] = [];
   let over = '';
   let thinking = false;
+  let net: DuelState | null = null; // khác null: đang chơi online
   let pendingPromo: Move[] = [];
   let animate = false;
   let capGhost: { p: number; sq: number } | null = null;
@@ -154,7 +157,7 @@ for (const side of ['w', 'b'] as const) {
   }
 
   function render() {
-    const flip = mode === 'bot' && human === -1;
+    const flip = net ? mySide(net) === 1 : mode === 'bot' && human === -1;
     const inChk = !over && inCheck(st);
     const ksq = inChk ? st.b.indexOf(6 * st.turn) : -1;
     let html = '';
@@ -183,6 +186,7 @@ for (const side of ['w', 'b'] as const) {
     const bottom: 1 | -1 = flip ? -1 : 1;
     const nameOf = (side: 1 | -1) => {
       const col = side === 1 ? ui.white : ui.black;
+      if (net) return `${net.names[(side === 1 ? 0 : 1) === net.hostSide ? 0 : 1]} · ${col}`;
       return mode === 'bot' ? `${side === human ? ui.you : ui.bot} · ${col}` : col;
     };
     tray(document.getElementById('ch-top') as HTMLElement, (-bottom) as 1 | -1, nameOf((-bottom) as 1 | -1));
@@ -226,6 +230,7 @@ for (const side of ['w', 'b'] as const) {
       text = mode === 'bot' ? ui.yourTurn : (st.turn === 1 ? ui.turnW : ui.turnB);
       if (inChk) text += ' · ' + ui.check;
     }
+    statusEl.hidden = !!net;
     statusEl.textContent = text;
     statusEl.className = 'bd-status' + (over ? ' done' : '');
   }
@@ -253,6 +258,11 @@ for (const side of ['w', 'b'] as const) {
   }
 
   function play(m: Move) {
+    if (net) { // online: chủ phòng kiểm tra rồi gửi lại bàn cờ
+      duel.move({ from: m.from, to: m.to, ...(m.promo ? { promo: m.promo } : {}) });
+      sel = -1; targets = []; promoEl.hidden = true; pendingPromo = []; render();
+      return;
+    }
     hist.push({ s: st, last });
     const taken = st.b[m.to] || (m.ep ? -st.turn : 0); // quân bị ăn (để làm hiệu ứng)
     capGhost = taken ? { p: taken, sq: m.to } : null;
@@ -288,7 +298,7 @@ for (const side of ['w', 'b'] as const) {
     const btn = (e.target as HTMLElement).closest('.ch-sq') as HTMLElement | null;
     if (!btn || over || thinking) return;
     if (pendingPromo.length) { pendingPromo = []; promoEl.hidden = true; sel = -1; targets = []; render(); return; }
-    if (mode === 'bot' && st.turn !== human) return;
+    if (net ? !myTurn(net) : mode === 'bot' && st.turn !== human) return;
     const sq = Number(btn.dataset.sq);
     if (sel >= 0) {
       const ms = targets.filter((m) => m.to === sq);
@@ -328,6 +338,43 @@ for (const side of ['w', 'b'] as const) {
   document.getElementById('ch-new')!.addEventListener('click', () => { if (!thinking) newGame(); });
   document.getElementById('ch-menu-btn')!.addEventListener('click', () => { if (thinking) return; gameEl.hidden = true; menu.hidden = false; paintStat(); });
   document.getElementById('ch-start')!.addEventListener('click', () => { menu.hidden = true; gameEl.hidden = false; newGame(); });
+
+  // ---------- chơi online ----------
+  const actions = gameEl.querySelector('.bd-actions') as HTMLElement;
+  let shown = { round: 0, ply: -1 };
+  function showOnline(s: DuelState, result: string) {
+    const ply = s.moves.length;
+    const fresh = s.round === shown.round && ply === shown.ply + 1;
+    const changed = s.round !== shown.round || ply !== shown.ply;
+    shown = { round: s.round, ply };
+    net = s; over = result; thinking = false;
+    if (changed) {
+      st = startState(); hist = []; last = null; sel = -1; targets = []; promoEl.hidden = true; pendingPromo = [];
+      (s.moves as Move[]).forEach((raw, k) => {
+        const m = legalMoves(st).find((x) => x.from === raw.from && x.to === raw.to && (x.promo || 0) === (raw.promo || 0));
+        if (!m) return;
+        const taken = st.b[m.to] || (m.ep ? -st.turn : 0);
+        hist.push({ s: st, last });
+        st = makeMove(st, m); last = m;
+        if (fresh && k === ply - 1) {
+          capGhost = taken ? { p: taken, sq: m.to } : null; animate = true;
+          if (m.promo) sfx.play('power'); else if (m.castle) sfx.play('place'); else sfx.play(taken ? 'capture' : 'move');
+          if (!result && inCheck(st)) setTimeout(() => sfx.play('check'), 140);
+        }
+      });
+      legal = legalMoves(st);
+    }
+    if (result) sel = -1;
+    if (result && (fresh || s.reason === 'resign')) setTimeout(() => sfx.play(s.winner === mySide(s) ? 'win' : s.winner === -1 ? 'pop' : 'lose'), 260);
+    render();
+  }
+  const duel = mountDuel({
+    game: 'chess', lang: (document.documentElement.lang.startsWith('en') ? 'en' : 'vi'), menu, board: gameEl, settings: () => ({ size: 15 }),
+    onEnter: () => { menu.hidden = true; gameEl.hidden = false; actions.hidden = true; shown = { round: 0, ply: -1 }; },
+    onState: showOnline,
+    onExit: () => { net = null; over = ''; actions.hidden = false; gameEl.hidden = true; menu.hidden = false; paintStat(); },
+  });
+  if (location.hash === '#debug') (window as any).__ch = { duel, get st() { return st; }, legal: () => legalMoves(st) };
 
   function pick(attr: string, set: (v: string) => void) {
     document.querySelectorAll<HTMLElement>(`[data-${attr}]`).forEach((b) => b.addEventListener('click', () => {

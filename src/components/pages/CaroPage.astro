@@ -59,6 +59,8 @@ const ui = {
   import { sfx, mountMute } from '../../data/sfx';
 
   import { insaneMove } from '../../data/caroEngine';
+  import { mountDuel } from '../../data/net/duelUi';
+  import { mySide, myTurn, type DuelState } from '../../data/net/duel';
   const root = document.getElementById('caro') as HTMLElement;
   const ui = JSON.parse(root.dataset.ui || '{}');
   const menu = document.getElementById('cr-menu') as HTMLElement;
@@ -78,6 +80,7 @@ const ui = {
   let over = '';
   let winLine: number[] = [];
   let thinking = false;
+  let net: DuelState | null = null; // khác null: đang chơi online
   let stats = { w: 0, d: 0, l: 0 };
   try { const s = JSON.parse(localStorage.getItem('caro-stats') || 'null'); if (s) stats = { ...stats, ...s }; } catch {}
   const paintStat = () => { (document.getElementById('cr-stat') as HTMLElement).textContent = stats.w + stats.d + stats.l ? `${stats.w} / ${stats.d} / ${stats.l}` : ''; };
@@ -283,9 +286,10 @@ const ui = {
       g.restore();
       animating = true;
     }
-    if (hover >= 0 && !b[hover] && !over && !thinking && (mode !== 'bot' || turn === human)) mark(turn, px(hover), py(hover), 1, 0.35);
+    if (hover >= 0 && !b[hover] && !over && !thinking && (net ? myTurn(net) : mode !== 'bot' || turn === human)) mark(turn, px(hover), py(hover), 1, 0.35);
     let text = over;
     if (!over) text = thinking ? ui.thinking : mode === 'bot' ? ui.yourTurn : (turn === 1 ? ui.turnX : ui.turnO);
+    statusEl.hidden = !!net; // online: thanh phòng đã hiện lượt và kết quả
     statusEl.textContent = text;
     statusEl.className = 'bd-status' + (over ? ' done' : '');
     if (animating && !raf) raf = requestAnimationFrame(() => { raf = 0; draw(); });
@@ -356,6 +360,11 @@ const ui = {
     return r < 0 || r >= N || c < 0 || c >= N ? -1 : r * N + c;
   }
   canvas.addEventListener('pointerup', (e) => {
+    if (net) {
+      const i = cellAt(e);
+      if (!over && i >= 0 && !b[i] && myTurn(net)) { hover = -1; duel.move(i); }
+      return;
+    }
     if (over || thinking || (mode === 'bot' && turn !== human)) return;
     const i = cellAt(e);
     if (i < 0 || b[i]) return;
@@ -394,13 +403,44 @@ const ui = {
       set(el.dataset[attr] || '');
     }));
   }
+  // ---------- chơi online ----------
+  const actions = gameEl.querySelector('.bd-actions') as HTMLElement;
+  let shown = { round: 0, ply: 0 };
+  function showOnline(s: DuelState, result: string) {
+    const fresh = s.round === shown.round && s.moves.length === shown.ply + 1;
+    shown = { round: s.round, ply: s.moves.length };
+    net = s;
+    size = s.settings.size;
+    if (N !== size) { N = size; buildBg(); }
+    fitCanvas();
+    b = new Int8Array(N * N); moves = (s.moves as number[]).slice();
+    moves.forEach((i, k) => { b[i] = (k % 2) + 1; });
+    turn = (moves.length % 2) + 1;
+    winLine = moves.length ? winCells(moves[moves.length - 1]) : [];
+    over = result; thinking = false;
+    if (fresh) {
+      animStart = performance.now();
+      if (winLine.length) winStart = animStart + 300;
+      const who = 3 - turn;
+      setTimeout(() => { sfx.tone(who === 1 ? 190 : 250, 0.1, 'triangle', 0.3, who === 1 ? 120 : 165); sfx.noise(0.04, 0.12, 2200); }, 200);
+      if (result) setTimeout(() => sfx.play(s.winner === mySide(s) ? 'win' : s.winner === -1 ? 'pop' : 'lose'), 520);
+    } else { animStart = 0; winStart = 0; }
+    draw();
+  }
+  const duel = mountDuel({
+    game: 'caro', lang: (document.documentElement.lang.startsWith('en') ? 'en' : 'vi'), menu, board: gameEl, settings: () => ({ size }),
+    onEnter: () => { menu.hidden = true; gameEl.hidden = false; actions.hidden = true; shown = { round: 0, ply: 0 }; },
+    onState: showOnline,
+    onExit: () => { net = null; actions.hidden = false; gameEl.hidden = true; menu.hidden = false; paintStat(); },
+  });
+
   pick('mode', (v) => { mode = v; (document.getElementById('cr-botopts') as HTMLElement).hidden = v !== 'bot'; });
   pick('level', (v) => { level = Number(v); });
   pick('side', (v) => { humanSide = Number(v); });
   pick('size', (v) => { size = Number(v); });
   paintStat();
 
-  if (location.hash === '#debug') (window as any).__cr = { board: () => b, moves: () => moves, over: () => over };
+  if (location.hash === '#debug') (window as any).__cr = { board: () => b, moves: () => moves, over: () => over, duel, draw };
 </script>
 
 <style is:global>

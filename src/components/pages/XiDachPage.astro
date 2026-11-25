@@ -8,7 +8,12 @@ const { lang } = Astro.props;
 const g = gamesUi[lang];
 const T = {
   vi: {
-    title: 'Xì Dách', sub: 'Chơi xì dách với máy, tối đa 8 người một bàn: bạn làm nhà con hoặc làm cái. Chip ảo để vui, không dùng tiền thật.',
+    title: 'Xì Dách', sub: 'Chơi xì dách với máy hoặc với bạn bè qua phòng online, tối đa 8 người một bàn. Chip ảo để vui, không dùng tiền thật.',
+    onlineH: 'Chơi online với bạn bè', namePh: 'Tên của bạn', create: 'Tạo phòng', codePh: 'Mã phòng', join: 'Vào phòng', connecting: 'Đang kết nối...', defName: 'Người chơi',
+    onlineNote: 'Phòng online chạy qua máy chủ Firebase của Google. Máy chủ phòng chia bài nên chỉ chơi với người quen.',
+    roomCode: 'Mã phòng', copyCode: 'Chép mã', copyLink: 'Chép link mời', copied: 'Đã chép', seats: 'Số chỗ ở bàn (chỗ trống do máy chơi)', timer: 'Giới hạn 30 giây mỗi lượt', startRoom: 'Bắt đầu', waitHost: 'Chờ chủ phòng bắt đầu', leave: 'Rời phòng', leaveConfirm: 'Rời phòng? Nếu bạn là chủ phòng, phòng sẽ đóng.', hostTag: 'Chủ phòng', botTag: 'Máy', offTag: 'mất mạng',
+    placeBet: 'Chọn tiền rồi bấm Đặt cược', betBtn: 'Đặt cược', betDone: 'Đã đặt {b}', waitBets: 'Chờ đặt cược ({a}/{b})', hostDeal: 'Chia bài', dealerSel: 'Nhà cái', waitDeal: 'Chờ chia bài', lost: 'Mất kết nối, đang nối lại...',
+    errs: { noroom: 'Không tìm thấy phòng này.', full: 'Phòng đã đủ người.', started: 'Ván đã bắt đầu, không vào được nữa.', version: 'Hai máy đang dùng bản khác nhau, hãy tải lại trang.', timeout: 'Kết nối quá lâu, hãy thử lại.', network: 'Không kết nối được, hãy kiểm tra mạng rồi thử lại.', closed: 'Phòng đã đóng.', hostLeft: 'Chủ phòng đã rời, phòng đóng.', lost: 'Mất kết nối với phòng.', kicked: 'Bạn đã bị mời ra khỏi phòng.', badmsg: 'Mã này không phải phòng Xì Dách.', badcode: 'Mã phòng gồm 5 ký tự.' },
     role: 'Bạn làm', player: 'Nhà con', dealer: 'Nhà cái', opp: 'Số người chơi cùng', bet: 'Tiền cược', deal: 'Chia bài', again: 'Ván mới', reset: 'Chơi lại từ 1000',
     you: 'Bạn', cai: 'Cái', draw: 'Rút', stand: 'Dằn', standAll: 'Dằn (xét hết)', check: 'Xét',
     yourTurn: 'Lượt của bạn', needMin: 'Chưa đủ {m} điểm, phải rút thêm', turnOf: 'Đến lượt {n}', dealerTurn: 'Nhà cái đang đánh',
@@ -28,10 +33,16 @@ const T = {
       'Nhà cái đủ 15 được xét bài từng người trước khi rút tiếp: bài người bị xét được lật từng lá. Nhà cái có xì bàng hoặc xì dách thì xét cả bàn ngay.',
       'Ăn: xì bàng gấp 3, xì dách và ngũ linh gấp 2, còn lại gấp 1.',
       'Tiền cược tự chọn, tối đa bằng số chip đang có. Không đủ chip để trả thì trả hết số đang có.',
+      'Phòng online: chủ phòng làm cái trước và đổi cái được giữa các ván. Bài bị xét thì cả bàn cùng xem. Mỗi lượt và lúc đặt cược có 30 giây nếu bật đồng hồ: hết giờ thì đủ tuổi tự dằn, chưa đủ tự rút. Hết chip được phát lại 1000.',
     ],
   },
   en: {
-    title: 'Xi Dach (Vietnamese Blackjack)', sub: 'Play xi dach against the computer, up to 8 at a table: be a player or the dealer. Virtual chips for fun, no real money.',
+    title: 'Xi Dach (Vietnamese Blackjack)', sub: 'Play xi dach against the computer or with friends in an online room, up to 8 at a table. Virtual chips for fun, no real money.',
+    onlineH: 'Play online with friends', namePh: 'Your name', create: 'Create room', codePh: 'Room code', join: 'Join', connecting: 'Connecting...', defName: 'Player',
+    onlineNote: 'Online rooms run through Google Firebase. The host device deals the cards, so only play with people you know.',
+    roomCode: 'Room code', copyCode: 'Copy code', copyLink: 'Copy invite link', copied: 'Copied', seats: 'Seats at the table (empty seats are played by the computer)', timer: '30 second limit per turn', startRoom: 'Start', waitHost: 'Waiting for the host to start', leave: 'Leave room', leaveConfirm: 'Leave the room? If you are the host, the room closes.', hostTag: 'Host', botTag: 'Computer', offTag: 'offline',
+    placeBet: 'Pick an amount, then press Bet', betBtn: 'Bet', betDone: 'Bet {b}', waitBets: 'Waiting for bets ({a}/{b})', hostDeal: 'Deal', dealerSel: 'Dealer', waitDeal: 'Waiting for the deal', lost: 'Connection lost, reconnecting...',
+    errs: { noroom: 'Room not found.', full: 'The room is full.', started: 'The game has already started.', version: 'The two devices run different versions, please reload.', timeout: 'Connecting took too long, try again.', network: 'Could not connect, check your network and try again.', closed: 'The room has closed.', hostLeft: 'The host left, the room is closed.', lost: 'Lost the connection to the room.', kicked: 'You were removed from the room.', badmsg: 'That code is not a Xi Dach room.', badcode: 'A room code has 5 characters.' },
     role: 'You are', player: 'A player', dealer: 'The dealer', opp: 'Other people at the table', bet: 'Your bet', deal: 'Deal', again: 'New round', reset: 'Restart with 1000',
     you: 'You', cai: 'Dealer', draw: 'Draw', stand: 'Stand', standAll: 'Stand (check all)', check: 'Check',
     yourTurn: 'Your turn', needMin: 'Below {m} points, you must draw', turnOf: '{n} is playing', dealerTurn: 'The dealer is playing',
@@ -51,6 +62,7 @@ const T = {
       'Once at 15 the dealer may check players one by one before drawing again: the checked hand is flipped card by card. A dealer with two aces or blackjack checks everyone at once.',
       'Pays: two aces x3, blackjack and five cards x2, anything else x1.',
       'Choose any bet up to the chips you have. Anyone short of chips pays what they have.',
+      'Online rooms: the host deals first and can pass the dealer role between rounds. A checked hand is shown to the whole table. With the timer on, turns and betting last 30 seconds: on time-out you stand if you have enough, otherwise draw. Out of chips, you get 1000 again.',
     ],
   },
 }[lang];
@@ -70,10 +82,20 @@ const T = {
         <h2 class="bd-h">{T.bet}</h2>
         <div class="bd-row" data-pick="bet">{[10, 50, 100].map((n) => <button type="button" class={`bd-opt${n === 10 ? ' sel' : ''}`} data-v={n}>{n}</button>)}<input class="xd-betin" type="number" inputmode="numeric" min="1" step="1" placeholder={T.betOther} aria-label={T.betOther} /></div>
       </div>
-      <p><button type="button" class="btn" id="xd-deal">🂠 {T.deal}</button></p>
+      <p><button type="button" class="btn" id="xd-deal">🃏 {T.deal}</button></p>
+      <div class="xd-online">
+        <h2 class="bd-h">{T.onlineH}</h2>
+        <div class="bd-row"><input id="xd-name" class="xd-input" type="text" maxlength="16" autocomplete="nickname" placeholder={T.namePh} aria-label={T.namePh} /><button type="button" class="btn" id="xd-create">🌐 {T.create}</button></div>
+        <div class="bd-row"><input id="xd-code" class="xd-input xd-codein" type="text" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder={T.codePh} aria-label={T.codePh} /><button type="button" class="btn ghost" id="xd-join">🔑 {T.join}</button></div>
+        <p class="xd-err" id="xd-err" aria-live="polite"></p>
+        <p class="meta">{T.onlineNote}</p>
+      </div>
     </div>
 
+    <div class="xd-lobby" id="xd-lobby" hidden></div>
+
     <div class="xd-game" id="xd-game" hidden>
+      <p class="xd-roomline" id="xd-roomline" hidden></p>
       <div class="xd-table" id="xd-table">
         <div class="xd-felt" aria-hidden="true"></div>
         <div class="xd-center">
@@ -91,6 +113,10 @@ const T = {
         <div class="bd-row" data-pick="bet">{[10, 50, 100].map((n) => <button type="button" class={`bd-opt${n === 10 ? ' sel' : ''}`} data-v={n}>{n}</button>)}<input class="xd-betin" type="number" inputmode="numeric" min="1" step="1" placeholder={T.betOther} aria-label={T.betOther} /></div>
       </div>
       <p class="xd-betnote" id="xd-betnote" aria-live="polite"></p>
+      <div class="xd-hostbar" id="xd-hostbar" hidden>
+        <label>👑 {T.dealerSel} <select id="xd-dealersel" class="xd-input"></select></label>
+        <button type="button" class="btn" id="xd-hostdeal">🃏 {T.hostDeal}</button>
+      </div>
       <div class="xd-actions" id="xd-actions">
         <button type="button" class="btn" id="xd-draw">{T.draw}</button>
         <button type="button" class="btn" id="xd-stand">{T.stand}</button>
@@ -105,7 +131,11 @@ const T = {
 
 <script>
   import { sfx, mountMute } from '../../data/sfx';
-  import { deal, draw, stand, check, legal, botAction, apply, handValue, others, rankOf, suitOf, MIN_PLAYER, MIN_DEALER, type XDState, type HandValue } from '../../data/xidachEngine';
+  import { deal, draw, stand, check, legal, botAction, apply, handValue, others, rankOf, suitOf, MIN_PLAYER, MIN_DEALER, capDeltas, type XDState, type HandValue } from '../../data/xidachEngine';
+  import { XDNetHost, XDNetClient, type XDNetState } from '../../data/xidachNet';
+  import { FirebaseTransport } from '../../data/net/firebaseTransport';
+  import { mountChat, type ChatBox } from '../../data/net/chatUi';
+  import { normCode, validCode, sanitizeName, RoomError } from '../../data/net/room';
 
   const root = document.getElementById('xd') as HTMLElement;
   const T = JSON.parse(root.dataset.ui || '{}');
@@ -122,10 +152,14 @@ const T = {
   let revealed = new Set<number>(), dealerShown = false, revealing = false, gen = 0, fast = false;
   let dealing = false, shuffling = false; // đang xáo / chia: khóa nút và chưa lộ kết quả
   let seen: number[] = []; // số lá đã vẽ của từng ghế, để chỉ lá mới mới có hiệu ứng bay vào
-  const me = 0;
+  let me = 0; // ghế của mình (chơi với máy luôn là 0)
+  // ---------- online: net = trạng thái mới nhất từ chủ phòng; null = đang chơi với máy ----------
+  let net: XDNetState | null = null;
+  let ctl: { kind: 'host'; host: XDNetHost } | { kind: 'client'; client: XDNetClient } | null = null;
+  let lastRound: number | null = null, sent = false, deadline = 0, lost = false;
   let stats = { r: 0, w: 0 };
   try { stats = { ...stats, ...JSON.parse(localStorage.getItem('xidach-stats') || '{}') }; } catch {}
-  const nameOf = (s: number) => (s === me ? T.you : NAMES[(s - 1) % NAMES.length]);
+  const nameOf = (s: number) => (s === me ? T.you : net ? net.slots[s]?.name || '?' : NAMES[(s - 1) % NAMES.length]);
 
   document.querySelectorAll<HTMLElement>('[data-pick]').forEach((row) => row.addEventListener('click', (e) => {
     const b = (e.target as HTMLElement).closest('button'); if (!b) return;
@@ -150,16 +184,6 @@ const T = {
     if (el.value !== '' && Number.isInteger(v) && v >= 1) setBet(v, el);
     else { el.classList.add('bad'); $('xd-betnote').textContent = T.betBad; document.querySelectorAll('[data-pick="bet"] button').forEach((b) => b.classList.remove('sel')); }
   }));
-  // không đủ chip để trả: trả hết số đang có (cái thu của người thua trước, rồi trả người thắng theo thứ tự ghế)
-  function capDeltas(d: number[], have: number[], dealer: number) {
-    const out = d.map(() => 0);
-    let pot = have[dealer];
-    d.forEach((v, i) => { if (i !== dealer && v < 0) { out[i] = -Math.min(-v, have[i]); pot -= out[i]; } });
-    d.forEach((v, i) => { if (i !== dealer && v > 0) { out[i] = Math.min(v, pot); pot -= out[i]; } });
-    out[dealer] = pot - have[dealer];
-    return out;
-  }
-
   // ---------- lá bài ----------
   const face = (c: number, extra = '') => {
     const r = RANKS[rankOf(c)], s = SUITS[suitOf(c)];
@@ -172,29 +196,40 @@ const T = {
 
   // ---------- bàn ----------
   function seatHtml(s: number) {
-    const x = st!, isDealer = s === x.dealer, res = x.settled[s], shownRes = !!res && revealed.has(s);
+    const x = st!, isDealer = s === x.dealer, res = x.settled[s], empty = !x.hands[s].length, shownRes = !!res && revealed.has(s);
     const show = s === me || (isDealer ? dealerShown || (x.phase === 'done' && !revealing && !dealing) : shownRes);
     const hand = shuffling ? [] : x.hands[s], v = handValue(x.hands[s]), had = seen[s] || 0;
     const cardsHtml = hand.map((c, i) => { const extra = i >= had ? ' new' : ''; return show ? face(c, extra) : back(extra); }).join('');
     let badge = '';
     if (!isDealer && shownRes) badge = `<em class="xd-badge ${res!.result > 0 ? 'w' : res!.result < 0 ? 'l' : 'd'}">${res!.result > 0 ? T.win : res!.result < 0 ? T.lose : T.draw0}${(counted ? x.deltas[s] : res!.delta) ? ' ' + sgn(counted ? x.deltas[s] : res!.delta) : ''}</em>`;
-    if (isDealer && x.phase === 'done' && !revealing && !dealing) badge = `<em class="xd-badge ${x.deltas[s] > 0 ? 'w' : x.deltas[s] < 0 ? 'l' : 'd'}">${sgn(x.deltas[s])}</em>`;
+    if (isDealer && !empty && x.phase === 'done' && !revealing && !dealing) badge = `<em class="xd-badge ${x.deltas[s] > 0 ? 'w' : x.deltas[s] < 0 ? 'l' : 'd'}">${sgn(x.deltas[s])}</em>`;
     const canCheck = !revealing && !dealing && me === x.dealer && !isDealer && legal(x, me).check.includes(s);
     const turn = !dealing && x.phase !== 'done' && x.turn === s;
+    const placed = net && net.phase === 'bet' && s !== net.dealer && net.bets[s] > 0 ? `<em class="xd-badge d">✅ ${fmt(T.betDone, { b: net.bets[s] })}</em>` : '';
+    const away = net && net.slots[s]?.human && !net.slots[s].online ? ' 📴' : '';
     // vị trí quanh bàn (máy tính): bạn ở dưới, những người khác theo chiều kim đồng hồ
-    const a = Math.PI / 2 + (s * 2 * Math.PI) / x.n;
+    const a = Math.PI / 2 + (((s - me + x.n) % x.n) * 2 * Math.PI) / x.n; // mình luôn ngồi dưới
     const px = 50 + 39 * Math.cos(a), py = 49 + 36 * Math.sin(a);
     return `<div data-s="${s}" class="xd-seat${turn ? ' turn' : ''}${s === me ? ' me' : ''}${isDealer ? ' is-dealer' : ''}" style="--px:${px.toFixed(1)}%;--py:${py.toFixed(1)}%">
-      <div class="xd-head"><span class="xd-av" style="--c:${COLORS[s % COLORS.length]}">${[...nameOf(s)][0]}</span><span class="xd-who"><b>${nameOf(s)}</b><small>🪙 ${chips[s]}</small></span>${isDealer ? `<span class="xd-tag">👑 ${T.cai}</span>` : `<span class="xd-bet">${fmt(T.botBet, { b: x.bets[s] })}</span>`}</div>
+      <div class="xd-head"><span class="xd-av" style="--c:${COLORS[s % COLORS.length]}">${[...nameOf(s)][0]}</span><span class="xd-who"><b>${nameOf(s)}${away}</b><small>🪙 ${chips[s]}</small></span>${isDealer ? `<span class="xd-tag">👑 ${T.cai}</span>` : x.bets[s] ? `<span class="xd-bet">${fmt(T.botBet, { b: x.bets[s] })}</span>` : ''}</div>
       <div class="xd-hand">${cardsHtml}</div>
-      <div class="xd-foot">${dealing ? '' : show ? `<span class="xd-val ${v.kind}">${kindText(v)}</span>` : `<span class="xd-val">${fmt(T.cards, { c: hand.length })}</span>`}${badge}${canCheck ? `<button type="button" class="xd-check" data-check="${s}">🔍 ${T.check}</button>` : ''}</div>
+      <div class="xd-foot">${placed}${dealing || empty ? '' : show ? `<span class="xd-val ${v.kind}">${kindText(v)}</span>` : `<span class="xd-val">${fmt(T.cards, { c: hand.length })}</span>`}${badge}${canCheck ? `<button type="button" class="xd-check" data-check="${s}">🔍 ${T.check}</button>` : ''}</div>
     </div>`;
   }
 
   function statusText(): string {
     const x = st!;
+    if (lost) return T.lost;
     if (dealing) return T.dealing;
     if (revealing) return T.dealerTurn;
+    if (net && net.phase === 'bet') {
+      const need = net.slots.map((p, i) => i).filter((i) => i !== net!.dealer && net!.slots[i].human && net!.slots[i].online);
+      const got = need.filter((i) => net!.bets[i] > 0).length;
+      const d = x.hands[me].length ? x.deltas[me] : 0;
+      const last = d ? fmt(T.done, { d: sgn(d) }) + '. ' : '';
+      if (me !== net.dealer && !net.bets[me]) return last + T.placeBet;
+      return last + (need.length ? fmt(T.waitBets, { a: got, b: need.length }) : T.waitDeal);
+    }
     if (x.phase === 'done') {
       const d = x.deltas[me];
       return chips[me] <= 0 ? T.broke : d ? fmt(T.done, { d: sgn(d) }) : T.flat;
@@ -215,16 +250,33 @@ const T = {
     seen = x.hands.map((h) => (shuffling ? 0 : h.length));
     $('xd-left').textContent = fmt(T.left, { c: shuffling ? 52 : x.deck.length });
     flyNewCards();
-    $('xd-status').textContent = statusText();
+    $('xd-status').textContent = statusText() + countdown();
     const lg = legal(x, me);
     const done = x.phase === 'done' && !revealing && !dealing;
-    ($('xd-draw') as HTMLButtonElement).disabled = revealing || dealing || !lg.draw;
-    ($('xd-stand') as HTMLButtonElement).disabled = revealing || dealing || !lg.stand;
+    ($('xd-draw') as HTMLButtonElement).disabled = revealing || dealing || sent || lost || !lg.draw;
+    ($('xd-stand') as HTMLButtonElement).disabled = revealing || dealing || sent || lost || !lg.stand;
     $('xd-stand').textContent = me === x.dealer ? T.standAll : T.stand;
     $('xd-draw').hidden = done; $('xd-stand').hidden = done;
     $('xd-next').hidden = !done;
     $('xd-nextbet').hidden = !(done && me !== x.dealer && chips[me] > 0);
     $('xd-next').textContent = chips[me] <= 0 ? T.reset : T.again;
+    ($('xd-next') as HTMLButtonElement).disabled = false;
+    if (net) {
+      // online: giữa hai ván là lúc đặt cược
+      const betting = net.phase === 'bet' && !revealing && !dealing, mine = betting && me !== net.dealer;
+      $('xd-next').hidden = !mine;
+      $('xd-nextbet').hidden = !mine;
+      ($('xd-next') as HTMLButtonElement).disabled = lost || sent;
+      $('xd-next').textContent = net.bets[me] ? `✅ ${fmt(T.betDone, { b: net.bets[me] })}` : T.betBtn;
+      $('xd-draw').hidden = net.phase === 'bet'; $('xd-stand').hidden = net.phase === 'bet';
+    }
+    $('xd-hostbar').hidden = !(ctl?.kind === 'host' && net?.phase === 'bet' && !revealing && !dealing);
+    if (net && !$('xd-hostbar').hidden) {
+      const sel = $('xd-dealersel') as HTMLSelectElement;
+      const html = net.slots.map((p, i) => `<option value="${i}">${nameOf(i)}${p.human ? '' : ' (' + T.botTag + ')'}</option>`).join('');
+      if (sel.dataset.html !== html) { sel.innerHTML = html; sel.dataset.html = html; }
+      sel.value = String(net.dealer);
+    }
     $('xd-stats').textContent = fmt(T.stats, { r: stats.r, w: stats.w });
   }
 
@@ -275,7 +327,7 @@ const T = {
     if (g !== gen) return;
     dealing = false;
     seen = x.hands.map((h) => h.length);
-    step();
+    resume();
   }
 
   function confetti() {
@@ -290,8 +342,11 @@ const T = {
   function finishRound() {
     if (!st || st.phase !== 'done' || counted) return;
     counted = true;
-    st.deltas = capDeltas(st.deltas, chips, st.dealer);
-    st.deltas.forEach((d, i) => { chips[i] += d; });
+    if (net) chips = net.chips.slice(); // chủ phòng đã tính tiền
+    else {
+      st.deltas = capDeltas(st.deltas, chips, st.dealer);
+      st.deltas.forEach((d, i) => { chips[i] += d; });
+    }
     stats.r++; if (st.deltas[me] > 0) stats.w++;
     try { localStorage.setItem('xidach-stats', JSON.stringify(stats)); } catch {}
     sfx.play(st.deltas[me] > 0 ? 'win' : st.deltas[me] < 0 ? 'lose' : 'click');
@@ -412,8 +467,10 @@ const T = {
     }
     $('xd-reveal').hidden = true;
     revealing = false;
-    step();
+    resume();
   }
+  // xong hiệu ứng: online thì lấy trạng thái mới nhất (đã giữ lại trong lúc đang xem), chơi với máy thì đi tiếp
+  const resume = () => (net ? applyNet() : step());
 
   // Sau mỗi hành động: xét bài (nếu có), vẽ lại, rồi cho máy đánh nếu đến lượt máy
   function step() {
@@ -427,7 +484,7 @@ const T = {
     if (toReveal.length) { void runReveals(toReveal); return; }
     finishRound();
     render();
-    if (x.phase === 'done' || x.turn === me) return;
+    if (net || x.phase === 'done' || x.turn === me) return; // online: chủ phòng điều khiển máy
     timer = window.setTimeout(() => {
       if (!st || st.phase === 'done' || revealing) return;
       const seat = st.turn;
@@ -443,6 +500,7 @@ const T = {
     if (role === 'player' && badBet) { badBet.focus(); return; }
     $('xd-betnote').textContent = '';
     const n = opp + 1;
+    me = 0; net = null; ctl = null;
     if (chips.length !== n || chips[me] <= 0) chips = new Array(n).fill(1000);
     for (let i = 1; i < n; i++) if (chips[i] <= 0) chips[i] = 1000;
     const dealer = role === 'dealer' ? me : 1;
@@ -457,19 +515,207 @@ const T = {
     if (still()) { sfx.play('flip'); step(); } else void dealAnimated();
   }
 
+  // ---------- online ----------
+  const ROOM_KEY = 'xd-room';
+  const store = (k: string, v: string | null) => { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch {} };
+  const read = (k: string) => { try { return localStorage.getItem(k) || ''; } catch { return ''; } };
+  const nameIn = $('xd-name') as HTMLInputElement, codeIn = $('xd-code') as HTMLInputElement;
+  nameIn.value = read('xd-name') || read('tl-name');
+  const myName = () => { const n = sanitizeName(nameIn.value, T.defName); store('xd-name', nameIn.value.trim()); return n; };
+  const setErr = (r: string) => { $('xd-err').textContent = r ? T.errs[r] || (r === 'connecting' ? T.connecting : T.errs.network) : ''; };
+  const peers = () => new FirebaseTransport();
+
+  const show = (view: 'setup' | 'lobby' | 'game') => { $('xd-setup').hidden = view !== 'setup'; $('xd-lobby').hidden = view !== 'lobby'; $('xd-game').hidden = view !== 'game'; };
+  function resetTable() {
+    clearTimeout(timer); gen++; revealing = false; dealing = false; shuffling = false; clearFlying(); st = null;
+    revealed = new Set(); dealerShown = false; counted = false; seen = [];
+    $('xd-nextbet').hidden = true; $('xd-hostbar').hidden = true; $('xd-betnote').textContent = ''; $('xd-reveal').hidden = true; $('xd-roomline').hidden = true; $('xd-deckpile').classList.remove('shuffle');
+  }
+  // chat và biểu cảm trong phòng
+  let chat: ChatBox | null = null;
+  const closeChat = () => { chat?.destroy(); chat = null; };
+  function hostChat(room: { say(t: string): void; onChat: any }) {
+    closeChat();
+    chat = mountChat((document.documentElement.lang.startsWith('en') ? 'en' : 'vi'), (t) => room.say(t));
+    room.onChat = (m: any) => chat?.add(m, m.slot === 0);
+  }
+  function guestChat(rc: { say(t: string): void; onChat: any }, slot: number) {
+    closeChat();
+    chat = mountChat((document.documentElement.lang.startsWith('en') ? 'en' : 'vi'), (t) => rc.say(t));
+    rc.onChat = (m: any) => chat?.add(m, m.slot === slot);
+  }
+
+  function toMenu(err = '') {
+    closeChat();
+    resetTable();
+    net = null; ctl = null; me = 0; chips = []; lastRound = null; sent = false; deadline = 0; lost = false;
+    show('setup'); setErr(err);
+  }
+  function leaveRoom(err = '') {
+    const c = ctl;
+    ctl = null;
+    store(ROOM_KEY, null);
+    try { if (c?.kind === 'host') c.host.close(); else c?.client.leave(); } catch {}
+    toMenu(err);
+  }
+
+  function countdown() {
+    if (!net || !deadline || revealing || dealing) return '';
+    const left = Math.ceil((deadline - Date.now()) / 1000);
+    return left > 0 && left <= 30 ? ` · ${left}s` : '';
+  }
+  setInterval(() => { if (net && st && deadline && !revealing && !dealing) $('xd-status').textContent = statusText() + countdown(); }, 500);
+
+  function onState(s: XDNetState) {
+    if (!ctl) return;
+    net = s; sent = false; lost = false;
+    deadline = s.turnMs ? Date.now() + s.turnMs : 0;
+    applyNet();
+  }
+  const blank = (s: XDNetState): XDState => {
+    const n = s.settings.n;
+    return { n, dealer: s.dealer, hands: Array.from({ length: n }, () => []), deck: new Array(52).fill(-1), bets: new Array(n).fill(0), stood: new Array(n).fill(false), settled: new Array(n).fill(null), turn: s.dealer, phase: 'done', deltas: new Array(n).fill(0) };
+  };
+  function applyNet() {
+    const s = net;
+    if (!s) return;
+    if (s.phase === 'lobby') { resetTable(); lastRound = null; show('lobby'); renderLobby(); return; }
+    if (revealing || dealing) return; // đang xem hiệu ứng: để sau, resume() sẽ gọi lại
+    const entering = $('xd-game').hidden;
+    show('game');
+    me = s.mySlot;
+    $('xd-roomline').hidden = false; $('xd-roomline').textContent = `${T.roomCode}: ${s.code}`;
+    // chưa có ván, hoặc vừa đổi cái: bàn trống
+    const empty = !s.view || (s.phase === 'bet' && s.view.dealer !== s.dealer);
+    const view = empty ? blank(s) : s.view!;
+    const newDeal = lastRound !== null && s.round !== lastRound && !empty;
+    if (s.round !== lastRound) {
+      const first = lastRound === null;
+      lastRound = s.round; gen++; revealed = new Set(); dealerShown = false; counted = false; seen = []; clearFlying();
+      if (first && !empty) { // vào giữa chừng (tải lại trang): bài đã xét thì không lật lại
+        view.settled.forEach((r, i) => { if (r) revealed.add(i); });
+        dealerShown = view.settled.some((r) => !!r && r.player.kind !== 'xibang' && r.player.kind !== 'xidach');
+        counted = view.phase === 'done';
+        seen = view.hands.map((h) => h.length);
+      }
+    }
+    if (empty) counted = true;
+    st = view;
+    // hết ván mà chưa lật xong thì giữ số chip cũ, finishRound sẽ cập nhật
+    if (chips.length !== s.settings.n || view.phase !== 'done' || counted) chips = s.chips.slice();
+    if (entering && window.matchMedia('(max-width: 900px)').matches) $('xd-game').scrollIntoView({ block: 'start', behavior: 'instant' as ScrollBehavior });
+    if (newDeal && !still()) void dealAnimated(); else step();
+  }
+
+  function renderLobby() {
+    const s = net!, host = ctl?.kind === 'host', el = $('xd-lobby');
+    me = s.mySlot;
+    const list = s.slots.map((p, i) => `<li><span class="xd-av" style="--c:${COLORS[i % COLORS.length]}">${[...(p.human ? p.name : '🤖')][0]}</span><b>${p.human ? p.name : T.botTag}</b>${i === me ? `<em>${T.you}</em>` : ''}${p.host ? `<em>👑 ${T.hostTag}</em>` : ''}${p.human && !p.online ? `<em>${T.offTag}</em>` : ''}</li>`).join('');
+    el.innerHTML = `<div class="xd-codebox"><small>${T.roomCode}</small><b id="xd-bigcode">${s.code}</b><div class="bd-row"><button type="button" class="btn sm" data-copy="code">${T.copyCode}</button><button type="button" class="btn sm" data-copy="link">${T.copyLink}</button></div></div>
+      ${host ? `<h2 class="bd-h">${T.seats}</h2><div class="bd-row">${[2, 3, 4, 5, 6, 7, 8].map((n) => `<button type="button" class="bd-opt${n === s.settings.n ? ' sel' : ''}" data-seats="${n}">${n}</button>`).join('')}</div><p><label><input type="checkbox" id="xd-timer"${s.settings.timer ? ' checked' : ''}> ${T.timer}</label></p>` : ''}
+      <ul class="xd-plist">${list}</ul>
+      <p class="bd-row">${host ? `<button type="button" class="btn" id="xd-start">${T.startRoom}</button>` : `<span class="meta">${T.waitHost}</span>`}<button type="button" class="btn ghost" id="xd-leave">${T.leave}</button></p>`;
+  }
+  $('xd-lobby').addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest('button'); if (!b || !net) return;
+    if (b.dataset.copy) {
+      const text = b.dataset.copy === 'code' ? net.code : `${location.origin}${location.pathname}?room=${net.code}`;
+      navigator.clipboard?.writeText(text).then(() => { b.textContent = T.copied; }).catch(() => {});
+    } else if (b.dataset.seats && ctl?.kind === 'host') ctl.host.setSettings({ n: Number(b.dataset.seats) });
+    else if (b.id === 'xd-start' && ctl?.kind === 'host') { sfx.play('click'); ctl.host.start(); }
+    else if (b.id === 'xd-leave') leaveRoom();
+  });
+  $('xd-lobby').addEventListener('change', (e) => { const el = e.target as HTMLInputElement; if (el.id === 'xd-timer' && ctl?.kind === 'host') ctl.host.setSettings({ timer: el.checked }); });
+
+  let busy = false;
+  const setBusy = (on: boolean) => { busy = on; ($('xd-create') as HTMLButtonElement).disabled = on; ($('xd-join') as HTMLButtonElement).disabled = on; };
+  async function createRoom() {
+    if (busy) return;
+    setBusy(true); setErr('connecting'); resetTable(); chips = []; lastRound = null;
+    try {
+      const pending: XDNetState[] = [];
+      const host = await XDNetHost.create(peers, myName(), (s) => { if (ctl?.kind === 'host') onState(s); else pending.push(s); });
+      ctl = { kind: 'host', host }; setErr('');
+      hostChat(host.room);
+      const lastState = pending[pending.length - 1];
+      if (lastState) onState(lastState);
+    } catch { setErr('network'); }
+    setBusy(false);
+  }
+  async function joinRoom(codeRaw: string, name: string, token = '') {
+    const code = normCode(codeRaw);
+    if (busy) return;
+    if (!validCode(code)) { setErr('badcode'); return; }
+    setBusy(true); setErr('connecting'); resetTable(); chips = []; lastRound = null;
+    const client: XDNetClient = new XDNetClient(peers, {
+      onState: (s) => onState(s),
+      onStatus: (x) => { lost = x === 'lost'; if (net && st) $('xd-status').textContent = statusText(); },
+      onClosed: (r) => { if (ctl?.kind === 'client' && ctl.client === client) { store(ROOM_KEY, null); ctl = null; toMenu(r); } },
+    });
+    ctl = { kind: 'client', client };
+    try {
+      const info = await client.join(code, name, token);
+      store(ROOM_KEY, JSON.stringify({ code, token: info.token, name, at: Date.now() }));
+      guestChat(client.rc, info.slot);
+      setErr('');
+    } catch (e) {
+      ctl = null; store(ROOM_KEY, null);
+      setErr(e instanceof RoomError ? e.reason : 'network');
+    }
+    setBusy(false);
+  }
+  $('xd-create').addEventListener('click', () => { sfx.play('click'); void createRoom(); });
+  $('xd-join').addEventListener('click', () => { sfx.play('click'); void joinRoom(codeIn.value, myName()); });
+  codeIn.addEventListener('input', () => { codeIn.value = normCode(codeIn.value); });
+  window.addEventListener('pagehide', () => { if (ctl?.kind === 'host') { try { ctl.host.close(); } catch {} } });
+  // link mời ?room=MÃ, hoặc tải lại trang khi đang trong phòng của người khác
+  const invite = normCode(new URLSearchParams(location.search).get('room') || '');
+  if (invite) codeIn.value = invite;
+  try {
+    const saved = JSON.parse(read(ROOM_KEY) || 'null');
+    if (saved && saved.code && saved.token && Date.now() - saved.at < 30 * 60 * 1000 && (!invite || invite === saved.code)) void joinRoom(saved.code, saved.name, saved.token);
+  } catch {}
+
+  // ---------- nút ----------
+  const send = (p: any) => {
+    if (!ctl || sent) return;
+    if (ctl.kind === 'host') ctl.host.send(p);
+    else { sent = true; ctl.client.send(p); if (st) render(); } // khóa nút tới khi chủ phòng trả lời
+  };
   $('xd-deal').addEventListener('click', newRound);
-  $('xd-next').addEventListener('click', newRound);
-  $('xd-draw').addEventListener('click', () => { if (st && !revealing && !dealing && draw(st, me)) { sfx.play('flip'); step(); } });
-  $('xd-stand').addEventListener('click', () => { if (st && !revealing && !dealing && stand(st, me)) { sfx.play('click'); step(); } });
-  $('xd-menu').addEventListener('click', () => { clearTimeout(timer); gen++; revealing = false; dealing = false; shuffling = false; clearFlying(); st = null; $('xd-nextbet').hidden = true; $('xd-betnote').textContent = ''; $('xd-reveal').hidden = true; $('xd-game').hidden = true; $('xd-setup').hidden = false; });
+  $('xd-next').addEventListener('click', () => {
+    if (!net) return newRound();
+    const bad = betInputs().find((i) => i.classList.contains('bad') && i.offsetParent);
+    if (bad) { bad.focus(); return; }
+    sfx.play('click');
+    send({ type: 'bet', amount: bet });
+  });
+  $('xd-draw').addEventListener('click', () => {
+    if (!st || revealing || dealing) return;
+    if (net) { sfx.play('flip'); send({ type: 'draw' }); }
+    else if (draw(st, me)) { sfx.play('flip'); step(); }
+  });
+  $('xd-stand').addEventListener('click', () => {
+    if (!st || revealing || dealing) return;
+    if (net) { sfx.play('click'); send({ type: 'stand' }); }
+    else if (stand(st, me)) { sfx.play('click'); step(); }
+  });
+  $('xd-hostdeal').addEventListener('click', () => { sfx.play('click'); send({ type: 'deal' }); });
+  $('xd-dealersel').addEventListener('change', (e) => send({ type: 'dealer', slot: Number((e.target as HTMLSelectElement).value) }));
+  $('xd-menu').addEventListener('click', () => {
+    if (ctl) { if (confirm(T.leaveConfirm)) leaveRoom(); return; }
+    toMenu();
+  });
   $('xd-seats').addEventListener('click', (e) => {
     const b = (e.target as HTMLElement).closest<HTMLElement>('[data-check]');
-    if (b && st && !revealing && !dealing && check(st, Number(b.dataset.check))) { sfx.play('click'); step(); }
+    if (!b || !st || revealing || dealing) return;
+    if (net) { sfx.play('click'); send({ type: 'check', target: Number(b.dataset.check) }); }
+    else if (check(st, Number(b.dataset.check))) { sfx.play('click'); step(); }
   });
   mountMute($('xd-actions'));
   $('xd-stats').textContent = fmt(T.stats, { r: stats.r, w: stats.w });
   // dùng cho kiểm thử tự động
-  if (location.hash === '#debug') (window as any).__xd = { get st() { return st; }, get chips() { return chips; }, get revealing() { return revealing; }, newRound, setFast: (f: boolean) => { fast = f; } };
+  if (location.hash === '#debug') (window as any).__xd = { get net() { return net; }, get ctl() { return ctl; }, send, get st() { return st; }, get chips() { return chips; }, get revealing() { return revealing; }, newRound, setFast: (f: boolean) => { fast = f; } };
 </script>
 
 <style is:global>
@@ -564,6 +810,20 @@ const T = {
   .xd-rresult.w { color: #69db7c; animation: xdPop .35s both; } .xd-rresult.l { color: #ff8787; animation: xdPop .35s both; } .xd-rresult.d { color: #ced4da; }
   .xd-rbtns { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; } .xd-rbtns .btn { min-height: 40px; }
   .xd-rbtns .btn.ghost { color: #fff; }
+  .xd-online { margin-top: 22px; padding-top: 6px; border-top: 1px solid #8884; }
+  .xd-input { min-height: 44px; padding: 6px 12px; border-radius: 10px; border: 1px solid #8886; background: var(--bg); color: inherit; font: inherit; max-width: 100%; }
+  .xd-codein { width: 150px; text-transform: uppercase; letter-spacing: .25em; font-weight: 800; text-align: center; }
+  .xd-err { margin: 4px 0; color: #e8590c; font-weight: 700; } .xd-err:empty { display: none; }
+  .xd-lobby[hidden], .xd-hostbar[hidden], .xd-roomline[hidden] { display: none; }
+  .xd-codebox { display: inline-flex; flex-direction: column; gap: 6px; padding: 14px 18px; border-radius: 16px; background: linear-gradient(160deg, #16342a, #0b1f18); color: #fff; border: 2px solid #d9a441; }
+  .xd-codebox b { font-size: 2.4rem; letter-spacing: .3em; color: #ffe066; }
+  .xd-codebox .btn { color: #fff; }
+  .xd-plist { list-style: none; padding: 0; display: grid; gap: 6px; max-width: 420px; }
+  .xd-plist li { display: flex; align-items: center; gap: 8px; margin: 0; padding: 7px 10px; border-radius: 12px; border: 1px solid #8884; }
+  .xd-plist li em { font-style: normal; font-size: .78rem; opacity: .75; }
+  .xd-plist .xd-av { color: #fff; }
+  .xd-roomline { margin: 0 0 8px; text-align: center; font-weight: 800; letter-spacing: .08em; font-size: .9rem; }
+  .xd-hostbar { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px; margin-top: 10px; font-weight: 700; }
   .xd-conf { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 12; }
   .xd-conf i { position: absolute; top: -12px; width: 9px; height: 14px; border-radius: 2px; animation: xdFall 1.9s linear forwards; }
   @keyframes xdFall { to { top: 105%; transform: rotate(540deg); } }

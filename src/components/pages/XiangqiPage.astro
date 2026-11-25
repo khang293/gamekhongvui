@@ -89,6 +89,8 @@ for (const [r, c] of MARK_PTS) {
 <script>
   import { startBoard, legalMoves, make, inCheck, kingSq, mvFrom, mvTo, botMove } from '../../data/xiangqiEngine';
   import { sfx, mountMute } from '../../data/sfx';
+  import { mountDuel } from '../../data/net/duelUi';
+  import { mySide, myTurn, type DuelState } from '../../data/net/duel';
 
   const root = document.getElementById('xq') as HTMLElement;
   const ui = JSON.parse(root.dataset.ui || '{}');
@@ -114,6 +116,7 @@ for (const [r, c] of MARK_PTS) {
   let over = '';
   let gid = 0; // đánh dấu ván để bỏ kết quả của máy nghĩ cho ván cũ
   let thinking = false;
+  let net: DuelState | null = null; // khác null: đang chơi online
   let stats = { w: 0, d: 0, l: 0 };
   try { const s = JSON.parse(localStorage.getItem('xq-stats') || 'null'); if (s) stats = { ...stats, ...s }; } catch {}
 
@@ -164,7 +167,7 @@ for (const [r, c] of MARK_PTS) {
     }
     const diff = score - own;
     const col = side > 0 ? ui.red : ui.black;
-    const name = mode === 'bot' ? `${side === human ? ui.you : ui.bot} · ${col}` : col;
+    const name = net ? `${net.names[(side === 1 ? 0 : 1) === net.hostSide ? 0 : 1]} · ${col}` : mode === 'bot' ? `${side === human ? ui.you : ui.bot} · ${col}` : col;
     const on = !over && turn === side;
     el.className = 'xq-player' + (on ? ' on' : '') + (side > 0 ? ' red' : ' blk');
     el.innerHTML = `<span class="xq-av ${side > 0 ? 'r' : 'b'}">${side > 0 ? CH[1] : CH[-1]}</span><b>${name}</b>${on && thinking && mode === 'bot' && side !== human ? '<span class="xq-dots"><i></i><i></i><i></i></span>' : ''}<span class="xq-caps">${html}</span>${diff > 0 ? `<em>+${diff}</em>` : ''}`;
@@ -177,7 +180,7 @@ for (const [r, c] of MARK_PTS) {
     }
     return h;
   }
-  const flip = () => mode === 'bot' && human === -1;
+  const flip = () => (net ? mySide(net) === 1 : mode === 'bot' && human === -1);
   function render(anim?: { from: number; to: number; cap: number }) {
     const f = flip();
     const chk = !over && inCheck(b, turn);
@@ -206,12 +209,13 @@ for (const [r, c] of MARK_PTS) {
     for (const t of targets) if (!b[t]) html += `<i class="xq-dot" style="${pos(t)}"></i>`;
     layer.innerHTML = html;
     renderCoords(f);
-    const celebrate = !!over && (mode === 'two' || over === ui.mateWin);
+    const celebrate = !!over && (net ? net.winner === mySide(net) : mode === 'two' || over === ui.mateWin);
     overEl.innerHTML = over ? `<span>${over}</span>${celebrate ? confetti() : ''}` : '';
     overEl.classList.toggle('show', !!over);
     playerBar(document.getElementById('xq-ptop') as HTMLElement, f ? 1 : -1);
     playerBar(document.getElementById('xq-pbot') as HTMLElement, f ? -1 : 1);
 
+    statusEl.hidden = !!net;
     if (over) { statusEl.textContent = over; statusEl.classList.add('done'); }
     else {
       statusEl.classList.remove('done');
@@ -244,6 +248,7 @@ for (const [r, c] of MARK_PTS) {
   }
 
   function play(m: number) {
+    if (net) { duel.move(m); sel = -1; targets = []; render(); return; } // online: chủ phòng kiểm tra rồi gửi lại
     hist.push({ b: b.slice() as Int8Array, turn, last, since });
     const cap = make(b, m);
     last = m; turn = -turn; sel = -1; targets = [];
@@ -268,7 +273,7 @@ for (const [r, c] of MARK_PTS) {
   }
 
   boardEl.addEventListener('pointerdown', (e) => {
-    if (over || thinking || (mode === 'bot' && turn !== human)) return;
+    if (over || thinking || (net ? !myTurn(net) : mode === 'bot' && turn !== human)) return;
     const rect = boardEl.getBoundingClientRect();
     let c = Math.floor(((e.clientX - rect.left) / rect.width) * 9);
     let r = Math.floor(((e.clientY - rect.top) / rect.height) * 10);
@@ -296,6 +301,39 @@ for (const [r, c] of MARK_PTS) {
     gid++; thinking = false;
     gameEl.hidden = true; menu.hidden = false; paintStat();
   }
+
+  // ---------- chơi online ----------
+  const actions = gameEl.querySelector('.bd-actions') as HTMLElement;
+  let shown = { round: 0, ply: -1 };
+  function showOnline(s: DuelState, result: string) {
+    const ply = s.moves.length;
+    const fresh = s.round === shown.round && ply === shown.ply + 1;
+    const changed = s.round !== shown.round || ply !== shown.ply;
+    shown = { round: s.round, ply };
+    net = s; over = result; thinking = false; gid++;
+    let anim: { from: number; to: number; cap: number } | undefined;
+    if (changed) {
+      b = startBoard(); turn = 1; last = -1; sel = -1; targets = [];
+      (s.moves as number[]).forEach((m, k) => {
+        const cap = make(b, m);
+        last = m; turn = -turn;
+        if (fresh && k === ply - 1) {
+          anim = { from: mvFrom(m), to: mvTo(m), cap };
+          sfx.play(cap ? 'capture' : 'move');
+          if (!result && inCheck(b, turn)) sfx.play('check');
+        }
+      });
+    }
+    if (result) { sel = -1; targets = []; }
+    if (result && (fresh || s.reason === 'resign')) sfx.play(s.winner === mySide(s) ? 'win' : s.winner === -1 ? 'pop' : 'lose');
+    render(anim);
+  }
+  const duel = mountDuel({
+    game: 'xiangqi', lang: (document.documentElement.lang.startsWith('en') ? 'en' : 'vi'), menu, board: gameEl, settings: () => ({ size: 15 }),
+    onEnter: () => { gid++; menu.hidden = true; gameEl.hidden = false; actions.hidden = true; shown = { round: 0, ply: -1 }; },
+    onState: showOnline,
+    onExit: () => { net = null; over = ''; gid++; actions.hidden = false; gameEl.hidden = true; menu.hidden = false; paintStat(); },
+  });
 
   function pick(attr: string, cb: (v: string) => void) {
     document.querySelectorAll<HTMLElement>(`#xq-menu [data-${attr}]`).forEach((btn) => btn.addEventListener('click', () => {
@@ -330,7 +368,7 @@ for (const [r, c] of MARK_PTS) {
   });
 
   paintStat();
-  if (location.hash === '#debug') (window as any).__xq = { get b() { return b; }, get turn() { return turn; }, get st() { return JSON.stringify({ human, thinking, sel, over, mode, level, sideSel }); }, play, newGame, legalMoves: () => legalMoves(b, turn) };
+  if (location.hash === '#debug') (window as any).__xq = { get b() { return b; }, get turn() { return turn; }, get st() { return JSON.stringify({ human, thinking, sel, over, mode, level, sideSel }); }, play, newGame, legalMoves: () => legalMoves(b, turn), duel };
 </script>
 
 <style is:global>

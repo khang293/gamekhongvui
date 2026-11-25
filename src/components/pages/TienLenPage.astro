@@ -362,6 +362,7 @@ const MODE_KEYS = ['chips', 'single', 'points'];
   import { chopValue, chopKind } from '../../data/tienlenScore';
   import { TLGame, TLNetHost, TLNetClient, TURN_MS, type NetState, type ResItem } from '../../data/tienlenNet';
   import { FirebaseTransport } from '../../data/net/firebaseTransport';
+  import { mountChat, type ChatBox } from '../../data/net/chatUi';
   import { LoopbackHub } from '../../data/net/loopbackTransport';
   import { normCode, validCode, sanitizeName, escapeHtml as esc, realClock, RoomError, type RejectReason } from '../../data/net/room';
   import type { Transport } from '../../data/net/transport';
@@ -1030,7 +1031,22 @@ const MODE_KEYS = ['chips', 'single', 'points'];
   window.addEventListener('orientationchange', () => setTimeout(() => { if (inGame && ns?.view) layoutHand(); }, 250));
 
   // ---------- Thoát / dọn dẹp ----------
+  // chat và biểu cảm trong phòng
+  let chat: ChatBox | null = null;
+  const closeChat = () => { chat?.destroy(); chat = null; };
+  function hostChat(room: { say(t: string): void; onChat: any }) {
+    closeChat();
+    chat = mountChat((document.documentElement.lang.startsWith('en') ? 'en' : 'vi'), (t) => room.say(t));
+    room.onChat = (m: any) => chat?.add(m, m.slot === 0);
+  }
+  function guestChat(rc: { say(t: string): void; onChat: any }, slot: number) {
+    closeChat();
+    chat = mountChat((document.documentElement.lang.startsWith('en') ? 'en' : 'vi'), (t) => rc.say(t));
+    rc.onChat = (m: any) => chat?.add(m, m.slot === slot);
+  }
+
   function teardown() {
+    closeChat();
     const c = ctl; ctl = null; ns = null;
     try { if (c?.kind === 'host') c.host.close(); else if (c?.kind === 'client') c.client.leave(); } catch {}
     shownResultKey = ''; lastEv = 0; lastHand = -1; lastHandKey = ''; lastCur = -1; prevStacks = []; prevTotals = []; countedHand = ''; countedOver = ''; sel = new Set();
@@ -1090,6 +1106,7 @@ const MODE_KEYS = ['chips', 'single', 'points'];
       teardown();
       const host = await TLNetHost.create(hub ? () => hub!.create() : peerFactory, realClock, name, (s) => { if (ctl && ctl.kind === 'host' && ctl.host === host) onState(s); }, { botNames: T.bots, botMs: fast ? [0, 0] : [600, 1300] });
       ctl = { kind: 'host', host };
+      hostChat(host.room);
       host.setSettings({ n: 4, mode: 'chips', stack: 1000, unit: 10, level: 2, timer: true });
       host.publish();
     } catch (e) { setErr('tl-err-c', T.errs.create); }
@@ -1114,6 +1131,7 @@ const MODE_KEYS = ['chips', 'single', 'points'];
     try {
       const info = await client.join(code, name, token);
       saveRoom({ code, token: info.token, name });
+      guestChat(client.rc, info.slot);
       btn.disabled = false; btn.textContent = label;
       return true;
     } catch (e) {
@@ -1128,7 +1146,7 @@ const MODE_KEYS = ['chips', 'single', 'points'];
   ($('tl-code') as HTMLInputElement).addEventListener('input', (e) => { const el = e.target as HTMLInputElement; el.value = normCode(el.value); });
 
   function roomClosed(reason: RejectReason) {
-    saveRoom(null);
+    saveRoom(null); closeChat();
     const msg = errText(reason === 'closed' ? 'closed' : reason);
     if (!inGame) { // đang ở phòng chờ
       showView('home'); const el = $('tl-rejoin'); el.textContent = msg; el.hidden = false; return;
