@@ -101,6 +101,7 @@ export function cleanChat(s: unknown): string {
 export interface Member {
   slot: number; name: string; token: string; peerId: string | null;
   online: boolean; lastSeen: number; offlineSince: number; local: boolean;
+  left?: boolean; // đã bấm rời giữa ván, ghế còn giữ cho họ
 }
 export interface HostHooks {
   /** 'ok' khi còn cho vào (sảnh), 'started' khi ván đã bắt đầu (chỉ người cũ có token được nối lại) */
@@ -111,6 +112,10 @@ export interface HostHooks {
   onOnline(m: Member, online: boolean): void;
   onLeave(m: Member, why: 'left' | 'kicked'): void;
   onIntent(m: Member, payload: any): void;
+  /** có giữ ghế cho người bấm rời không; mặc định: giữ khi ván đã bắt đầu */
+  keepSeat?(): boolean;
+  /** người đó vừa rời nhưng còn giữ ghế (máy đánh thay ngay) */
+  onAway?(m: Member): void;
 }
 export interface HostOpts {
   code: string; hostName: string; clock?: Clock; maxSlots?: number;
@@ -196,7 +201,7 @@ export class RoomHost {
       case 'hello': return this.onHello(from, e);
       case 'ping': if (m) this.tr.send(from, enc('pong')); return;
       case 'pong': return;
-      case 'bye': if (m) this.removeMember(m, 'left'); return;
+      case 'bye': if (m) this.bye(m); return;
       case 'g': if (m) this.hooks.onIntent(m, e.p); return;
       case 'chat': if (m) this.chat(m, e.text); return;
       default: return; // khách không được gửi welcome/reject/closed
@@ -213,16 +218,22 @@ export class RoomHost {
     if (old) {
       if (old.peerId && old.peerId !== from) { const op = old.peerId; this.byPeer.delete(op); old.peerId = null; this.tr.disconnect(op); }
       this.pending.get(from)?.(); this.pending.delete(from);
-      old.peerId = from; old.lastSeen = this.clock.now(); this.byPeer.set(from, old);
+      old.peerId = from; old.lastSeen = this.clock.now(); old.left = false; this.byPeer.set(from, old);
       this.tr.send(from, enc('welcome', { slot: old.slot, token: old.token, code: this.code, name: old.name, reconnect: true }));
       this.setOnline(old, true);
       this.hooks.onJoin(old, true);
       return;
     }
     if (this.hooks.canJoin() !== 'ok') return this.reject(from, 'started');
-    const used = new Set(this.members.map((x) => x.slot));
-    let slot = -1;
-    for (let i = 0; i < Math.min(this.maxSlots, this.hooks.limit()); i++) if (!used.has(i)) { slot = i; break; }
+    const free = () => {
+      const used = new Set(this.members.map((x) => x.slot));
+      for (let i = 0; i < Math.min(this.maxSlots, this.hooks.limit()); i++) if (!used.has(i)) return i;
+      return -1;
+    };
+    let slot = free();
+    // hết chỗ: người mới được lấy ghế của người đã rời hẳn
+    const gone = slot < 0 ? this.members.find((x) => x.left && !x.online) : undefined;
+    if (gone) { this.removeMember(gone, 'left'); slot = free(); }
     if (slot < 0) return this.reject(from, 'full');
     this.pending.get(from)?.(); this.pending.delete(from);
     const nm: Member = { slot, name, token: newToken(), peerId: from, online: true, lastSeen: this.clock.now(), offlineSince: 0, local: false };
@@ -231,9 +242,22 @@ export class RoomHost {
     this.hooks.onJoin(nm, false);
   }
 
+  private keeps(): boolean { return this.hooks.keepSeat ? this.hooks.keepSeat() : this.hooks.canJoin() === 'started'; }
+  /** Khách bấm rời: giữa ván thì giữ ghế để họ vào lại bằng mã phòng, còn không thì xóa. */
+  private bye(m: Member) {
+    if (!this.keeps()) return this.removeMember(m, 'left');
+    const p = m.peerId;
+    if (p) { this.byPeer.delete(p); m.peerId = null; this.clock.after(() => this.tr.disconnect(p), 300); }
+    m.left = true;
+    m.online = false; m.offlineSince = this.clock.now();
+    if (this.hooks.onAway) this.hooks.onAway(m); else this.hooks.onOnline(m, false);
+  }
+
   private beat() {
     if (this.closed) return;
     const t = this.clock.now();
+    // ván đã xong, về phòng chờ: bỏ ghế của người đã rời
+    if (!this.keeps()) for (const m of [...this.members]) if (m.left && !m.online) this.removeMember(m, 'left');
     for (const m of [...this.members]) {
       if (m.local || !m.peerId) continue;
       if (t - m.lastSeen > this.timeoutMs) { const p = m.peerId; this.tr.disconnect(p); this.peerLeave(p); continue; }
@@ -296,6 +320,15 @@ export interface ClientHooks {
 }
 export interface JoinInfo { slot: number; token: string; code: string; name: string; reconnect: boolean }
 
+// Mã ghế nhớ theo mã phòng: chỉ ghi khi rời, mất mạng hay đóng trang, để nhập lại mã là về đúng ghế.
+// (Không ghi lúc đang chơi, nên mở tab thứ hai cùng trình duyệt không giành ghế của tab đầu.)
+const seatKey = (code: string) => 'gkv-seat:' + code;
+const seatStore = {
+  get(code: string): string { try { return localStorage.getItem(seatKey(code)) || ''; } catch { return ''; } },
+  set(code: string, token: string) { try { localStorage.setItem(seatKey(code), token); } catch {} },
+  drop(code: string) { try { localStorage.removeItem(seatKey(code)); } catch {} },
+};
+
 export class RoomClient {
   status: 'idle' | 'connecting' | 'online' | 'lost' | 'closed' = 'idle';
   info: JoinInfo | null = null;
@@ -307,6 +340,8 @@ export class RoomClient {
   private stopBeat: (() => void) | null = null;
   private recoTimer: (() => void) | null = null;
   private lostAt = 0;
+  private code = '';
+  private readonly remember = () => { if (this.info?.token && this.code) seatStore.set(this.code, this.info.token); };
 
   constructor(private factory: () => Transport, private hooks: ClientHooks, private clock: Clock = realClock, private opts: { heartbeatMs?: number; timeoutMs?: number; graceMs?: number; retryMs?: number; connectMs?: number } = {}) {}
   private get timeoutMs() { return this.opts.timeoutMs ?? 15000; }
@@ -315,10 +350,12 @@ export class RoomClient {
   /** Nối vào phòng. Có token cũ thì xin lại đúng ghế. Reject bằng RoomError. */
   async join(code: string, name: string, token = ''): Promise<JoinInfo> {
     this.status = 'connecting';
-    this.hostId = peerIdOf(code); this.myName = sanitizeName(name);
+    this.hostId = peerIdOf(code); this.myName = sanitizeName(name); this.code = code;
     try {
-      const info = await this.attempt(token);
+      const info = await this.attempt(token || seatStore.get(code));
       this.info = info;
+      seatStore.drop(code);
+      if (typeof window !== 'undefined') window.addEventListener('pagehide', this.remember);
       this.status = 'online';
       this.lastHostMsg = this.clock.now();
       this.stopBeat = this.clock.every(() => this.beat(), this.opts.heartbeatMs ?? 5000);
@@ -417,13 +454,19 @@ export class RoomClient {
     if (this.status === 'closed') return;
     this.status = 'closed';
     this.stopBeat?.(); this.recoTimer?.();
+    this.forget(reason === 'lost' || reason === 'closed');
     try { this.tr?.close(); } catch {}
     this.hooks.onClosed(reason);
+  }
+  private forget(keep: boolean) {
+    if (keep) this.remember();
+    if (typeof window !== 'undefined') window.removeEventListener('pagehide', this.remember);
   }
   leave() {
     if (this.status === 'closed') return;
     if (this.status === 'online') this.tr?.send(this.hostId, enc('bye'));
     this.status = 'closed';
+    this.forget(true);
     this.stopBeat?.(); this.recoTimer?.();
     this.clock.after(() => { try { this.tr?.close(); } catch {} }, 300);
   }

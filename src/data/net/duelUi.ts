@@ -4,6 +4,7 @@ import { DuelNetHost, DuelNetClient, mySide, myTurn, type DuelState } from './du
 import type { DuelGame, DuelSettings } from './duelRules';
 import { FirebaseTransport } from './firebaseTransport';
 import { normCode, validCode, sanitizeName, RoomError } from './room';
+import { guardLeave } from './leaveGuard';
 import { mountChat, type ChatBox } from './chatUi';
 
 const TEXT = {
@@ -197,6 +198,7 @@ export function mountDuel(o: DuelUiOpts): DuelUi {
   joinBtn.addEventListener('click', () => void join(codeIn.value, myName()));
   codeIn.addEventListener('input', () => { codeIn.value = normCode(codeIn.value); });
   window.addEventListener('pagehide', () => { if (ctl?.kind === 'host') { try { ctl.host.close(); } catch {} } });
+  guardLeave(() => !!ctl);
   // link mời ?room=MÃ, hoặc tải lại trang khi đang ở phòng của người khác
   const invite = normCode(new URLSearchParams(location.search).get('room') || '');
   if (invite) codeIn.value = invite;

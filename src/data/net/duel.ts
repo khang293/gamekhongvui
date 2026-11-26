@@ -103,7 +103,9 @@ export class DuelNetHost {
   private constructor(game: DuelGame, settings: DuelSettings, tr: Transport, clock: Clock, hostName: string, code: string, private onState: (s: DuelState) => void) {
     this.logic = new DuelGameHost(game, settings, code, hostName, () => this.publish());
     this.room = new RoomHost(tr, {
-      canJoin: () => (this.logic.phase === 'lobby' ? 'ok' : 'started'),
+      // bạn kia đã bấm rời: họ vào lại được, hoặc người khác vào thay (ván mới)
+      canJoin: () => (this.logic.phase === 'lobby' || this.room.members.some((x) => x.left && !x.online) ? 'ok' : 'started'),
+      keepSeat: () => this.logic.phase !== 'lobby',
       limit: () => 2,
       onJoin: (m, re) => { if (re) this.logic.online(true); else this.logic.join(m.name); this.publish(); },
       onOnline: (m: Member, on: boolean) => { if (!m.local) { this.logic.online(on); this.publish(); } },

@@ -293,6 +293,7 @@ const SUITS = [
   import { mountChat, type ChatBox } from '../../data/net/chatUi';
   import { LoopbackHub } from '../../data/net/loopbackTransport';
   import { normCode, validCode, sanitizeName, escapeHtml as esc, realClock, RoomError, type RejectReason } from '../../data/net/room';
+  import { guardLeave } from '../../data/net/leaveGuard';
   import type { Transport } from '../../data/net/transport';
 
   const root = document.getElementById('pk') as HTMLElement;
@@ -869,6 +870,7 @@ const SUITS = [
     const cl = document.getElementById('pk-closed'); if (cl) { cl.hidden = true; cl.innerHTML = ''; }
   }
   window.addEventListener('pagehide', () => { if (ctl?.kind === 'host') { try { ctl.host.close(); } catch {} } /* khách giữ token để nối lại sau khi tải lại trang */ });
+  guardLeave(() => !!ctl && $('pk-closed').hidden);
 
   async function createRoom() {
     const nameEl = $('pk-name-c') as HTMLInputElement;

@@ -80,6 +80,15 @@ export class XDGame {
     this.notify();
     this.maybeDeal();
   }
+  /** người chơi bấm rời giữa ván: giữ ghế, máy đánh thay ngay cho tới khi họ vào lại */
+  away(slot: number) {
+    this.markOnline(slot, false);
+    const s = this.slots[slot]; if (!s || !s.human) return;
+    s.replaced = true;
+    if (this.phase === 'playing' && this.st?.turn === slot) this.scheduleTurn(0);
+    this.notify();
+    this.maybeDeal();
+  }
   markOnline(slot: number, on: boolean) {
     const s = this.slots[slot]; if (!s || !s.human || s.online === on) return;
     s.online = on;
@@ -265,6 +274,7 @@ export class XDNetHost {
       onJoin: (m, re) => { if (re) this.game.markOnline(m.slot, true); else this.game.setHuman(m.slot, m.name); this.publish(); },
       onOnline: (m, on) => this.onOnline(m, on),
       onLeave: (m) => { this.game.clearHuman(m.slot); this.publish(); },
+      onAway: (m) => { this.game.away(m.slot); this.publish(); },
       onIntent: (m, p) => { this.game.intent(m.slot, p); },
     }, { code, hostName, clock, maxSlots: SEATS });
     this.game.setHuman(0, this.room.host.name);

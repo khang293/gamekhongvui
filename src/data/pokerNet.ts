@@ -7,7 +7,7 @@ import { decide, PROFILES } from './pokerBot';
 import { RoomHost, RoomClient, makeCode, normCode, sanitizeName, realClock, type Clock, type Member, type RejectReason, type JoinInfo } from './net/room';
 import { TransportError, type Transport } from './net/transport';
 
-export const GRACE_MS = 60000;   // mất mạng quá lâu thì máy chơi thay đến hết ván
+export const GRACE_MS = 60000;   // mất mạng quá lâu thì máy chơi thay cho tới khi quay lại
 export const NEXT_MS = 6000;     // nghỉ giữa hai ván để mọi người xem kết quả
 export const MAX_SEATS = 6;
 
@@ -85,6 +85,14 @@ export class PKGame {
   controller(slot: number): 'human' | 'bot' { const s = this.slots[slot]; return s && s.human && !s.replaced ? 'human' : 'bot'; }
   profileOf(slot: number): Profile { return ROSTER_PROFILES[slot] || 'balanced'; }
 
+  /** người chơi bấm rời giữa ván: giữ ghế, máy đánh thay ngay cho tới khi họ vào lại */
+  away(slot: number) {
+    this.markOnline(slot, false);
+    const s = this.slots[slot]; if (!s || !s.human) return;
+    s.replaced = true;
+    if (this.phase === 'table' && this.t && this.t.toAct === slot) this.scheduleTurn();
+    this.notify();
+  }
   markOnline(slot: number, on: boolean) {
     const s = this.slots[slot]; if (!s || !s.human || s.online === on) return;
     s.online = on;
@@ -100,7 +108,13 @@ export class PKGame {
           }
         }, GRACE_MS);
       }
-    } else s.offlineAt = 0;
+    } else {
+      s.offlineAt = 0;
+      if (s.replaced) { // quay lại: lấy lại quyền đánh ngay trong ván này
+        s.replaced = false;
+        if (this.phase === 'table' && this.t && this.t.toAct === slot) this.scheduleTurn();
+      }
+    }
     this.notify();
   }
 
@@ -274,6 +288,7 @@ export class PKNetHost {
       onJoin: (m, re) => this.onJoin(m, re),
       onOnline: (m, on) => this.onOnline(m, on),
       onLeave: (m) => { this.game.clearHuman(m.slot); this.publish(); },
+      onAway: (m) => { this.game.away(m.slot); this.publish(); },
       onIntent: (m, p) => { this.game.intent(m.slot, p); },
     }, { code, hostName, clock, maxSlots: MAX_SEATS });
     this.game.setHuman(0, this.room.host.name, true);

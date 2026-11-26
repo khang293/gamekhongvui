@@ -9,7 +9,7 @@ import { RoomHost, RoomClient, makeCode, normCode, sanitizeName, realClock, type
 import { TransportError, type Transport } from './net/transport';
 
 export const TURN_MS = 30000;    // thời gian mỗi lượt (chơi online, nếu chủ phòng bật đồng hồ)
-export const GRACE_MS = 60000;   // mất mạng quá lâu thì máy chơi thay đến hết ván
+export const GRACE_MS = 60000;   // mất mạng quá lâu thì máy chơi thay cho tới khi quay lại
 
 export type PlayMode = 'chips' | 'single' | 'points';
 // target: chỉ dùng ở chế độ 'points' (0 = không đặt đích)
@@ -89,6 +89,15 @@ export class TLGame {
   maxHumanSlot(): number { return Math.max(0, ...this.humanSlots()); }
   controller(slot: number): 'human' | 'bot' { const s = this.slots[slot]; return s && s.human && !s.replaced ? 'human' : 'bot'; }
 
+  /** người chơi bấm rời giữa ván: giữ ghế, máy đánh thay ngay cho tới khi họ vào lại */
+  away(slot: number) {
+    this.markOnline(slot, false);
+    const s = this.slots[slot]; if (!s || !s.human) return;
+    s.replaced = true;
+    if (this.phase === 'playing' && this.st && !this.st.over && this.seats[this.st.cur] === slot) this.scheduleTurn();
+    this.maybeAdvance();
+    this.notify();
+  }
   markOnline(slot: number, on: boolean) {
     const s = this.slots[slot]; if (!s || !s.human || s.online === on) return;
     s.online = on;
@@ -104,7 +113,13 @@ export class TLGame {
           }
         }, GRACE_MS);
       }
-    } else s.offlineAt = 0;
+    } else {
+      s.offlineAt = 0;
+      if (s.replaced) { // quay lại: lấy lại quyền đánh ngay trong ván này
+        s.replaced = false;
+        if (this.phase === 'playing' && this.st && !this.st.over && this.seats[this.st.cur] === slot) this.scheduleTurn();
+      }
+    }
     this.maybeAdvance();
     this.notify();
   }
@@ -382,6 +397,7 @@ export class TLNetHost {
       onJoin: (m, re) => this.onJoin(m, re),
       onOnline: (m, on) => this.onOnline(m, on),
       onLeave: (m) => { this.game.clearHuman(m.slot); this.publish(); },
+      onAway: (m) => { this.game.away(m.slot); this.publish(); },
       onIntent: (m, p) => { this.game.intent(m.slot, p); },
     }, { code, hostName, clock });
     this.game.setHuman(0, this.room.host.name, true);

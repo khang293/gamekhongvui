@@ -88,7 +88,7 @@ const TXT = {
     creating: 'Đang tạo phòng...', joining: 'Đang vào phòng...', rejoining: 'Đang nối lại phòng {c}...',
     createHelp: 'Bạn là chủ phòng: máy bạn chạy luật và giữ bài của cả bàn. Chỗ nào không có người sẽ do máy chơi.',
     joinHelp: 'Nhập mã 5 ký tự mà chủ phòng gửi cho bạn.',
-    lobbyTitle: 'Phòng chờ', copyLink: 'Sao chép link', copyCode: 'Sao chép mã', shareBtn: 'Chia sẻ', copied: 'Đã sao chép!',
+    lobbyTitle: 'Phòng chờ', copyLink: 'Sao chép link', copyCode: 'Sao chép mã', shareBtn: 'Chia sẻ', copied: 'Đã sao chép!', askLeave: 'Rời phòng?', askLeaveHost: 'Rời phòng? Bạn là chủ phòng nên phòng sẽ đóng với mọi người.', askQuit: 'Bỏ ván đang chơi?',
     seatsLbl: 'Số chỗ ngồi', seatsHint: 'Chỗ nào không có người sẽ do máy chơi.',
     hostTag: 'Chủ phòng', youTag: 'Bạn', botTag: 'Máy', onlineTag: 'Online', offlineTag: 'Mất kết nối', replacedTag: 'Máy chơi thay',
     timerLbl: 'Đồng hồ mỗi lượt', timerOpts: ['30 giây', 'Tắt'],
@@ -186,7 +186,7 @@ const TXT = {
     creating: 'Creating the room...', joining: 'Joining the room...', rejoining: 'Reconnecting to room {c}...',
     createHelp: 'You are the host: your device runs the rules and holds everyone\'s cards. Empty seats are played by the computer.',
     joinHelp: 'Enter the 5-character code the host sent you.',
-    lobbyTitle: 'Lobby', copyLink: 'Copy link', copyCode: 'Copy code', shareBtn: 'Share', copied: 'Copied!',
+    lobbyTitle: 'Lobby', copyLink: 'Copy link', copyCode: 'Copy code', shareBtn: 'Share', copied: 'Copied!', askLeave: 'Leave the room?', askLeaveHost: 'Leave the room? You are the host, so the room closes for everyone.', askQuit: 'Abandon this game?',
     seatsLbl: 'Seats', seatsHint: 'Empty seats are played by the computer.',
     hostTag: 'Host', youTag: 'You', botTag: 'Bot', onlineTag: 'Online', offlineTag: 'Disconnected', replacedTag: 'Bot playing',
     timerLbl: 'Turn timer', timerOpts: ['30 seconds', 'Off'],
@@ -316,7 +316,7 @@ const MODE_KEYS = ['chips', 'single', 'points'];
           <div class="tl-top">
             <button type="button" class="tl-mini-btn" id="tl-menu-btn" aria-label={T.menu}>☰ <span>{T.menu}</span></button>
             <span class="tl-conn" id="tl-conn" hidden></span>
-            <span class="tl-pill" id="tl-roomcode" hidden></span>
+            <button type="button" class="tl-pill" id="tl-roomcode" title={T.copyLink} hidden></button>
             <span class="tl-pill" id="tl-handinfo"></span>
             <span class="tl-pill gold" id="tl-un"></span>
             <button type="button" class="tl-mini-btn push" id="tl-new" aria-label={T.again}>↻ <span>{T.again}</span></button>
@@ -365,6 +365,7 @@ const MODE_KEYS = ['chips', 'single', 'points'];
   import { mountChat, type ChatBox } from '../../data/net/chatUi';
   import { LoopbackHub } from '../../data/net/loopbackTransport';
   import { normCode, validCode, sanitizeName, escapeHtml as esc, realClock, RoomError, type RejectReason } from '../../data/net/room';
+  import { guardLeave } from '../../data/net/leaveGuard';
   import type { Transport } from '../../data/net/transport';
   import { sfx, mountMute } from '../../data/sfx';
 
@@ -715,7 +716,7 @@ const MODE_KEYS = ['chips', 'single', 'points'];
     if (online) {
       connEl.className = 'tl-conn' + (conn === 'lost' ? ' lost' : '');
       connEl.textContent = conn === 'lost' ? T.connLost : (ctl!.kind === 'host' ? T.connHost : T.connOk);
-      codeEl.textContent = `${T.roomCode}: ${s.code}`;
+      codeEl.innerHTML = `<span class="lbl">${T.roomCode}: </span>${esc(s.code)}`;
     }
     $('tl-handinfo').textContent = fmt(T.handNo, { k: s.hand });
     const un = $('tl-un');
@@ -1026,7 +1027,14 @@ const MODE_KEYS = ['chips', 'single', 'points'];
     countedHand = ''; countedOver = ''; shownResultKey = '';
     if (ctl.kind === 'solo') ctl.game.restartNow(); else ctl.host.game.restartNow();
   });
-  $('tl-menu-btn').addEventListener('click', () => leaveToMenu());
+  // ☰ giữa ván: hỏi trước khi rời (phòng đã đóng hoặc ván đã xong thì thoát luôn)
+  function askMenu() {
+    const online = !!ctl && ctl.kind !== 'solo';
+    const done = !ns || (ns.phase === 'result' && (!!ns.result?.sessionOver || ns.settings.mode === 'single'));
+    const ask = online ? (closedEl.hidden ? (ctl!.kind === 'host' ? T.askLeaveHost : T.askLeave) : '') : done ? '' : T.askQuit;
+    if (!ask || window.confirm(ask)) leaveToMenu();
+  }
+  $('tl-menu-btn').addEventListener('click', askMenu);
   window.addEventListener('resize', () => { if (inGame && ns?.view) layoutHand(); });
   window.addEventListener('orientationchange', () => setTimeout(() => { if (inGame && ns?.view) layoutHand(); }, 250));
 
@@ -1055,6 +1063,7 @@ const MODE_KEYS = ['chips', 'single', 'points'];
   }
   function leaveToMenu() { teardown(); saveRoom(null); showView('home'); }
   window.addEventListener('pagehide', () => { if (ctl?.kind === 'host') { try { ctl.host.close(); } catch {} } else if (ctl?.kind === 'client') { /* giữ token để nối lại khi tải lại trang */ } });
+  guardLeave(() => !!ctl && ctl.kind !== 'solo' && closedEl.hidden);
 
   // ---------- Chơi với máy ----------
   let nPlayers = 4, level = 2, mode: 'chips' | 'single' | 'points' = 'chips', stackStart = 1000, unit = 10, targetPts = 100;
@@ -1158,10 +1167,20 @@ const MODE_KEYS = ['chips', 'single', 'points'];
 
   // ---------- Phòng chờ ----------
   function lobbyLink(code: string) { return `${location.origin}${location.pathname}?room=${code}`; }
-  async function copyText(text: string, btn: HTMLElement) {
+  async function writeClip(text: string) {
     try { await navigator.clipboard.writeText(text); } catch {
       const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch {} ta.remove();
     }
+  }
+  // đang trong trận: bấm mã phòng để chép link mời
+  $('tl-roomcode').addEventListener('click', async (e) => {
+    const b = e.currentTarget as HTMLElement;
+    if (!ns?.code) return;
+    await writeClip(lobbyLink(ns.code));
+    b.classList.add('ok'); setTimeout(() => b.classList.remove('ok'), 1400);
+  });
+  async function copyText(text: string, btn: HTMLElement) {
+    await writeClip(text);
     const old = btn.textContent; btn.textContent = T.copied; setTimeout(() => { btn.textContent = old; }, 1400);
   }
   function renderLobby() {
@@ -1365,6 +1384,8 @@ const MODE_KEYS = ['chips', 'single', 'points'];
   .tl-pill { min-width: 0; overflow: hidden; text-overflow: ellipsis; padding: 3px 10px; border-radius: 999px; background: rgba(255, 255, 255, .1); color: rgba(255, 255, 255, .88); white-space: nowrap; font-variant-numeric: tabular-nums; }
   .tl-pill[hidden], .tl-conn[hidden] { display: none; }
   #tl-handinfo { flex: none; }
+  #tl-roomcode { flex: none; border: 0; font: inherit; cursor: pointer; }
+  #tl-roomcode.ok { background: rgba(47, 158, 68, .45); } #tl-roomcode.ok::after { content: ' ✓'; }
   .tl-pill.gold { background: rgba(255, 213, 74, .14); color: #ffd54a; }
   .tl-conn { padding: 3px 10px; border-radius: 999px; background: rgba(47, 158, 68, .25); color: #8ce99a; white-space: nowrap; }
   .tl-conn::before { content: '● '; }
@@ -1520,7 +1541,11 @@ const MODE_KEYS = ['chips', 'single', 'points'];
     .tl-top .tl-mini-btn span { display: none; }
     .tl-top .tl-mini-btn { padding: 0; width: 34px; font-size: 15px; }
     .tl-conn { font-size: 0; padding: 3px 8px; } .tl-conn::before { font-size: 12px; }
-    #tl-roomcode { display: none; }
+    /* thanh trên đã chật: mã phòng nằm ở góc trống phía trên bên trái bàn */
+    .tl-top { position: static; }
+    #tl-roomcode { position: absolute; z-index: 6; left: 8px; top: calc(env(safe-area-inset-top, 0px) + 46px); min-height: 28px; padding: 3px 10px; letter-spacing: .04em; background: rgba(8, 14, 22, .85); border: 1px solid #ffffff40; }
+    #tl-roomcode.ok { background: #2b8a3e; }
+    #tl-roomcode .lbl { display: none; } #tl-roomcode::before { content: '🔑 '; }
     .tl-stage { padding: 16px 14px 14px; }
     .tl-table { --pcw: clamp(44px, 13.5vw, 58px); border-radius: 44% / 38%; }
     .tl-table::after { inset: -10px; }

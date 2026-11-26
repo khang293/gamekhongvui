@@ -127,6 +127,7 @@ const EMOJIS = ['😂', '😭', '😱', '👍', '👏', '🔥', '🎨', '🤔'];
   import { DGNetHost, DGNetClient, type DGViewHooks } from '../../data/drawNet';
   import { FirebaseTransport } from '../../data/net/firebaseTransport';
   import { normCode, validCode, sanitizeName, RoomError } from '../../data/net/room';
+  import { guardLeave } from '../../data/net/leaveGuard';
 
   const root = document.getElementById('dg-root') as HTMLElement;
   const T = JSON.parse(root.dataset.ui || '{}');
@@ -489,6 +490,7 @@ const EMOJIS = ['😂', '😭', '😱', '👍', '👏', '🔥', '🎨', '🤔'];
   $('dg-copylink').addEventListener('click', (e) => copy(e.currentTarget as HTMLElement, `${location.origin}${location.pathname}?room=${cur?.code || ''}`));
   codeIn.addEventListener('input', () => { codeIn.value = normCode(codeIn.value); });
   window.addEventListener('pagehide', () => { if (ctl?.kind === 'host') { try { ctl.host.close(); } catch {} } });
+  guardLeave(() => !!ctl);
   const invite = normCode(new URLSearchParams(location.search).get('room') || '');
   if (invite) codeIn.value = invite;
   try {

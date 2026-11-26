@@ -118,6 +118,7 @@ const T = {
   import { FirebaseTransport } from '../../data/net/firebaseTransport';
   import { mountChat, type ChatBox } from '../../data/net/chatUi';
   import { normCode, validCode, sanitizeName, realClock, RoomError } from '../../data/net/room';
+  import { guardLeave } from '../../data/net/leaveGuard';
 
   const root = document.getElementById('cm-root') as HTMLElement;
   const T = JSON.parse(root.dataset.ui || '{}');
@@ -581,6 +582,7 @@ const T = {
   $('cm-join').addEventListener('click', () => { sfx.play('click'); void joinRoom(codeIn.value, myName()); });
   codeIn.addEventListener('input', () => { codeIn.value = normCode(codeIn.value); });
   window.addEventListener('pagehide', () => { if (ctl?.kind === 'host') { try { ctl.host.close(); } catch {} } });
+  guardLeave(() => !!ctl && ctl.kind !== 'solo');
   const invite = normCode(new URLSearchParams(location.search).get('room') || '');
   if (invite) codeIn.value = invite;
   try {

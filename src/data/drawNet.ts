@@ -3,7 +3,7 @@ import { DGGame, cleanOp, packOps, MAX_PLAYERS, type DGState, type DGLog, type D
 import { RoomHost, RoomClient, makeCode, normCode, sanitizeName, cleanChat, realClock, type Clock, type Member, type RejectReason, type JoinInfo } from './net/room';
 import { TransportError, type Transport } from './net/transport';
 
-const AWAY_REMOVE_MS = 60000; // giữ ghế 60 giây cho người mất mạng
+const AWAY_REMOVE_MS = 600000; // giữ ghế và điểm 10 phút cho người rời hay mất mạng
 export interface DGOps { game: 'dg'; k: 'op'; reset: boolean; ops: Op[] }
 export interface DGViewHooks {
   onState(s: DGState): void;
@@ -34,6 +34,7 @@ export class DGNetHost {
     this.room = new RoomHost(tr, {
       canJoin: () => 'ok', // vào giữa chừng được
       limit: () => MAX_PLAYERS,
+      keepSeat: () => this.game.phase !== 'lobby' && this.game.phase !== 'over',
       onJoin: (m, re) => {
         if (re) this.game.markOnline(m.slot, true); else this.game.join(m.slot, m.name);
         this.publish();
@@ -42,6 +43,7 @@ export class DGNetHost {
         for (const pack of packOps(this.game.ops)) this.sendOps(m, pack, false);
       },
       onOnline: (m, on) => this.onOnline(m, on),
+      onAway: (m) => this.onOnline(m, false),
       onLeave: (m) => this.game.leave(m.slot),
       onIntent: (m, p) => { this.game.intent(m.slot, p); },
     }, { code, hostName, clock, maxSlots: MAX_PLAYERS });
