@@ -52,6 +52,7 @@ const T = vi ? {
       badcode: 'Mã phòng gồm 5 ký tự (chữ và số).', create: 'Không tạo được phòng. Kiểm tra mạng rồi thử lại.',
     },
     connOk: 'Online', connLost: 'Mất kết nối, đang nối lại...', connHost: 'Chủ phòng', roomClosed: 'Phòng đã đóng', toMenu: 'Về menu',
+    askLeave: 'Rời phòng?', askLeaveHost: 'Rời phòng? Bạn là chủ phòng nên phòng sẽ đóng với mọi người.', askQuit: 'Bỏ ván đang chơi?',
     restart: 'Chơi lại', waitRestart: 'Chờ chủ phòng chơi lại...', confirmRestart: 'Chơi lại từ đầu và đặt lại chip cho mọi người?',
     spectating: 'Bạn đã hết chip, đang xem các ván còn lại.', nextIn: 'Ván tiếp sau {s} giây...', tableWinner: '{n} thắng cả bàn!',
   },
@@ -100,6 +101,7 @@ const T = vi ? {
       badcode: 'A room code has 5 characters (letters and digits).', create: 'Could not create the room. Check your connection and try again.',
     },
     connOk: 'Online', connLost: 'Connection lost, reconnecting...', connHost: 'Host', roomClosed: 'Room closed', toMenu: 'Back to menu',
+    askLeave: 'Leave the room?', askLeaveHost: 'Leave the room? You are the host, so the room closes for everyone.', askQuit: 'Abandon this game?',
     restart: 'Play again', waitRestart: 'Waiting for the host to restart...', confirmRestart: "Restart and reset everyone's chips?",
     spectating: 'You are out of chips and watching the rest.', nextIn: 'Next hand in {s}s...', tableWinner: '{n} won the whole table!',
   },
@@ -1027,7 +1029,12 @@ const SUITS = [
     }
     newGame();
   });
-  $('pk-menu-btn').addEventListener('click', showMenu);
+  // nút Menu trong bàn chơi: hỏi lại trước khi rời (không hỏi nếu phòng đã đóng hoặc ván đã xong)
+  function askMenu() {
+    const ask = ctl ? ($('pk-closed').hidden ? (ctl.kind === 'host' ? ui.net.askLeaveHost : ui.net.askLeave) : '') : over ? '' : ui.net.askQuit;
+    if (!ask || window.confirm(ask)) showMenu();
+  }
+  $('pk-menu-btn').addEventListener('click', askMenu);
   paintStat();
 
   // ---------- Debug (chỉ khi URL có #debug): điều khiển đồng bộ, không dùng bộ đếm giờ ----------
